@@ -1,0 +1,126 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* CARD */
+form {
+    background: #0b1220;
+    padding: 30px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+/* TITULO */
+form::before {
+    content: "Criar Conta";
+    display: block;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #22c55e;
+}
+
+/* GRID */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group.full {
+    grid-column: span 2;
+}
+
+label {
+    font-size: 12px;
+    margin-bottom: 4px;
+    color: #94a3b8;
+}
+
+/* INPUT */
+input, select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #1e293b;
+    background: #020617;
+    color: white;
+    outline: none;
+    transition: 0.2s;
+}
+
+input:focus, select:focus {
+    border-color: #22c55e;
+    box-shadow: 0 0 5px #22c55e50;
+}
+
+/* BOTÕES */
+button {
+    margin-top: 15px;
+    padding: 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+/* PRINCIPAL */
+.btn-main {
+    background: #22c55e;
+    color: black;
+}
+
+.btn-main:hover {
+    background: #16a34a;
+}
+
+/* SECUNDÁRIO */
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #22c55e;
+    color: #22c55e;
+}
+
+.btn-secondary:hover {
+    background: #22c55e;
+    color: black;
+}
+
+/* STEPS */
+.step {
+    display: none;
+}
+
+.step.active {
+    display: block;
+}
+
+/* RESPONSIVO */
+@media (max-width: 500px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .input-group.full {
+        grid-column: span 1;
+    }
+}

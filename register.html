@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Registro</title>
+<link rel="stylesheet" href="css/register.css">
+</head>
+
+<body>
+<form id="registerForm">
+
+  <div class="input-group full">
+    <label>Tipo de Conta</label>
+    <select id="tipo">
+      <option value="">Selecione...</option>
+      <option value="CLIENTE">Cliente</option>
+      <option value="EMPRESA">Empresa</option>
+      <option value="FUNCIONARIO">Funcionário</option>
+    </select>
+  </div>
+
+  <div class="steps-container">
+
+    <div id="step1" class="step active">
+      <div class="form-grid">
+
+        <div class="input-group">
+          <label>CEP</label>
+          <input type="text" id="cep">
+        </div>
+
+        <div class="input-group">
+          <label>Número</label>
+          <input type="text" id="numero">
+        </div>
+
+        <div class="input-group full">
+          <label>Rua</label>
+          <input type="text" id="rua">
+        </div>
+
+        <div class="input-group full">
+          <label>Bairro</label>
+          <input type="text" id="bairro">
+        </div>
+
+      </div>
+
+      <button type="button" class="btn-main" onclick="nextStep()">Continuar →</button>
+    </div>
+
+    <div id="step2" class="step">
+      <div class="form-grid">
+
+        <div class="input-group full">
+          <label>Email</label>
+          <input type="email" id="email">
+        </div>
+
+        <div class="input-group">
+          <label>Senha</label>
+          <input type="password" id="senha">
+        </div>
+
+        <div class="input-group full" id="cnpjGroup" style="display:none;">
+          <label>CNPJ</label>
+          <input type="text" id="cnpj">
+        </div>
+
+      </div>
+
+      <button type="button" class="btn-secondary" onclick="prevStep()">← Voltar</button>
+
+      <button type="submit">Registrar</button>
+
+    </div>
+
+  </div>
+
+</form>
+
+<script src="js/register.js"></script>
+
+</body>
+</html>
