@@ -210,3 +210,48 @@ button {
         justify-content: flex-start;
     }
 }
+
+/* Container principal das logos */
+.brand-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centraliza tudo horizontalmente */
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+/* Tamanho do Ícone (a barata/alvo) */
+.logo-img {
+    width: 120px; /* Ajuste esse valor para aumentar ou diminuir o ícone */
+    height: auto; /* Mantém a proporção sem achatar */
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Tamanho da Imagem com o Nome do App */
+.app-name-img {
+    width: 200px; /* Ajuste aqui para o tamanho do texto PestControlX */
+    height: auto;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Tagline (O texto de baixo) */
+.brand-tagline {
+    font-size: 14px;
+    color: #ffffff; /* Ou a cor que preferir */
+    opacity: 0.8;
+    margin-top: 5px;
+}
+
+/* Ajuste para telas pequenas (Celular) */
+@media (max-width: 480px) {
+    .logo-img {
+        width: 100px;
+    }
+    .app-name-img {
+        width: 180px;
+    }
+}
