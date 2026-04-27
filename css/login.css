@@ -173,3 +173,48 @@ input:focus {
 .register-link a:hover {
     text-decoration: underline;
 }
+
+/* Container que segura tudo no topo */
+.header-app {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centraliza tudo no meio */
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* O círculo ou ícone da logo */
+.logo-img {
+    width: 100px; /* Um pouco menor que no cadastro para dar foco ao formulário */
+    height: auto;
+    margin-bottom: 15px;
+    display: block;
+}
+
+/* O texto 'PestControlX' em imagem */
+.app-name-img {
+    width: 180px; 
+    height: auto;
+    display: block;
+    margin-bottom: 10px;
+}
+
+/* O texto "Bem-vindo de volta" */
+.subtitle {
+    font-size: 16px;
+    color: #ffffff; /* Ajuste para a cor do seu texto */
+    font-weight: 300;
+    opacity: 0.9;
+}
+
+/* Ajuste para telas de celular */
+@media (max-width: 480px) {
+    .logo-img {
+        width: 80px;
+    }
+    .app-name-img {
+        width: 150px;
+    }
+}

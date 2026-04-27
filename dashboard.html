@@ -10,71 +10,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=JetBrains+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="background-container">
-        <canvas id="starsCanvas"></canvas>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-success">
+    <div class="container">
+        <a class="navbar-brand tech-logo" href="#">
+            <img src="img/logo2 copy.png" width="30" height="30" class="d-inline-block align-top" alt="">
+            PestControlX
+        </a>
+        <div class="text-white ms-auto font-mono">
+            SESSÃO EMPRESA: <span id="userName" class="text-success">CARREGANDO...</span>
+        </div>
+    </div>
+</nav>
+
+<main class="container mt-5 p-4 dashboard-box">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="titulo-dash">Monitoramento Global de Pragas</h2>
+        <span class="badge bg-success">Status: Online</span>
     </div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-success">
-        <div class="container">
-            <a class="navbar-brand tech-logo" href="#">PestControlX </a>
-            <div class="text-white ms-auto font-mono">USUÁRIO: <span id="userName" class="text-success">CARREGANDO...</span></div>
-        </div>
-    </nav>
-
-    <main class="container mt-5 p-4 dashboard-box">
-        <h2 class="titulo-dash mb-4">Monitoramento Global de Pragas</h2>
-
-        <div class="row mb-5">
-            <div class="col-md-3">
-                <div class="card-status border-success">
-                    <small>CLIENTES ATIVOS</small>
-                    <div id="qtdClientes" class="valor">--</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card-status border-warning">
-                    <small>SERVIÇOS PENDENTES</small>
-                    <div id="qtdPendentes" class="valor">--</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card-status border-danger">
-                    <small>INFESTAÇÕES CRÍTICAS</small>
-                    <div id="qtdCriticos" class="valor">--</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card-status border-info">
-                    <small>FUNCIONÁRIOS EM CAMPO</small>
-                    <div id="qtdFuncionarios" class="valor">--</div>
-                </div>
-            </div>
+    <div class="row mb-5">
         </div>
 
-        <div class="table-container p-3">
-            <h4 class="mb-3 text-success">Últimas Ordens de Serviço</h4>
-            <table class="table table-dark table-hover">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Cliente</th>
-                        <th>Técnico Responsável</th>
-                        <th>Status</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="listaServicos">
-                    </tbody>
-            </table>
-        </div>
-        <button class="btn btn-warning" onclick="window.location.href='atualizar.html'">
-    Atualizar Dados
-</button>
+    <div class="table-container p-3">
+        <h4 class="mb-3 text-success">Últimas Ordens de Serviço (Campo)</h4>
+        <table class="table table-dark table-hover">
+            <tbody id="listaServicos"></tbody>
+        </table>
+    </div>
 
-<button class="btn btn-danger" onclick="logout()">
-    Sair
-</button>
-    </main>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-warning" onclick="window.location.href='atualizar.html'">Atualizar Dados</button>
+        <button class="btn btn-outline-danger" onclick="logout()">Encerrar Sessão</button>
+    </div>
+</main>
 
     <script src="js/stars.js"></script>
     <script src="js/dashboard.js"></script>
