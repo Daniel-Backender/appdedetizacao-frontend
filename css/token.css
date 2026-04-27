@@ -1,35 +1,36 @@
-.login-container {
-    height: 100vh;
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121212; /* Fundo escuro */
     display: flex;
-    align-items: center;
     justify-content: center;
-    z-index: 2;
-    position: relative;
+    align-items: center;
+    height: 100vh;
 }
 
 .login-box {
-    background: rgba(133, 3, 3, 0.562);
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
     padding: 40px;
-    border: 1px solid #00ff88;
-    border-radius: 5px;
-    box-shadow: 0 0 30px rgba(0, 255, 136, 0.874);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 230, 118, 0.2);
+    text-align: center;
     width: 100%;
     max-width: 400px;
-    text-align: center;
 }
 
-.login-logo {
-    font-family: 'Black Ops One', cursive;
-    color: #00ff88;
-    font-size: 2rem;
-    margin-bottom: 5px;
+.header-app {
+    margin-bottom: 30px;
 }
+
+.logo-img { width: 80px; height: auto; margin-bottom: 10px; }
+.app-name-img { width: 180px; height: auto; }
 
 .login-status {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: #ff0000;
+    color: #00E676;
     letter-spacing: 2px;
+    font-size: 12px;
     margin-bottom: 30px;
 }
 
@@ -39,77 +40,41 @@
 }
 
 .input-group label {
+    color: #ccc;
     display: block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: #00ff88;
     margin-bottom: 8px;
 }
 
-.input-group input, .input-group select {
+.input-group input {
     width: 100%;
     padding: 12px;
-    background: rgba(0, 255, 136, 0.05);
-    border: 1px solid rgba(0, 255, 136, 0.3);
-    color: white;
-    border-radius: 4px;
-    outline: none;
-}
-
-.input-group input:focus {
-    border-color: #00ff88;
-    box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #fff;
+    text-align: center;
+    font-size: 18px;
+    letter-spacing: 5px;
 }
 
 .btn-login {
     width: 100%;
     padding: 15px;
-    background: #00ff88;
-    color: #000;
+    background: #00E676;
     border: none;
-    font-family: 'Black Ops One', cursive;
-    font-size: 16px;
+    border-radius: 8px;
+    color: #000;
+    font-weight: bold;
     cursor: pointer;
     transition: 0.3s;
-    margin-top: 10px;
 }
 
-.btn-login:hover {
-    background: #00cc66;
-    box-shadow: 0 0 20px #00ff88;
-}
+.btn-login:hover { background: #00c864; transform: scale(1.02); }
 
 .back-link {
     display: block;
     margin-top: 20px;
-    color: #666;
+    color: #888;
     text-decoration: none;
-    font-size: 12px;
-}
-
-.login-status {
-    animation: blink 2s infinite; 
-}
-
-.login-logo span {
-    color: #ff0000;
-}
-
-#token-code {
-    text-transform: uppercase;
-    text-align: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.2rem;
-    letter-spacing: 5px;
-}
-
-@keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-body {
-    background: radial-gradient(circle at center, #1a0505 0%, #000000 100%);
-    margin: 0;
-    overflow: hidden;
+    font-size: 13px;
 }
