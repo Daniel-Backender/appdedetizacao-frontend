@@ -1,198 +1,87 @@
-/* ===== BASE GLOBAL ===== */
+/* RESET E FUNDO GRADIENTE */
 body {
     margin: 0;
-    font-family: 'JetBrains Mono', monospace;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    color: #fff;
+    background: linear-gradient(180deg, #F0F2F5 0%, #FFFFFF 100%);
+    background-attachment: fixed;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
     min-height: 100vh;
 }
 
-/* ===== CONTAINER ===== */
-.container {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 20px;
+/* HEADER COM GRADIENTE VERDE (IGUAL AO APP) */
+.navbar, .dashboard-header {
+    background: linear-gradient(90deg, #76D248 0%, #B5E61D 100%) !important;
+    padding: 15px 0;
+    border-bottom: 4px solid #558B2F;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* ===== BOX PADRÃO ===== */
+.tech-logo, .app-name-img {
+    filter: brightness(0.1); /* Deixa a logo escura para contrastar com o verde claro */
+}
+
+/* BOX DO DASHBOARD COM GRADIENTE BRANCO SUAVE */
 .dashboard-box {
-    background: rgba(0, 20, 10, 0.85);
-    border: 1px solid rgba(0, 255, 136, 0.2);
+    background: linear-gradient(145deg, #ffffff, #f5f5f5);
+    border-radius: 15px;
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 7px 7px 15px #d1d1d1, -7px -7px 15px #ffffff;
+    padding: 25px;
+    margin-top: 30px;
+}
+
+/* CARDS DE STATUS */
+.card-status, .card {
+    background: #333333; /* Fundo escuro igual aos botões do App */
+    color: #00E676;      /* Texto verde */
     border-radius: 12px;
-    backdrop-filter: blur(10px);
     padding: 20px;
-    margin-bottom: 20px;
+    text-align: center;
+    border: none;
+    transition: 0.3s;
+    margin-bottom: 15px;
 }
 
-/* ===== TITULOS ===== */
-h2, h3 {
-    color: #00ff88;
-    margin-bottom: 10px;
+.card-status:hover {
+    transform: scale(1.03);
+    background: #1A1A1A;
 }
 
-/* ===== BOTÃO ===== */
-button {
-    background: #00ff88;
+.card-status .valor {
+    font-size: 28px;
+    font-weight: bold;
+    display: block;
+}
+
+/* TABELAS */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.table thead {
+    background: #333;
+    color: #00E676;
+}
+
+/* BOTÕES */
+.btn-warning { background-color: #FFA000; border: none; color: #fff; }
+.btn-danger { background-color: #D32F2F; border: none; color: #fff; }
+
+.btn-action, button {
+    background: #333;
+    color: #00E676;
     border: none;
     padding: 10px 20px;
-    color: #000;
+    border-radius: 8px;
     font-weight: bold;
-    border-radius: 6px;
     cursor: pointer;
     transition: 0.3s;
 }
 
-button:hover {
-    background: #00cc6a;
-    transform: scale(1.05);
-}
+button:hover { background: #00E676; color: #333; }
 
-/* ===== LISTA ===== */
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-li {
-    background: rgba(255,255,255,0.05);
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 6px;
-}
-
-/* ===== TABELA ===== */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-}
-
-th {
-    background: rgba(0,255,136,0.2);
-    padding: 10px;
-}
-
-td {
-    background: rgba(255,255,255,0.05);
-    padding: 10px;
-    text-align: center;
-}
-
-/* ===== CARDS ===== */
-.card {/* Configurações Gerais */
-body {
-    background-color: #0b0b0b;
-    color: #e0e0e0;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.dashboard-box {
-    background: rgba(20, 20, 20, 0.8);
-    border: 1px solid #333;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-/* Títulos Neon */
-.titulo-dash, h2, h3 {
-    color: #00E676;
-    text-transform: uppercase;
-    text-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
-}
-
-/* Cards de Status (Empresa) */
-.card-status {
-    background: #1a1a1a;
-    padding: 20px;
-    border-radius: 12px;
-    border-left: 5px solid; /* A cor vem do HTML (border-success, etc) */
-    transition: transform 0.3s;
-}
-
-.card-status:hover {
-    transform: translateY(-5px);
-}
-
-.card-status small {
-    color: #888;
-    font-weight: bold;
-}
-
-.card-status .valor {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-/* Tabela Personalizada */
-.table-container {
-    background: #151515;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.table {
-    margin-bottom: 0;
-    color: #ccc;
-}
-
-.table thead th {
-    border-bottom: 2px solid #00E676;
-    color: #00E676;
-}
-
-/* Botões do Painel */
-.btn {
-    border-radius: 8px;
-    padding: 10px 20px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-
-/* Admin Specific */
-.dashboard-header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 20px 0;
-    border-bottom: 1px solid #333;
-    margin-bottom: 30px;
-}
-
-.admin-info h2 { margin: 0; font-size: 20px; }
-
-.custom-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 15px;
-}
-
-.custom-list li {
-    background: #222;
-    padding: 10px;
-    margin-bottom: 5px;
-    border-radius: 5px;
-    border-left: 3px solid #00E676;
-}
-
-/* Canvas de Fundo (Estrelas) */
-#starsCanvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-}
-    background: rgba(255,255,255,0.05);
-    padding: 20px;
-    border-left: 5px solid #00ff88;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    transition: 0.3s;
-}
-
-.card:hover {
-    transform: scale(1.03);
-    box-shadow: 0 0 15px rgba(0,255,136,0.3);
-}
+/* UTILS */
+.text-success { color: #558B2F !important; font-weight: bold; }
