@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-
     const form = document.getElementById("form-token");
     const BASE_URL = "https://appdedetizacao.onrender.com";
 
@@ -11,10 +10,10 @@ document.addEventListener("DOMContentLoaded", function () {
     async function validarToken() {
         const codigo = document.getElementById("codigo").value.trim();
         const email = localStorage.getItem("emailTemp");
-        const tipoLogin = (localStorage.getItem("tipoTemp") || "").toUpperCase();
+        const tipoLogin = localStorage.getItem("tipoTemp"); // Pegando o que salvamos no login
 
-        if (!email) {
-            alert("Faça login novamente");
+        if (!email || !tipoLogin) {
+            alert("Sessão expirada. Faça login novamente.");
             window.location.href = "login.html";
             return;
         }
@@ -28,36 +27,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const data = await response.json();
 
-            if (!response.ok) throw new Error(data.message);
+            if (!response.ok) throw new Error(data.message || "Código inválido");
 
-            // 🔥 valida consistência
-            if (data.tipo.toUpperCase() !== tipoLogin) {
-                alert("Erro de segurança: tipo inconsistente");
-                return;
-            }
-
+            // ✅ SALVANDO DADOS OFICIAIS DE ACESSO
             localStorage.setItem("token", data.token);
             localStorage.setItem("tipoUsuario", data.tipo);
+            localStorage.setItem("userName", data.nome || "Usuário");
 
+            // Limpa os temporários
             localStorage.removeItem("emailTemp");
             localStorage.removeItem("tipoTemp");
 
-            // 🔥 REDIRECIONAMENTO CORRETO
-            switch (tipoLogin) {
-                case "CLIENTE":
-                    window.location.href = "dash_cliente.html";
-                    break;
-                case "FUNCIONARIO":
-                    window.location.href = "dash_funcionario.html";
-                    break;
-                case "EMPRESA":
-                    window.location.href = "dashboard.html";
-                    break;
-                case "ADMINISTRADOR":
-                    window.location.href = "dashboard_admin.html";
-                    break;
-                default:
-                    alert("Tipo inválido");
+            // REDIRECIONAMENTO BASEADO NO TIPO VOLTADO PELO BACKEND
+            const tipoFinal = data.tipo.toUpperCase();
+
+            if (tipoFinal === "EMPRESA") {
+                window.location.href = "dashboard.html";
+            } else if (tipoFinal === "ADMINISTRADOR" || tipoFinal === "ADMIN") {
+                window.location.href = "dashboard_admin.html";
+            } else {
+                alert("Acesso permitido apenas via aplicativo para este tipo de conta.");
+                window.location.href = "login.html";
             }
 
         } catch (err) {

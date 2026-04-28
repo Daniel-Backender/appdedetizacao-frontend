@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-
     const form = document.getElementById("loginForm");
     const BASE_URL = "https://appdedetizacao.onrender.com";
 
@@ -23,18 +22,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await response.json();
 
-            if (!response.ok) throw new Error(data.message);
+            if (!response.ok) throw new Error(data.message || "Erro ao fazer login");
 
+            // SALVANDO AS INFORMAÇÕES NECESSÁRIAS PARA O TOKEN
             localStorage.setItem("emailTemp", email);
+            localStorage.setItem("tipoTemp", data.tipo); // Isso aqui estava faltando!
 
-            // DEBUG
-            alert("Código (DEV): " + data.codigo_dev);
-
+            // Alerta de debug (pode remover depois que testar)
+            alert("Código enviado! Verifique seu email.");
+            
+            // Redireciona
             window.location.href = "token.html";
 
         } catch (err) {
             console.error(err);
-            alert(err.message);
+            alert("Erro: " + err.message);
         }
     });
 });
