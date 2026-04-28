@@ -1,35 +1,33 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Token</title>
-<link rel="stylesheet" href="css/token.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificação - PestControlX</title>
+    <link rel="stylesheet" href="css/token.css">
 </head>
-
 <body>
-
-<div class="login-container">
-    <div class="login-box">
-        <div class="header-app">
-            <img src="img/logo2 copy.png" alt="Logo" class="logo-img">
-            <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img">
-        </div>
-        
-        <p class="login-status">VERIFICAÇÃO DE SEGURANÇA</p>
-
-        <form id="form-token">
-            <div class="input-group">
-                <label>Código enviado ao E-mail</label>
-                <input type="text" id="codigo" placeholder="Digite o código" required>
+    <div class="token-container">
+        <div class="token-box">
+            <div class="header-app">
+                <img src="img/logo2 copy.png" alt="Logo" class="logo-img">
+                <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img">
             </div>
 
-            <button type="submit" class="btn-login">VALIDAR ACESSO</button>
+            <p class="status-label">VERIFICAÇÃO DE SEGURANÇA</p>
+            <p class="subtitle">Insira o código enviado ao seu e-mail corporativo.</p>
 
-            <a href="login.html" class="back-link">← VOLTAR AO LOGIN</a>
-        </form>
+            <form id="form-token">
+                <div class="input-group">
+                    <input type="text" id="codigo" placeholder="000000" maxlength="6" required>
+                </div>
+
+                <button type="submit" class="btn-validate">VALIDAR ACESSO</button>
+
+                <a href="login.html" class="back-link">← VOLTAR AO LOGIN</a>
+            </form>
+        </div>
     </div>
-</div>
-<script src="js/token.js" defer></script>
-
+    <script src="js/token.js" defer></script>
 </body>
 </html>
