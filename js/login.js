@@ -13,6 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const btn = form.querySelector("button");
+        const btnOriginalText = btn.innerHTML;
+        btn.innerHTML = "Verificando...";
+        btn.disabled = true;
+
         try {
             const response = await fetch(`${BASE_URL}/auth/login`, {
                 method: "POST",
@@ -22,21 +27,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const data = await response.json();
 
-            if (!response.ok) throw new Error(data.message || "Erro ao fazer login");
+            if (!response.ok) throw new Error(data.message || "Erro de credenciais");
 
-            // SALVANDO AS INFORMAÇÕES NECESSÁRIAS PARA O TOKEN
+            // CORREÇÃO: Salva os dados essenciais
             localStorage.setItem("emailTemp", email);
-            localStorage.setItem("tipoTemp", data.tipo); // Isso aqui estava faltando!
+            if (data.tipo) {
+                localStorage.setItem("tipoTemp", data.tipo);
+            }
 
-            // Alerta de debug (pode remover depois que testar)
-            alert("Código enviado! Verifique seu email.");
-            
-            // Redireciona
+            if (data.codigo_dev) alert(`[MODO DEV] Seu código é: ${data.codigo_dev}`);
+
             window.location.href = "token.html";
 
         } catch (err) {
             console.error(err);
             alert("Erro: " + err.message);
+            btn.innerHTML = btnOriginalText;
+            btn.disabled = false;
         }
     });
 });

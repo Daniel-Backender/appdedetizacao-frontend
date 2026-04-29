@@ -3,29 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crie sua conta | Nome do Produto</title>
+    <title>Cadastro | PestControlX</title>
     <link rel="stylesheet" href="css/register.css">
 </head>
-
 <body>
-
     <div class="brand-container">
-    <div class="logo-wrapper">
-        <img src="img/logo2 copy.png" alt="Logo PestControlX" class="logo-img">
+        <div class="logo-wrapper">
+            <img src="img/logo2 copy.png" alt="Logo" class="logo-img">
+        </div>
+        <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img">
     </div>
-    <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img">
-    <p class="brand-tagline">Gestão Profissional de Controle de Pragas</p>
-</div>
 
     <form id="registerForm" class="glass-card">
-        
         <div class="input-group full">
             <label for="tipo">Tipo de Perfil</label>
             <div class="select-wrapper">
                 <select id="tipo">
-                    <option value="" disabled selected>Como você deseja usar o app?</option>
-                    <option value="EMPRESA">Sou uma Empresa</option>
-                    <option value="ADMINISTRADOR">Sou Técnico de Suporte</option>
+                    <option value="" disabled selected>Selecione o acesso</option>
+                    <option value="EMPRESA">Empresa (Painel de Gestão)</option>
+                    <option value="ADMINISTRADOR">Administrador (Suporte)</option>
                 </select>
             </div>
         </div>
@@ -33,6 +29,10 @@
         <div class="steps-container">
             <div id="step1" class="step active">
                 <div class="form-grid">
+                    <div class="input-group full">
+                        <label for="nome">Nome Completo / Razão Social</label>
+                        <input type="text" id="nome" placeholder="Digite seu nome ou da empresa" required>
+                    </div>
                     <div class="input-group">
                         <label>CEP</label>
                         <input type="text" id="cep" placeholder="00000-000">
@@ -43,17 +43,14 @@
                     </div>
                     <div class="input-group full">
                         <label>Rua</label>
-                        <input type="text" id="rua" placeholder="Rua, Avenida...">
+                        <input type="text" id="rua" placeholder="Rua...">
                     </div>
                     <div class="input-group full">
                         <label>Bairro</label>
-                        <input type="text" id="bairro" placeholder="Seu bairro">
+                        <input type="text" id="bairro" placeholder="Bairro">
                     </div>
                 </div>
-                <button type="button" class="btn-primary" onclick="nextStep()">
-                    Próximo passo
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </button>
+                <button type="button" class="btn-primary" onclick="nextStep()">Próximo passo</button>
             </div>
 
             <div id="step2" class="step">
@@ -71,7 +68,6 @@
                         <input type="text" id="cnpj" placeholder="00.000.000/0001-00">
                     </div>
                 </div>
-
                 <div class="actions-footer">
                     <button type="button" class="btn-ghost" onclick="prevStep()">Voltar</button>
                     <button type="submit" class="btn-primary">Finalizar Cadastro</button>
@@ -79,7 +75,6 @@
             </div>
         </div>
     </form>
-
     <script src="js/register.js"></script>
 </body>
 </html>

@@ -10,9 +10,9 @@ document.addEventListener("DOMContentLoaded", function () {
     async function validarToken() {
         const codigo = document.getElementById("codigo").value.trim();
         const email = localStorage.getItem("emailTemp");
-        const tipoLogin = localStorage.getItem("tipoTemp"); // Pegando o que salvamos no login
 
-        if (!email || !tipoLogin) {
+        // CORREÇÃO: Removida a trava que causava o recarregamento infinito da página
+        if (!email) {
             alert("Sessão expirada. Faça login novamente.");
             window.location.href = "login.html";
             return;
@@ -29,16 +29,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!response.ok) throw new Error(data.message || "Código inválido");
 
-            // ✅ SALVANDO DADOS OFICIAIS DE ACESSO
             localStorage.setItem("token", data.token);
             localStorage.setItem("tipoUsuario", data.tipo);
             localStorage.setItem("userName", data.nome || "Usuário");
 
-            // Limpa os temporários
             localStorage.removeItem("emailTemp");
             localStorage.removeItem("tipoTemp");
 
-            // REDIRECIONAMENTO BASEADO NO TIPO VOLTADO PELO BACKEND
             const tipoFinal = data.tipo.toUpperCase();
 
             if (tipoFinal === "EMPRESA") {
