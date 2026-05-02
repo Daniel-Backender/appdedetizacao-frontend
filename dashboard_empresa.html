@@ -7,11 +7,11 @@
     <style>
         /* TEMA CYBER-INDUSTRIAL */
         :root {
-            --bg-dark: #fefefe;
-            --bg-panel: #dcdcdc;
+            --bg-dark: #ffffff;
+            --bg-panel: #1e1e1e;
             --neon-green: #39ff14;
-            --text-light: #ffffff;
-            --text-muted: #2f9c00;
+            --text-light: #e0e0e0;
+            --text-muted: #888;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -62,8 +62,8 @@
         .chat-container { display: flex; flex-direction: column; height: 70vh; background-color: var(--bg-panel); border-radius: 8px; overflow: hidden; }
         .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .msg { max-width: 70%; padding: 12px; border-radius: 8px; }
-        .msg.received { background-color: #ffffff; align-self: flex-start; }
-        .msg.sent { background-color: var(--neon-green); color: rgb(177, 177, 177); align-self: flex-end; }
+        .msg.received { background-color: #2a2a2a; align-self: flex-start; }
+        .msg.sent { background-color: var(--neon-green); color: black; align-self: flex-end; }
         .chat-input-area { display: flex; padding: 15px; background-color: #1a1a1a; border-top: 1px solid #333; }
         .chat-input-area input { flex: 1; padding: 12px; border-radius: 4px; border: 1px solid #444; background-color: #2a2a2a; color: white; outline: none; }
         .chat-input-area input:focus { border-color: var(--neon-green); }
