@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("loginForm");
+    const form = document.getElementById("loginForm"); // ID conforme seu HTML
     const BASE_URL = "https://appdedetizacao.onrender.com";
 
     form.addEventListener("submit", async (e) => {
@@ -15,33 +15,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const btn = form.querySelector("button");
         const btnOriginalText = btn.innerHTML;
-        btn.innerHTML = "Verificando...";
+        btn.innerHTML = "VERIFICANDO..."; // Toque industrial/neon
         btn.disabled = true;
 
         try {
+            // AQUI ESTÁ A IMPLEMENTAÇÃO QUE VOCÊ PEDIU INTEGRADA:
             const response = await fetch(`${BASE_URL}/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, senha })
+                body: JSON.stringify({ email: email, senha: senha })
             });
 
-            const data = await response.json();
+            if (response.ok) {
+                const data = await response.json();
 
-            if (!response.ok) throw new Error(data.message || "Erro de credenciais");
+                // SALVAMENTO CRÍTICO: Usa 'emailTemp' para a tela de token reconhecer o usuário
+                localStorage.setItem("emailTemp", email);
+                localStorage.setItem("tipoTemp", data.tipo || "");
 
-            // CORREÇÃO: Salva os dados essenciais
-            localStorage.setItem("emailTemp", email);
-            if (data.tipo) {
-                localStorage.setItem("tipoTemp", data.tipo);
+                // Exibe o código no console se estiver em modo desenvolvimento
+                if (data.codigo_dev) {
+                    console.log("Código DEV:", data.codigo_dev);
+                }
+
+                // REDIRECIONA PARA A TELA DE TOKEN!
+                window.location.href = "token.html"; 
+
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                alert(errorData.message || "Credenciais incorretas ou erro no servidor.");
+                btn.innerHTML = btnOriginalText;
+                btn.disabled = false;
             }
-
-            if (data.codigo_dev) alert(`[MODO DEV] Seu código é: ${data.codigo_dev}`);
-
-            window.location.href = "token.html";
-
-        } catch (err) {
-            console.error(err);
-            alert("Erro: " + err.message);
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+            alert("Erro crítico ao conectar com o servidor. Verifique sua conexão.");
             btn.innerHTML = btnOriginalText;
             btn.disabled = false;
         }

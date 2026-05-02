@@ -8,60 +8,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const BASE_URL = "https://appdedetizacao.onrender.com";
 
-    // --- LÓGICA DO VIA CEP ---
+    // --- BUSCA CEP ---
     cepInput.addEventListener("blur", () => {
-        let cep = cepInput.value.replace(/\D/g, ''); // Remove traços e pontos
-
+        let cep = cepInput.value.replace(/\D/g, '');
         if (cep.length === 8) {
-            // Preenche com "..." enquanto busca
             ruaInput.value = "...";
             bairroInput.value = "...";
 
             fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                .then(response => response.json())
+                .then(res => res.json())
                 .then(dados => {
                     if (!dados.erro) {
                         ruaInput.value = dados.logradouro;
                         bairroInput.value = dados.bairro;
-                        document.getElementById("numero").focus(); // Pula para o número
+                        document.getElementById("numero").focus();
                     } else {
                         alert("CEP não encontrado.");
-                        limparCamposEndereco();
                     }
-                })
-                .catch(() => {
-                    alert("Erro ao buscar CEP.");
-                    limparCamposEndereco();
-                });
+                }).catch(() => alert("Erro ao buscar CEP."));
         }
     });
 
-    function limparCamposEndereco() {
-        ruaInput.value = "";
-        bairroInput.value = "";
-    }
-
-    // --- CONTROLE DE EXIBIÇÃO DO CNPJ ---
+    // --- EXIBIÇÃO CNPJ ---
     tipoSelect.addEventListener("change", () => {
         cnpjGroup.style.display = (tipoSelect.value === "EMPRESA") ? "block" : "none";
     });
 
-    // --- NAVEGAÇÃO ENTRE PASSOS (Funções Globais) ---
+    // --- NAVEGAÇÃO ENTRE PASSOS ---
     window.nextStep = function() {
-        if (!tipoSelect.value || !document.getElementById("nome").value) {
-            alert("Preencha o tipo de perfil e o nome!");
+        const nome = document.getElementById("nome").value;
+        if (!tipoSelect.value || !nome) {
+            alert("Selecione o tipo de perfil e digite seu nome!");
             return;
         }
+
+        // BLOQUEIA O SELECT NO PASSO 2
+        tipoSelect.disabled = true;
+
         document.getElementById("step1").classList.remove("active");
         document.getElementById("step2").classList.add("active");
     };
 
     window.prevStep = function() {
+        // LIBERA O SELECT SE VOLTAR
+        tipoSelect.disabled = false;
         document.getElementById("step2").classList.remove("active");
         document.getElementById("step1").classList.add("active");
     };
 
-    // --- SUBMIT DO FORMULÁRIO ---
+    // --- SUBMIT FINAL ---
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -69,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
             nome: document.getElementById("nome").value,
             email: document.getElementById("email").value,
             senha: document.getElementById("senha").value,
-            tipo: tipoSelect.value,
+            tipo: tipoSelect.value, // Pega o valor mesmo estando disabled
             cep: cepInput.value,
             rua: ruaInput.value,
             bairro: bairroInput.value,
