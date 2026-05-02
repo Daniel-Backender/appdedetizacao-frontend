@@ -23,12 +23,11 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Centraliza o formulário verticalmente no login */
+    justify-content: center;
     padding: 20px;
     color: var(--text-dark);
 }
 
-/* Animação de Entrada Identica */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -40,7 +39,6 @@ body {
     }
 }
 
-/* Cabeçalho */
 .header-app {
     text-align: center;
     margin-bottom: 30px;
@@ -116,7 +114,6 @@ input:focus {
     box-shadow: 0 0 8px rgba(46, 204, 113, 0.2);
 }
 
-/* Links Adicionais */
 .forgot-password {
     text-align: right;
     margin-bottom: 25px;
@@ -174,11 +171,10 @@ input:focus {
     text-decoration: underline;
 }
 
-/* Container que segura tudo no topo */
 .header-app {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centraliza tudo no meio */
+    align-items: center;
     justify-content: center;
     margin-top: 40px;
     margin-bottom: 20px;
@@ -187,7 +183,7 @@ input:focus {
 
 /* O círculo ou ícone da logo */
 .logo-img {
-    width: 100px; /* Um pouco menor que no cadastro para dar foco ao formulário */
+    width: 200px; /* Um pouco menor que no cadastro para dar foco ao formulário */
     height: auto;
     margin-bottom: 15px;
     display: block;
@@ -195,7 +191,7 @@ input:focus {
 
 /* O texto 'PestControlX' em imagem */
 .app-name-img {
-    width: 180px; 
+    width: 200px; 
     height: auto;
     display: block;
     margin-bottom: 10px;
