@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             alert("Cadastro realizado com sucesso!");
-            window.location.href = "login.html";
+            window.location.href = "index.html";
         } catch (err) {
             alert(err.message);
         }

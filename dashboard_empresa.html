@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PestControlX - Painel da Empresa</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* TEMA CYBER-INDUSTRIAL */
         :root {
-            --bg-dark: #19f30e84;
+            --bg-dark: #1c1c1c;
             --bg-panel: #1e1e1e;
             --neon-green: #39ff14;
             --text-light: #e0e0e0;
@@ -15,12 +18,10 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-
         body { background-color: var(--bg-dark); color: var(--text-light); display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR (MENU LATERAL) */
+        /* SIDEBAR */
         .sidebar { width: 260px; background-color: var(--bg-panel); border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
-        
         .logo-area { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333; }
         .logo-area h2 { color: var(--text-light); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; }
         .logo-area h2 span { color: var(--neon-green); text-shadow: 0 0 5px rgba(57, 255, 20, 0.5); }
@@ -32,56 +33,43 @@
         .nav-buttons { display: flex; flex-direction: column; gap: 15px; }
         .nav-btn { background-color: #2a2a2a; color: var(--text-light); border: 1px solid #444; padding: 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; transition: all 0.3s; text-align: left; }
         .nav-btn:hover, .nav-btn.active { background-color: #1a1a1a; border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 10px rgba(57, 255, 20, 0.2); }
-        .nav-btn i { font-size: 1.2rem; }
+        
+        .logout-btn { background-color: #441111; color: #ff4444; border: 1px solid #ff4444; margin-top: auto; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; }
+        .logout-btn:hover { background-color: #ff4444; color: white; }
 
-        /* ÁREA DE CONTEÚDO PRINCIPAL */
+        /* MAIN CONTENT */
         .main-content { flex: 1; padding: 30px; overflow-y: auto; }
         .section-view { display: none; animation: fadeIn 0.4s ease-in-out; }
         .section-view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         .section-header { margin-bottom: 25px; padding-bottom: 10px; border-bottom: 2px solid var(--neon-green); display: inline-block; }
         .section-header h1 { font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* CARDS DE ESTATÍSTICA (ANÁLISE) */
+        /* DASHBOARD CARDS */
         .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .card { background-color: var(--bg-panel); padding: 20px; border-radius: 8px; border-left: 4px solid var(--neon-green); }
         .card h3 { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px; }
         .card .value { font-size: 2rem; font-weight: bold; color: var(--neon-green); }
 
-        /* CALENDÁRIO */
-        .calendar-container { background-color: var(--bg-panel); padding: 20px; border-radius: 8px; }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .day-name { font-weight: bold; color: var(--neon-green); padding: 10px; }
-        .day { background-color: #2a2a2a; padding: 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
-        .day:hover { background-color: var(--neon-green); color: black; }
-        .day.has-event { border: 1px solid var(--neon-green); }
-
         /* CHAT */
-        .chat-container { display: flex; flex-direction: column; height: 70vh; background-color: var(--bg-panel); border-radius: 8px; overflow: hidden; }
+        .chat-container { display: flex; flex-direction: column; height: 70vh; background-color: var(--bg-panel); border-radius: 8px; overflow: hidden; border: 1px solid #333; }
         .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 70%; padding: 12px; border-radius: 8px; }
-        .msg.received { background-color: #2a2a2a; align-self: flex-start; }
-        .msg.sent { background-color: var(--neon-green); color: black; align-self: flex-end; }
+        .msg { max-width: 70%; padding: 12px; border-radius: 8px; font-family: monospace; }
+        .msg.received { background-color: #2a2a2a; align-self: flex-start; border-left: 3px solid #ccc; }
+        .msg.sent { background-color: var(--neon-green); color: black; align-self: flex-end; font-weight: bold; }
         .chat-input-area { display: flex; padding: 15px; background-color: #1a1a1a; border-top: 1px solid #333; }
         .chat-input-area input { flex: 1; padding: 12px; border-radius: 4px; border: 1px solid #444; background-color: #2a2a2a; color: white; outline: none; }
         .chat-input-area input:focus { border-color: var(--neon-green); }
         .chat-input-area button { background-color: var(--neon-green); color: black; border: none; padding: 0 20px; margin-left: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
 
-        /* TABELAS GENÉRICAS */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: var(--bg-panel); border-radius: 8px; overflow: hidden; }
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #333; }
         th { background-color: #1a1a1a; color: var(--neon-green); font-weight: bold; }
         tr:hover { background-color: #2a2a2a; }
-
     </style>
-    <!-- Usando FontAwesome para os ícones -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- MENU LATERAL -->
     <nav class="sidebar">
         <div class="logo-area">
             <i class="fa-solid fa-bug" style="color: var(--neon-green); font-size: 1.5rem;"></i>
@@ -89,172 +77,131 @@
         </div>
 
         <div class="profile-area">
-            <div class="profile-pic">
-                <i class="fa-solid fa-user-tie"></i>
-            </div>
-            <div class="profile-name">Empresa Admin</div>
+            <div class="profile-pic"><i class="fa-solid fa-user-tie"></i></div>
+            <div class="profile-name" id="userName">Carregando...</div>
         </div>
 
         <div class="nav-buttons">
-            <button class="nav-btn active" onclick="showSection('clientes')">
-                <i class="fa-solid fa-users"></i> Clientes Registrados
-            </button>
-            <button class="nav-btn" onclick="showSection('ordens')">
-                <i class="fa-solid fa-clipboard-list"></i> Ordens de Serviços
-            </button>
-            <button class="nav-btn" onclick="showSection('agenda')">
-                <i class="fa-regular fa-calendar-days"></i> Agenda e Análise
-            </button>
-            <button class="nav-btn" onclick="showSection('chat')">
-                <i class="fa-regular fa-comments"></i> Chat Clientes
-            </button>
+            <button class="nav-btn active" onclick="showSection('clientes')"><i class="fa-solid fa-users"></i> Clientes</button>
+            <button class="nav-btn" onclick="showSection('ordens')"><i class="fa-solid fa-clipboard-list"></i> Ordens de Serviços</button>
+            <button class="nav-btn" onclick="showSection('agenda')"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+            <button class="nav-btn" onclick="showSection('chat')"><i class="fa-regular fa-comments"></i> Central de Chat</button>
         </div>
+
+        <button class="logout-btn" onclick="logout()">SAIR</button>
     </nav>
 
-    <!-- ÁREA PRINCIPAL -->
     <main class="main-content">
-
-        <!-- SESSÃO: CLIENTES -->
+        
         <section id="clientes" class="section-view active">
-            <div class="section-header">
-                <h1>Clientes Registrados</h1>
-            </div>
+            <div class="section-header"><h1>Clientes Registrados</h1></div>
             <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nome do Cliente</th>
-                        <th>Endereço</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>ID</th><th>Nome do Cliente</th><th>Endereço</th><th>Status</th></tr></thead>
                 <tbody>
                     <tr><td>01</td><td>Condomínio Bosque</td><td>Av. Central, 1000</td><td>Ativo</td></tr>
-                    <tr><td>02</td><td>Restaurante Sabor</td><td>Rua das Flores, 45</td><td>Pendente</td></tr>
                 </tbody>
             </table>
         </section>
 
-        <!-- SESSÃO: ORDENS DE SERVIÇOS -->
         <section id="ordens" class="section-view">
-            <div class="section-header">
-                <h1>Ordens de Serviços</h1>
-            </div>
+            <div class="section-header"><h1>Ordens de Serviços</h1></div>
             <table>
-                <thead>
-                    <tr>
-                        <th>OS</th>
-                        <th>Cliente</th>
-                        <th>Tipo de Praga</th>
-                        <th>Data Agendada</th>
-                        <th>Técnico</th>
-                    </tr>
-                </thead>
+                <thead><tr><th>OS</th><th>Cliente</th><th>Praga</th><th>Data</th><th>Técnico</th></tr></thead>
                 <tbody>
                     <tr><td>#1042</td><td>Condomínio Bosque</td><td>Cupim</td><td>15/05/2026</td><td>Carlos</td></tr>
-                    <tr><td>#1043</td><td>Restaurante Sabor</td><td>Roedores</td><td>18/05/2026</td><td>João</td></tr>
                 </tbody>
             </table>
         </section>
 
-        <!-- SESSÃO: AGENDA E ANÁLISE -->
         <section id="agenda" class="section-view">
-            <div class="section-header">
-                <h1>Agenda e Análise</h1>
-            </div>
-            
-            <!-- Dashboard Base que já tínhamos -->
+            <div class="section-header"><h1>Dashboard</h1></div>
             <div class="dashboard-cards">
+                <div class="card" id="cardFuncionarios">
+                    <h3>Total de Funcionários</h3>
+                    <div class="value" id="qtdFuncionarios">12</div>
+                </div>
+                <div class="card" id="cardFinanceiro">
+                    <h3>Casos Críticos</h3>
+                    <div class="value" id="qtdCriticos">3</div>
+                </div>
                 <div class="card">
-                    <h3>Serviços Realizados (Mês)</h3>
+                    <h3>Serviços Realizados</h3>
                     <div class="value">42</div>
-                </div>
-                <div class="card">
-                    <h3>Aguardando Visita</h3>
-                    <div class="value">8</div>
-                </div>
-                <div class="card">
-                    <h3>Receita Estimada</h3>
-                    <div class="value">R$ 8.450</div>
-                </div>
-            </div>
-
-            <!-- Calendário Base -->
-            <div class="calendar-container">
-                <div class="calendar-header">
-                    <h2>Maio 2026</h2>
-                    <div>
-                        <button style="padding: 5px 10px; background: #333; color: white; border: none; cursor: pointer;">&lt; Ant</button>
-                        <button style="padding: 5px 10px; background: #333; color: white; border: none; cursor: pointer;">Prox &gt;</button>
-                    </div>
-                </div>
-                <div class="calendar-grid">
-                    <div class="day-name">Dom</div><div class="day-name">Seg</div><div class="day-name">Ter</div>
-                    <div class="day-name">Qua</div><div class="day-name">Qui</div><div class="day-name">Sex</div><div class="day-name">Sáb</div>
-                    <!-- Dias gerados estaticamente para exemplo -->
-                    <div class="day" style="opacity: 0.3;">26</div><div class="day" style="opacity: 0.3;">27</div><div class="day" style="opacity: 0.3;">28</div>
-                    <div class="day" style="opacity: 0.3;">29</div><div class="day" style="opacity: 0.3;">30</div><div class="day">1</div><div class="day">2</div>
-                    <div class="day">3</div><div class="day">4</div><div class="day">5</div><div class="day">6</div><div class="day">7</div><div class="day">8</div><div class="day">9</div>
-                    <div class="day">10</div><div class="day">11</div><div class="day">12</div><div class="day">13</div><div class="day">14</div><div class="day has-event">15</div><div class="day">16</div>
-                    <div class="day">17</div><div class="day has-event">18</div><div class="day">19</div><div class="day">20</div><div class="day">21</div><div class="day">22</div><div class="day">23</div>
                 </div>
             </div>
         </section>
 
-        <!-- SESSÃO: CHAT -->
         <section id="chat" class="section-view">
-            <div class="section-header">
-                <h1>Chat com Clientes</h1>
-            </div>
+            <div class="section-header"><h1>Terminal de Comando - Chat</h1></div>
             <div class="chat-container">
-                <div class="chat-messages" id="chat-box">
-                    <div class="msg received">
-                        <strong>Condomínio Bosque:</strong> Bom dia! Gostaria de reagendar a visita do dia 15.
-                    </div>
-                    <div class="msg sent">
-                        <strong>Você:</strong> Bom dia! Claro, para qual dia fica melhor?
-                    </div>
-                </div>
+                <div class="chat-messages" id="chat-box"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="msg-input" placeholder="Digite sua mensagem...">
-                    <button onclick="enviarMsg()">Enviar</button>
+                    <input type="text" id="msg-input" placeholder="Digite comando para o aplicativo...">
+                    <button onclick="enviarMsgStomp()">ENVIAR</button>
                 </div>
             </div>
         </section>
 
     </main>
 
+    <script src="dashboard.js"></script>
+
     <script>
-        // Lógica para alternar as abas (Single Page Application simples)
         function showSection(sectionId) {
-            // Esconde todas as seções
             document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
-            // Remove a cor ativa dos botões
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-            
-            // Mostra a seção clicada
             document.getElementById(sectionId).classList.add('active');
-            
-            // Pinta o botão de verde
             event.currentTarget.classList.add('active');
         }
 
-        // Lógica simples para o chat visual
-        function enviarMsg() {
-            const input = document.getElementById('msg-input');
-            const box = document.getElementById('chat-box');
+        // --- LÓGICA DO STOMP / WEBSOCKET ---
+        var stompClient = null;
+
+        function conectarChat() {
+            // Mude localhost para o seu servidor Spring Boot no Render depois
+            var socket = new SockJS('http://localhost:8080/ws-pestcontrol');
+            stompClient = Stomp.over(socket);
             
-            if(input.value.trim() !== '') {
-                const novaMsg = document.createElement('div');
-                novaMsg.className = 'msg sent';
-                novaMsg.innerHTML = `<strong>Você:</strong> ${input.value}`;
-                box.appendChild(novaMsg);
-                input.value = '';
+            stompClient.connect({}, function (frame) {
+                printMensagem("SISTEMA ONLINE.", "received");
                 
-                // Rola o chat para baixo
-                box.scrollTop = box.scrollHeight;
+                stompClient.subscribe('/topic/mensagens', function (msg) {
+                    var dados = JSON.parse(msg.body);
+                    // Se o remetente for diferente de EMPRESA, exibe no lado esquerdo
+                    if(dados.remetente !== 'EMPRESA') {
+                        printMensagem(dados.remetente + ": " + dados.conteudo, "received");
+                    }
+                });
+            });
+        }
+
+        function enviarMsgStomp() {
+            var input = document.getElementById('msg-input');
+            var texto = input.value.trim();
+            
+            if(texto !== '') {
+                var payload = JSON.stringify({'remetente': 'EMPRESA', 'conteudo': texto});
+                stompClient.send("/app/enviar", {}, payload);
+                
+                // Exibe no lado direito (enviada)
+                printMensagem("Você: " + texto, "sent");
+                input.value = '';
             }
         }
+
+        function printMensagem(texto, tipoClass) {
+            const box = document.getElementById('chat-box');
+            const novaMsg = document.createElement('div');
+            novaMsg.className = 'msg ' + tipoClass;
+            novaMsg.innerHTML = texto;
+            box.appendChild(novaMsg);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // Conecta ao chat assim que a página carrega
+        window.onload = function() {
+            conectarChat();
+        };
     </script>
 </body>
 </html>
