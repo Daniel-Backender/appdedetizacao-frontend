@@ -147,61 +147,45 @@
     <script src="dashboard.js"></script>
 
     <script>
-        function showSection(sectionId) {
-            document.querySelectorAll('.section-view').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
+    var stompClient = null;
+    const SERVER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
 
-        // --- LÓGICA DO STOMP / WEBSOCKET ---
-        var stompClient = null;
-
-        function conectarChat() {
-            // Mude localhost para o seu servidor Spring Boot no Render depois
-            var socket = new SockJS('http://localhost:8080/ws-pestcontrol');
-            stompClient = Stomp.over(socket);
+    function conectarChat() {
+        // SockJS precisa de uma URL HTTP/HTTPS que ele converte para WS internamente
+        var socket = new SockJS(SERVER_URL);
+        stompClient = Stomp.over(socket);
+        
+        stompClient.connect({}, function (frame) {
+            console.log('Terminal Conectado: ' + frame);
+            printMensagem("SISTEMA PESTCONTROLX: ONLINE", "received");
             
-            stompClient.connect({}, function (frame) {
-                printMensagem("SISTEMA ONLINE.", "received");
-                
-                stompClient.subscribe('/topic/mensagens', function (msg) {
-                    var dados = JSON.parse(msg.body);
-                    // Se o remetente for diferente de EMPRESA, exibe no lado esquerdo
-                    if(dados.remetente !== 'EMPRESA') {
-                        printMensagem(dados.remetente + ": " + dados.conteudo, "received");
-                    }
-                });
+            stompClient.subscribe('/topic/mensagens', function (msg) {
+                var dados = JSON.parse(msg.body);
+                // Evita duplicar a própria mensagem na tela
+                if(dados.remetente !== 'EMPRESA') {
+                    printMensagem(dados.remetente + ": " + dados.conteudo, "received");
+                }
             });
-        }
+        }, function(error) {
+            printMensagem("ERRO DE CONEXÃO: TENTANDO RECONECTAR...", "received");
+            setTimeout(conectarChat, 5000); // Tenta reconectar em 5 segundos
+        });
+    }
 
-        function enviarMsgStomp() {
-            var input = document.getElementById('msg-input');
-            var texto = input.value.trim();
-            
-            if(texto !== '') {
-                var payload = JSON.stringify({'remetente': 'EMPRESA', 'conteudo': texto});
-                stompClient.send("/app/enviar", {}, payload);
-                
-                // Exibe no lado direito (enviada)
-                printMensagem("Você: " + texto, "sent");
-                input.value = '';
-            }
+    function enviarMsgStomp() {
+        var input = document.getElementById('msg-input');
+        var texto = input.value.trim();
+        
+        if(texto !== '' && stompClient) {
+            var payload = JSON.stringify({'remetente': 'EMPRESA', 'conteudo': texto});
+            stompClient.send("/app/enviar", {}, payload);
+            printMensagem("VOCÊ: " + texto, "sent");
+            input.value = '';
         }
-
-        function printMensagem(texto, tipoClass) {
-            const box = document.getElementById('chat-box');
-            const novaMsg = document.createElement('div');
-            novaMsg.className = 'msg ' + tipoClass;
-            novaMsg.innerHTML = texto;
-            box.appendChild(novaMsg);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        // Conecta ao chat assim que a página carrega
-        window.onload = function() {
-            conectarChat();
-        };
-    </script>
+    }
+    
+    // Inicia ao carregar
+    window.onload = conectarChat;
+</script>
 </body>
 </html>
