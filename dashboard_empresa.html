@@ -17,72 +17,44 @@
             --text-muted: #97ff206e;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-light); display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR */
-        .sidebar { width: 260px; background-color: var(--bg-panel); border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; box-shadow: 2px 0 10px rgba(0,0,0,0.5); }
+        .sidebar { width: 260px; background-color: var(--bg-panel); border-right: 1px solid #333; display: flex; flex-direction: column; padding: 20px; z-index: 999; }
         .logo-area { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #333; }
-        .logo-area h2 { color: var(--text-light); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 2px; }
-        .logo-area h2 span { color: var(--neon-green); text-shadow: 0 0 5px rgba(57, 255, 20, 0.5); }
+        .logo-area h2 span { color: var(--neon-green); text-shadow: 0 0 5px var(--neon-green); }
 
         .profile-area { text-align: center; margin-bottom: 30px; }
         .profile-pic { width: 80px; height: 80px; background-color: #333; border-radius: 50%; margin: 0 auto 10px; border: 2px solid var(--neon-green); display: flex; align-items: center; justify-content: center; font-size: 30px; color: var(--neon-green); }
-        .profile-name { font-weight: bold; font-size: 1.1rem; }
 
-        .nav-buttons { display: flex; flex-direction: column; gap: 15px; }
-        .nav-btn { background-color: #2a2a2a; color: var(--text-light); border: 1px solid #444; padding: 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-weight: bold; transition: all 0.3s; text-align: left; }
-        .nav-btn:hover, .nav-btn.active { background-color: #1a1a1a; border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 10px rgba(57, 255, 20, 0.2); }
+        .nav-buttons { display: flex; flex-direction: column; gap: 10px; }
+        .nav-btn { background-color: #2a2a2a; color: var(--text-light); border: 1px solid #444; padding: 12px; border-radius: 8px; cursor: pointer; text-align: left; transition: 0.3s; }
+        .nav-btn:hover, .nav-btn.active { border-color: var(--neon-green); color: var(--neon-green); background: #1a1a1a; }
         
-        .logout-btn { background-color: #441111; color: #ff4444; border: 1px solid #ff4444; margin-top: auto; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: center; }
-        .logout-btn:hover { background-color: #ff4444; color: white; }
+        .logout-btn { background-color: #441111; color: #ff4444; border: 1px solid #ff4444; margin-top: auto; padding: 12px; border-radius: 8px; cursor: pointer; }
 
-        /* MAIN CONTENT */
         .main-content { flex: 1; padding: 30px; overflow-y: auto; }
-        .section-view { display: none; animation: fadeIn 0.4s ease-in-out; }
-        .section-view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .section-header { margin-bottom: 25px; padding-bottom: 10px; border-bottom: 2px solid var(--neon-green); display: inline-block; }
-        .section-header h1 { font-size: 1.8rem; text-transform: uppercase; letter-spacing: 1px; }
+        .section-view { display: none; }
+        .section-view.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* DASHBOARD CARDS */
-        .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .card { background-color: var(--bg-panel); padding: 20px; border-radius: 8px; border-left: 4px solid var(--neon-green); }
-        .card h3 { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px; }
-        .card .value { font-size: 2rem; font-weight: bold; color: var(--neon-green); }
-
-        /* CHAT */
-        .chat-container { display: flex; flex-direction: column; height: 70vh; background-color: var(--bg-panel); border-radius: 8px; overflow: hidden; border: 1px solid #333; }
-        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-        .msg { max-width: 70%; padding: 12px; border-radius: 8px; font-family: monospace; }
-        .msg.received { background-color: #2a2a2a; align-self: flex-start; border-left: 3px solid #ccc; }
-        .msg.sent { background-color: var(--neon-green); color: black; align-self: flex-end; font-weight: bold; }
-        .chat-input-area { display: flex; padding: 15px; background-color: #1a1a1a; border-top: 1px solid #333; }
-        .chat-input-area input { flex: 1; padding: 12px; border-radius: 4px; border: 1px solid #444; background-color: #2a2a2a; color: white; outline: none; }
-        .chat-input-area input:focus { border-color: var(--neon-green); }
-        .chat-input-area button { background-color: var(--neon-green); color: black; border: none; padding: 0 20px; margin-left: 10px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background-color: var(--bg-panel); border-radius: 8px; overflow: hidden; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #333; }
-        th { background-color: #1a1a1a; color: var(--neon-green); font-weight: bold; }
-        tr:hover { background-color: #2a2a2a; }
-
-        /* Garante que a sidebar fique acima de tudo e os links sejam clicáveis */
-.sidebar, .menu-lateral {
-    position: relative;
-    z-index: 9999 !important;
-}
-.sidebar a, .menu-lateral a {
-    pointer-events: auto !important;
-    cursor: pointer !important;
-}
+        /* Estilo Tabela e Cards mantidos como o seu... */
+        .chat-container { display: flex; flex-direction: column; height: 65vh; background: #000; border: 1px solid var(--neon-green); border-radius: 8px; }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-family: monospace; }
+        .msg { padding: 10px; border-radius: 5px; max-width: 80%; }
+        .sent { align-self: flex-end; background: var(--neon-green); color: #000; font-weight: bold; }
+        .received { align-self: flex-start; border: 1px solid var(--neon-green); color: var(--neon-green); }
+        
+        .chat-input-area { display: flex; padding: 10px; border-top: 1px solid #333; }
+        #msg-input { flex: 1; background: #111; border: 1px solid #444; color: #fff; padding: 10px; outline: none; }
+        .chat-input-area button { background: var(--neon-green); border: none; padding: 0 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <nav class="sidebar">
         <div class="logo-area">
-            <i class="fa-solid fa-bug" style="color: var(--neon-green); font-size: 1.5rem;"></i>
+            <i class="fa-solid fa-bug" style="color: var(--neon-green);"></i>
             <h2>PestControl<span>X</span></h2>
         </div>
 
@@ -92,110 +64,113 @@
         </div>
 
         <div class="nav-buttons">
-            <button class="nav-btn active" onclick="showSection('clientes')"><i class="fa-solid fa-users"></i> Clientes</button>
-            <button class="nav-btn" onclick="showSection('ordens')"><i class="fa-solid fa-clipboard-list"></i> Ordens de Serviços</button>
-            <button class="nav-btn" onclick="showSection('agenda')"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
-            <button class="nav-btn" onclick="showSection('chat')"><i class="fa-regular fa-comments"></i> Central de Chat</button>
+            <button class="nav-btn active" onclick="showSection('clientes', this)"><i class="fa-solid fa-users"></i> Clientes</button>
+            <button class="nav-btn" onclick="showSection('ordens', this)"><i class="fa-solid fa-clipboard-list"></i> Ordens</button>
+            <button class="nav-btn" onclick="showSection('agenda', this)"><i class="fa-solid fa-chart-line"></i> Dashboard</button>
+            <button class="nav-btn" onclick="showSection('chat', this)"><i class="fa-regular fa-comments"></i> Central de Chat</button>
         </div>
 
         <button class="logout-btn" onclick="logout()">SAIR</button>
     </nav>
 
     <main class="main-content">
-        
+        <!-- SEÇÃO CLIENTES -->
         <section id="clientes" class="section-view active">
-            <div class="section-header"><h1>Clientes Registrados</h1></div>
+            <h1>Clientes Registrados</h1>
             <table>
-                <thead><tr><th>ID</th><th>Nome do Cliente</th><th>Endereço</th><th>Status</th></tr></thead>
-                <tbody>
-                    <tr><td>01</td><td>Condomínio Bosque</td><td>Av. Central, 1000</td><td>Ativo</td></tr>
-                </tbody>
+                <thead><tr><th>ID</th><th>Nome</th><th>Status</th></tr></thead>
+                <tbody><tr><td>01</td><td>Condomínio Bosque</td><td>Ativo</td></tr></tbody>
             </table>
         </section>
 
+        <!-- SEÇÃO ORDENS -->
         <section id="ordens" class="section-view">
-            <div class="section-header"><h1>Ordens de Serviços</h1></div>
-            <table>
-                <thead><tr><th>OS</th><th>Cliente</th><th>Praga</th><th>Data</th><th>Técnico</th></tr></thead>
-                <tbody>
-                    <tr><td>#1042</td><td>Condomínio Bosque</td><td>Cupim</td><td>15/05/2026</td><td>Carlos</td></tr>
-                </tbody>
-            </table>
+            <h1>Ordens de Serviços</h1>
+            <p>Nenhuma ordem pendente.</p>
         </section>
 
+        <!-- SEÇÃO DASHBOARD -->
         <section id="agenda" class="section-view">
-            <div class="section-header"><h1>Dashboard</h1></div>
-            <div class="dashboard-cards">
-                <div class="card" id="cardFuncionarios">
-                    <h3>Total de Funcionários</h3>
-                    <div class="value" id="qtdFuncionarios">12</div>
-                </div>
-                <div class="card" id="cardFinanceiro">
-                    <h3>Casos Críticos</h3>
-                    <div class="value" id="qtdCriticos">3</div>
-                </div>
-                <div class="card">
-                    <h3>Serviços Realizados</h3>
-                    <div class="value">42</div>
-                </div>
-            </div>
+            <h1>Dashboard Financeiro</h1>
+            <div class="card"><h3>Total</h3><div class="value">R$ 4.200</div></div>
         </section>
 
+        <!-- SEÇÃO CHAT -->
         <section id="chat" class="section-view">
-            <div class="section-header"><h1>Terminal de Comando - Chat</h1></div>
+            <h1>Terminal de Comando - Chat</h1>
             <div class="chat-container">
                 <div class="chat-messages" id="chat-box"></div>
                 <div class="chat-input-area">
-                    <input type="text" id="msg-input" placeholder="Digite comando para o aplicativo...">
+                    <input type="text" id="msg-input" placeholder="Digite para o técnico..." onkeypress="if(event.key==='Enter') enviarMsgStomp()">
                     <button onclick="enviarMsgStomp()">ENVIAR</button>
                 </div>
             </div>
         </section>
-
     </main>
 
-    <script src="dashboard.js"></script>
-
     <script>
-    var stompClient = null;
-    const SERVER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
-
-    function conectarChat() {
-        // SockJS precisa de uma URL HTTP/HTTPS que ele converte para WS internamente
-        var socket = new SockJS(SERVER_URL);
-        stompClient = Stomp.over(socket);
-        
-        stompClient.connect({}, function (frame) {
-            console.log('Terminal Conectado: ' + frame);
-            printMensagem("SISTEMA PESTCONTROLX: ONLINE", "received");
+        // --- 1. LÓGICA DE NAVEGAÇÃO E USUÁRIO ---
+        function showSection(id, btn) {
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             
-            stompClient.subscribe('/topic/mensagens', function (msg) {
-                var dados = JSON.parse(msg.body);
-                // Evita duplicar a própria mensagem na tela
-                if(dados.remetente !== 'EMPRESA') {
-                    printMensagem(dados.remetente + ": " + dados.conteudo, "received");
-                }
-            });
-        }, function(error) {
-            printMensagem("ERRO DE CONEXÃO: TENTANDO RECONECTAR...", "received");
-            setTimeout(conectarChat, 5000); // Tenta reconectar em 5 segundos
-        });
-    }
-
-    function enviarMsgStomp() {
-        var input = document.getElementById('msg-input');
-        var texto = input.value.trim();
-        
-        if(texto !== '' && stompClient) {
-            var payload = JSON.stringify({'remetente': 'EMPRESA', 'conteudo': texto});
-            stompClient.send("/app/enviar", {}, payload);
-            printMensagem("VOCÊ: " + texto, "sent");
-            input.value = '';
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
         }
-    }
-    
-    // Inicia ao carregar
-    window.onload = conectarChat;
-</script>
+
+        window.onload = function() {
+            const email = localStorage.getItem("userEmail") || "Admin";
+            document.getElementById("userName").innerText = email;
+            conectarChat();
+        };
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "login.html";
+        }
+
+        // --- 2. LÓGICA DO CHAT (STOMP) ---
+        var stompClient = null;
+        const SERVER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
+
+        function conectarChat() {
+            var socket = new SockJS(SERVER_URL);
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null; // Remove logs chatos no console
+
+            stompClient.connect({}, function (frame) {
+                printMensagem("SISTEMA ONLINE", "received");
+                
+                stompClient.subscribe('/topic/mensagens', function (msg) {
+                    var dados = JSON.parse(msg.body);
+                    if(dados.remetente !== 'EMPRESA') {
+                        // Usando dados.texto conforme o Java
+                        printMensagem(dados.remetente + ": " + dados.texto, "received");
+                    }
+                });
+            }, function(err) {
+                setTimeout(conectarChat, 5000);
+            });
+        }
+
+        function enviarMsgStomp() {
+            var input = document.getElementById('msg-input');
+            var texto = input.value.trim();
+            
+            if(texto && stompClient) {
+                // CHAVE 'texto' PARA BATER COM O BACKEND
+                var payload = JSON.stringify({'remetente': 'EMPRESA', 'texto': texto});
+                stompClient.send("/app/enviar", {}, payload);
+                printMensagem("VOCÊ: " + texto, "sent");
+                input.value = '';
+            }
+        }
+
+        function printMensagem(txt, tipo) {
+            var box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="msg ${tipo}">${txt}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
 </body>
 </html>

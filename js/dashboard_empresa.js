@@ -1,52 +1,51 @@
+// 1. Configuração de URL - Mude para a sua URL do Render!
+const API_URL = "https://appdedetizacao.onrender.com";
 const token = localStorage.getItem("token");
 
-// Verifica se está logado
+// 2. Verificação de Segurança Imediata
 if (!token) {
-    alert("Acesso negado! Faça o login primeiro.");
-    window.location.href = "login.html"; // Mude para o nome correto do seu arquivo HTML de login
+    window.location.href = "login.html";
 }
 
-// Valida o token no backend
-// No seu dash empresa.js, altere a URL do fetch:
-const API_URL = "https://appdedetizacao.onrender.com";
-
-fetch(`${API_URL}/auth/validar`, {
-    headers: { "Authorization": "Bearer " + token }
-})
-// ... resto do seu código
-.then(res => {
-    if (!res.ok) {
-        localStorage.clear();
-        window.location.href = "login.html";
+// 3. Carregamento de Dados do Usuário
+document.addEventListener("DOMContentLoaded", () => {
+    const nome = localStorage.getItem("userEmail") || "Usuário Logado";
+    const elNome = document.getElementById("userName");
+    
+    if (elNome) {
+        elNome.innerText = nome; // Isso tira o "Carregando..."
     }
+
+    // Valida o token no backend (Render)
+    fetch(`${API_URL}/auth/validar`, {
+        headers: { "Authorization": "Bearer " + token }
+    })
+    .then(res => {
+        if (!res.ok) {
+            logout();
+        }
+    })
+    .catch(err => console.error("Erro de conexão com API:", err));
 });
 
-// Puxa as infos do localStorage
-const tipo = localStorage.getItem("tipoUsuario");
-const nome = localStorage.getItem("userEmail") || "Usuário Logado";
+// 4. Lógica de Troca de Abas (Botões da Lateral)
+function mostrarSecao(idSecao) {
+    // Esconde todas as seções
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Mostra a seção clicada
+    const secaoAtiva = document.getElementById(idSecao);
+    if (secaoAtiva) {
+        secaoAtiva.style.display = 'block';
+    }
 
-// Atualiza o nome na Sidebar
-document.getElementById("userName").innerText = nome;
-
-// Lógica de Permissões
-if (tipo === "CLIENTE") {
-    esconderAdmin();
-} else if (tipo === "FUNCIONARIO") {
-    esconderAdmin();
-    esconderFinanceiro();
+    // Remove classe 'active' de todos os botões e adiciona no clicado
+    document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+    // Opcional: Adicione lógica para destacar o botão selecionado
 }
 
-function esconderAdmin() {
-    const cardFunc = document.getElementById("cardFuncionarios");
-    if (cardFunc) cardFunc.style.display = "none";
-}
-
-function esconderFinanceiro() {
-    const cardCritico = document.getElementById("cardFinanceiro");
-    if (cardCritico) cardCritico.style.display = "none";
-}
-
-// Única função de Logout
 function logout() {
     localStorage.clear();
     window.location.href = "login.html";
