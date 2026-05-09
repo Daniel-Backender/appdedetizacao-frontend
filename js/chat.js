@@ -1,51 +1,40 @@
-
 var stompClient = null;
 const RENDER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
 
 function conectar() {
-    console.log("Iniciando sequência de conexão...");
     var socket = new SockJS(RENDER_URL);
     stompClient = Stomp.over(socket);
 
     stompClient.connect({}, function (frame) {
-        document.getElementById('chat').innerHTML += "<p style='color: #888'>> PROTOCOLO DE CONEXÃO ESTABELECIDO.</p>";
+        console.log('Conectado ao Protocolo PestControlX');
         
         stompClient.subscribe('/topic/mensagens', function (msg) {
             var dados = JSON.parse(msg.body);
             var chat = document.getElementById('chat');
             
-    
+            // Define a cor: Verde para empresa, Branco para cliente
             let cor = dados.remetente === 'EMPRESA' ? '#3DDC84' : '#ffffff';
             
-            chat.innerHTML += `<p><span style="color: ${cor}">[${dados.remetente}]</span>: ${dados.conteudo}</p>`;
+            chat.innerHTML += `<p><span style="color: ${cor}">[${dados.remetente}]</span>: ${dados.texto}</p>`;
             chat.scrollTop = chat.scrollHeight;
         });
     }, function(error) {
-        console.error("Falha na conexão: ", error);
-        setTimeout(conectar, 10000);
+        setTimeout(conectar, 5000); // Tenta reconectar se cair
     });
 }
 
 function enviar() {
     var input = document.getElementById('msg');
-    var texto = input.value.trim();
+    var textoDigitado = input.value.trim();
     
-    if (texto !== "" && stompClient) {
+    if (textoDigitado !== "" && stompClient) {
         var payload = JSON.stringify({
             'remetente': 'EMPRESA',
-            'conteudo': texto
+            'texto': textoDigitado // AGORA BATE COM O JAVA
         });
         stompClient.send("/app/enviar", {}, payload);
         input.value = '';
     }
 }
 
-// Escutar a tecla ENTER para enviar
-document.getElementById('msg').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        enviar();
-    }
-});
-
-// Executa a conexão
-conectar();
+// ... manter o resto do seu código de escuta de teclado ...

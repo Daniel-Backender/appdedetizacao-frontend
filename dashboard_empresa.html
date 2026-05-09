@@ -66,6 +66,16 @@
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid #333; }
         th { background-color: #1a1a1a; color: var(--neon-green); font-weight: bold; }
         tr:hover { background-color: #2a2a2a; }
+
+        /* Garante que a sidebar fique acima de tudo e os links sejam clicáveis */
+.sidebar, .menu-lateral {
+    position: relative;
+    z-index: 9999 !important;
+}
+.sidebar a, .menu-lateral a {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
     </style>
 </head>
 <body>

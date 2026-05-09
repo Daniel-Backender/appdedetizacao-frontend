@@ -7,11 +7,13 @@ if (!token) {
 }
 
 // Valida o token no backend
-fetch("http://localhost:8080/auth/validar", {
-    headers: {
-        "Authorization": "Bearer " + token
-    }
+// No seu dash empresa.js, altere a URL do fetch:
+const API_URL = "https://appdedetizacao.onrender.com";
+
+fetch(`${API_URL}/auth/validar`, {
+    headers: { "Authorization": "Bearer " + token }
 })
+// ... resto do seu código
 .then(res => {
     if (!res.ok) {
         localStorage.clear();
