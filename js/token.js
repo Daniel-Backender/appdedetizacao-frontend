@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const tipoFinal = data.tipo.toUpperCase();
 
             if (tipoFinal === "EMPRESA") {
-                window.location.href = "dashboard.html";
+                window.location.href = "dashboard_empresa.html";
             } else if (tipoFinal === "ADMINISTRADOR" || tipoFinal === "ADMIN") {
                 window.location.href = "dashboard_admin.html";
             } else {

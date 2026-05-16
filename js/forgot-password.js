@@ -1,39 +1,43 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("forgotForm");
-    const BASE_URL = "https://appdedetizacao.onrender.com";
+document.getElementById('formForgotPassword').addEventListener('submit', async function(event) {
+    event.preventDefault();
 
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
+    const emailInput = document.getElementById('email').value.trim();
+    const btnSolicitar = document.getElementById('btnSolicitar');
 
-        const email = document.getElementById("emailForgot").value.trim();
-        const btn = document.getElementById("btnForgot");
+    if (!emailInput) {
+        alert('Por favor, insira um e-mail válido.');
+        return;
+    }
 
-        // UI Feedback - Estilo Industrial
-        btn.innerHTML = "SOLICITANDO...";
-        btn.disabled = true;
+    btnSolicitar.innerText = 'Enviando...';
+    btnSolicitar.disabled = true;
 
-        try {
-            // Utilizando o endpoint de recuperação do seu backend
-            const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email })
-            });
+    try {
 
-            if (response.ok) {
-                alert("Protocolo enviado! Verifique seu e-mail para obter o novo token.");
-                // Salva o e-mail para que a tela de token saiba quem validar
-                localStorage.setItem("emailTemp", email);
-                window.location.href = "token.html";
-            } else {
-                const data = await response.json();
-                throw new Error(data.message || "E-mail não encontrado na base de dados.");
+        const API_URL = 'https://appdedetizacao.onrender.com/api/auth/forgot-password';
+
+        const response = await fetch(`${API_URL}?email=${encodeURIComponent(emailInput)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             }
+        });
 
-        } catch (err) {
-            alert("ERRO DE SISTEMA: " + err.message);
-            btn.innerHTML = "Solicitar Token";
-            btn.disabled = false;
+        if (response.ok) {
+            alert('Token gerado com sucesso! Verifique seu console ou banco (Simulação de envio).');
+            // Redireciona para a tela onde ele vai digitar o token e a nova senha
+            window.location.href = 'token.html';
+        } else {
+            const erroTexto = await response.text();
+            alert('Erro ao solicitar token: ' + (erroTexto || 'E-mail não encontrado.'));
+            btnSolicitar.innerText = 'Solicitar Token';
+            btnSolicitar.disabled = false;
         }
-    });
+
+    } catch (error) {
+        console.error('Erro na requisição:', error);
+        alert('Não foi possível conectar ao servidor. Verifique se o backend está ativo.');
+        btnSolicitar.innerText = 'Solicitar Token';
+        btnSolicitar.disabled = false;
+    }
 });

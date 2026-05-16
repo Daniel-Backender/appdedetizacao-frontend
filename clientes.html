@@ -3,440 +3,295 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PestControlX - Clientes</title>
+    <title>PestControlX - Painel Corporativo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        /* ESTILOS BASE E CORES FIÉIS AO MOCKUP */
         :root {
-            --verde-pest: #4ade80; /* Verde vibrante das imagens */
-            --verde-escuro: #16a34a;
-            --cinza-fundo: #f3f4f6;
-            --cinza-escuro: #4b5563;
-            --cinza-header: #374151;
-            --texto-escuro: #1f2937;
-            --vermelho-inativo: #ef4444;
-            --amarelo-pendente: #facc15;
+            --bg-main: #F4F6F9; /* Cinza claro de fundo industrial */
+            --bg-card: #FFFFFF; /* Branco puro para os painéis */
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 70px;
+            --text-dark: #2E384D;
+            --text-muted: #7B8794;
+            --pest-green: #3CB371; /* Verde médio corporativo */
+            --border-color: #E1E4E8;
         }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--cinza-fundo);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-dark); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Container simulando a tela do celular/app */
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            background: white;
-            min-height: 100vh;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* HEADER */
-        .header {
-            background: linear-gradient(to right, var(--verde-pest), #86efac);
-            padding: 15px 20px;
+        /* --- NAVBAR SUPERIOR --- */
+        .topbar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: var(--sidebar-width);
+            height: 64px;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 0 24px;
+            transition: all 0.3s ease;
+            z-index: 99;
         }
 
-        .btn-voltar {
-            background: white;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 20px;
-            color: var(--verde-escuro);
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .header-title {
-            font-size: 24px;
-            font-weight: 800;
-            color: black;
-            margin: 0;
-        }
-
-        .header-title span { color: red; } /* O 'X' vermelho */
-
-        .sub-header {
-            background: var(--cinza-header);
-            color: white;
-            text-align: center;
-            padding: 10px;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        /* TELA 1: LISTAGEM */
-        #telaLista { padding: 15px; }
-
-        .search-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .search-bar input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            outline: none;
-        }
-
-        .search-bar button {
-            background: var(--verde-escuro);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .filtros {
-            display: flex;
-            background: gray;
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .filtros button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .filtros button.active { background: var(--verde-pest); color: black; }
-
-        /* Tabela */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            font-size: 12px;
-        }
-
-        th { background: #bbf7d0; padding: 10px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
-
-        .badge-ativo { color: var(--verde-escuro); font-weight: bold; }
-        .badge-inativo {
-            background: var(--vermelho-inativo);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        .btn-detalhes {
-            background: var(--verde-escuro);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-detalhes-cinza { background: gray; }
-
-        /* Rodapé Fixo */
-        .footer-actions {
-            position: absolute;
-            bottom: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-acao {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .btn-novo { background: var(--verde-pest); color: black; }
-        .btn-excluir { background: gray; }
-
-        /* TELA 2: DETALHES DO CLIENTE */
-        #telaDetalhes { display: none; padding: 15px; }
-
-        .card-perfil {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            gap: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-            border: 1px solid #eee;
-        }
-
-        .avatar {
-            width: 80px;
-            height: 80px;
-            background: #ccc;
-            border-radius: 50%;
+        /* --- SIDEBAR RECLINÁVEL --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            height: 100vh;
+            z-index: 100;
         }
 
-        .badge-avatar-ativo {
-            background: var(--verde-escuro);
-            color: white;
-            padding: 2px 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-top: -10px;
-            z-index: 2;
+        /* Estado recolhido da barra lateral */
+        body.sidebar-collapsed .sidebar { width: var(--sidebar-collapsed-width); padding: 20px 10px; }
+        body.sidebar-collapsed .topbar { left: var(--sidebar-collapsed-width); }
+        body.sidebar-collapsed .main-content { margin-left: var(--sidebar-collapsed-width); }
+        body.sidebar-collapsed .nav-btn span, body.sidebar-collapsed .logo-area h2, body.sidebar-collapsed .profile-name { display: none; }
+        body.sidebar-collapsed .profile-pic { width: 40px; height: 40px; font-size: 16px; }
+
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+        .logo-area h2 { font-size: 20px; font-weight: 800; color: var(--text-dark); }
+        .logo-area h2 span { color: var(--pest-green); }
+
+        .toggle-btn {
+            background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; transition: 0.2s;
         }
+        .toggle-btn:hover { color: var(--pest-green); }
 
-        .info-perfil p { margin: 4px 0; font-size: 14px; }
-        .info-perfil strong { color: var(--texto-escuro); }
+        .profile-area { text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+        .profile-pic { width: 64px; height: 64px; background-color: #F0F2F5; border-radius: 50%; margin: 0 auto 8px; border: 2px solid var(--pest-green); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--pest-green); }
+        .profile-name { font-size: 14px; font-weight: 600; color: var(--text-dark); word-break: break-all; }
 
-        .secao-titulo {
-            background: #bbf7d0;
-            color: var(--verde-escuro);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+        .nav-buttons { display: flex; flex-direction: column; gap: 8px; }
+        .nav-btn { background: none; color: var(--text-muted); border: 1px solid transparent; padding: 12px 16px; border-radius: 8px; cursor: pointer; text-align: left; transition: 0.2s; display: flex; align-items: center; gap: 12px; font-weight: 600; width: 100%; }
+        .nav-btn i { font-size: 18px; width: 24px; text-align: center; }
+        .nav-btn:hover, .nav-btn.active { color: var(--pest-green); background: #E8F5E9; }
+        
+        .logout-btn { background-color: #FFF0F0; color: #D32F2F; border: 1px solid #FFCDD2; margin-top: auto; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .logout-btn:hover { background-color: #FFCDD2; }
 
-        .secao-conteudo {
-            padding: 0 10px 15px 10px;
-            font-size: 14px;
-        }
+        /* --- ÁREA DE CONTEÚDO --- */
+        .main-content { flex: 1; margin-left: 0; padding: 94px 30px 30px 30px; overflow-y: auto; transition: all 0.3s ease; }
+        .section-view { display: none; }
+        .section-view.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        .secao-conteudo p { margin: 6px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+        h1 { font-size: 24px; color: var(--text-dark); margin-bottom: 20px; font-weight: 700; }
 
-        .historico-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
+        /* --- CLIENTES TABLE & FORM STYLES --- */
+        .card { background: var(--bg-card); padding: 24px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.02); margin-bottom: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; background: var(--bg-card); text-align: left; }
+        th, td { padding: 14px 16px; border-bottom: 1px solid var(--border-color); }
+        th { background-color: #F8FAF6; color: var(--text-dark); font-weight: 700; }
+        tr:hover { background-color: #FAFAFA; }
 
-        .status-concluido { background: var(--verde-escuro); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;}
-        .status-pendente { background: var(--amarelo-pendente); color: black; padding: 2px 8px; border-radius: 10px; font-size: 11px;}
+        .status-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; background: #E8F5E9; color: var(--pest-green); }
 
-        ul.obs-list { padding-left: 20px; margin: 0; color: var(--cinza-escuro); }
-        ul.obs-list li::marker { color: var(--verde-pest); font-size: 1.2em; }
+        .form-group { margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; }
+        .form-group label { font-weight: 600; color: var(--text-dark); font-size: 14px; }
+        .form-group textarea, .form-group input { padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: #FAFAFA; font-size: 14px; outline: none; width: 100%; }
+        .form-group textarea:focus, .form-group input:focus { border-color: var(--pest-green); background: #FFF; }
+        
+        .btn-salvar { background-color: var(--pest-green); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-salvar:hover { background-color: #2E8B57; }
 
+        /* --- CENTRAL DE CHAT PREMIUM --- */
+        .chat-container { display: flex; flex-direction: column; height: 60vh; background: #FAFAFA; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .msg { padding: 12px 16px; border-radius: 12px; max-width: 70%; font-size: 14px; line-height: 1.4; }
+        .sent { align-self: flex-end; background: var(--pest-green); color: #FFF; border-bottom-right-radius: 2px; box-shadow: 0 2px 4px rgba(60,179,113,0.2); }
+        .received { align-self: flex-start; background: var(--bg-card); color: var(--text-dark); border-bottom-left-radius: 2px; border: 1px solid var(--border-color); }
+        
+        .chat-input-area { display: flex; padding: 16px; background: var(--bg-card); border-top: 1px solid var(--border-color); gap: 12px; }
+        #msg-input { flex: 1; background: #FAFAFA; border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; outline: none; }
+        .chat-input-area button { background: var(--pest-green); color: white; border: none; padding: 0 24px; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    
-    <!-- HEADER FIXO -->
-    <div class="header">
-        <button class="btn-voltar" onclick="voltarTela()">&#8617;</button>
-        <h1 class="header-title">PestControl<span>X</span></h1>
-        <div style="width: 40px;"></div> <!-- Espaçador para centralizar o título -->
-    </div>
+    <header class="topbar">
+        <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <div style="font-weight: 600; color: var(--text-muted);">Painel de Controle v2.1</div>
+    </header>
 
-    <!-- ==========================================
-         TELA 1: LISTAGEM DE CLIENTES
-         ========================================== -->
-    <div id="telaLista">
-        <div class="sub-header">Clientes registrados</div>
-        <br>
+    <nav class="sidebar">
+        <div class="logo-area">
+            <i class="fa-solid fa-bug" style="color: var(--pest-green); font-size: 24px;"></i>
+            <h2>PestControl<span>X</span></h2>
+        </div>
+
+        <div class="profile-area">
+            <div class="profile-pic"><i class="fa-solid fa-user-tie"></i></div>
+            <div class="profile-name" id="userName">Carregando...</div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showSection('clientes', this)"><i class="fa-solid fa-users"></i> <span>Clientes</span></button>
+            <button class="nav-btn" onclick="showSection('sobre', this)"><i class="fa-solid fa-id-card"></i> <span>Sobre a Empresa</span></button>
+            <button class="nav-btn" onclick="showSection('chat', this)"><i class="fa-regular fa-comments"></i> <span>Central de Chat</span></button>
+        </div>
+
+        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR</span></button>
+    </nav>
+
+    <main class="main-content">
         
-        <div class="search-bar">
-            <input type="text" placeholder="Buscar cliente (nome, CPF ou e-mail)">
-            <button>Pesquisar</button>
-        </div>
+        <section id="clientes" class="section-view active">
+            <h1>Clientes Registrados</h1>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID da Conversa</th>
+                            <th>Identificador do Cliente</th>
+                            <th>Status do Atendimento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-clientes-corpo">
+                        <tr>
+                            <td>#1024</td>
+                            <td>Usuário do Aplicativo Mobile</td>
+                            <td><span class="status-badge">Ativo</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-        <div class="filtros">
-            <button class="active">Todos</button>
-            <button>Ativos</button>
-            <button>Inativos</button>
-        </div>
+        <section id="sobre" class="section-view">
+            <h1>Configurações do Perfil (App)</h1>
+            <div class="card">
+                <form id="formPerfilEmpresa" onsubmit="salvarDadosPerfil(event)">
+                    <div class="form-group">
+                        <label for="inputSobre">Descrição da Empresa ("Sobre")</label>
+                        <textarea id="inputSobre" rows="5" placeholder="Conte aos clientes o histórico da sua empresa, certificações e especialidades de dedetização..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputMensagemBot">Mensagem de Saudação Automática (Chatbot)</label>
+                        <input type="text" id="inputMensagemBot" placeholder="Ex: Olá! Seja bem-vindo à nossa dedetizadora. Em que podemos ajudar hoje?">
+                    </div>
+                    <button type="submit" class="btn-salvar">SALVAR PERFIL</button>
+                </form>
+            </div>
+        </section>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>CPF</th>
-                    <th>E-mail</th>
-                    <th>Ativos</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody id="tabelaClientes">
-                <!-- Linha 1 -->
-                <tr>
-                    <td><strong>Carlos Silva</strong></td>
-                    <td>123.456.789-00</td>
-                    <td>carlos@gmail.com</td>
-                    <td class="badge-ativo">(11)98985-0000</td>
-                    <td><button class="btn-detalhes" onclick="abrirDetalhes()">👁 Detalhes</button></td>
-                </tr>
-                <!-- Linha 2 -->
-                <tr>
-                    <td><strong>Maria Souza</strong></td>
-                    <td>664.852.361-00</td>
-                    <td>maria@gmail.com</td>
-                    <td><span class="badge-inativo">Inativo</span></td>
-                    <td><button class="btn-detalhes btn-detalhes-cinza" onclick="abrirDetalhes()">👁 Detalhes</button></td>
-                </tr>
-                <!-- Linha 3 -->
-                <tr>
-                    <td><strong>Pedro Jesus</strong></td>
-                    <td>187.326.739-00</td>
-                    <td>pedro@gmail.com</td>
-                    <td class="badge-ativo">(11)75405-9800</td>
-                    <td><button class="btn-detalhes btn-detalhes-cinza" onclick="abrirDetalhes()">👁 Detalhes</button></td>
-                </tr>
-            </tbody>
-        </table>
-
-        <div class="footer-actions" style="position: relative; margin-top: 30px;">
-            <button class="btn-acao btn-novo">⊕ Cadastrar Novo Cliente</button>
-            <button class="btn-acao btn-excluir">👁 Detalhes</button>
-        </div>
-    </div>
-
-    <!-- ==========================================
-         TELA 2: DETALHES DO CLIENTE
-         ========================================== -->
-    <div id="telaDetalhes">
-        <div class="card-perfil">
-            <div>
-                <div class="avatar">
-                    <svg width="40" height="40" fill="#fff" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <section id="chat" class="section-view">
+            <h1>Terminal de Atendimento</h1>
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-box"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="msg-input" placeholder="Digite a resposta para o cliente..." onkeypress="if(event.key==='Enter') enviarMsgStomp()">
+                    <button onclick="enviarMsgStomp()">ENVIAR</button>
                 </div>
-                <div class="badge-avatar-ativo">Ativo</div>
             </div>
-            <div class="info-perfil">
-                <p>Nome: <strong>Carlos Silva</strong></p>
-                <p>CPF: <strong>123.456.789-00</strong></p>
-                <p>Data de Nascimento: <strong>10/05/1985</strong></p>
-                <p>Telefone: <strong>(11) 98985-0000</strong></p>
-                <p>E-mail: <strong>carlos@gmail.com</strong></p>
-            </div>
-        </div>
+        </section>
+    </main>
 
-        <div class="secao-titulo">Endereço</div>
-        <div class="secao-conteudo">
-            <p>Rua: <strong>Rua das Flores</strong></p>
-            <p>Número: <strong>123</strong></p>
-            <p>Bairro: <strong>Centro</strong></p>
-            <p style="display: flex; justify-content: space-between;">
-                <span>Cidade: <strong>São Paulo</strong></span>
-                <span>CEP: <strong>01234-567</strong></span>
-            </p>
-        </div>
-
-        <div class="secao-titulo">Histórico de Serviços</div>
-        <div class="secao-conteudo">
-            <div class="historico-item">
-                <span>✔️ Dedetização - <strong>12/03/2026</strong></span>
-                <span class="status-concluido">Concluído</span>
-            </div>
-            <div class="historico-item">
-                <span>🕒 Controle de Pragas - <strong>05/02/2026</strong></span>
-                <span class="status-pendente">Pendente</span>
-            </div>
-            <div class="historico-item">
-                <span>✔️ Limpeza de caixa d'água - <strong>20/01/2026</strong></span>
-                <span class="status-concluido">Concluído</span>
-            </div>
-        </div>
-
-        <div class="secao-titulo">Observações</div>
-        <div class="secao-conteudo">
-            <ul class="obs-list">
-                <li>Cliente prefere atendimento pela manhã</li>
-                <li>Local com infestação recorrente</li>
-                <li>Possui animais de estimação</li>
-            </ul>
-        </div>
-
-        <div class="footer-actions" style="position: relative; margin-top: 20px; padding-bottom: 20px;">
-            <button class="btn-acao btn-novo" style="background: var(--verde-escuro);">✎ Editar Cliente</button>
-            <button class="btn-acao btn-excluir" style="background: #9ca3af;">🗑 Excluir Cliente</button>
-            <button class="btn-acao btn-novo">🤝 Novo Cliente</button>
-        </div>
-    </div>
-
-</div>
-
-<!-- SCRIPT DE AUTENTICAÇÃO E TRANSIÇÃO DE TELAS -->
-<script>
-    // --- Lógica de Segurança (Igual ao seu arquivo JS original) ---
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        alert("Acesso negado! Faça o login primeiro.");
-        // Descomente a linha abaixo no projeto final
-        // window.location.href = "login.html"; 
-    } else {
-        // Validação no backend
-        fetch("https://appdedetizacao.onrender.com/auth/validar", {
-            headers: { "Authorization": "Bearer " + token }
-        }).then(res => {
-            if (!res.ok) {
-                localStorage.clear();
-                // window.location.href = "login.html";
-            }
-        });
-    }
-
-    // --- Lógica de Transição de Telas ---
-    const telaLista = document.getElementById("telaLista");
-    const telaDetalhes = document.getElementById("telaDetalhes");
-
-    function abrirDetalhes() {
-        // Esconde a lista e mostra os detalhes
-        telaLista.style.display = "none";
-        telaDetalhes.style.display = "block";
-    }
-
-    function voltarTela() {
-        // Se a tela de detalhes estiver aberta, volta para a lista
-        if (telaDetalhes.style.display === "block") {
-            telaDetalhes.style.display = "none";
-            telaLista.style.display = "block";
-        } else {
-            // Se já estiver na lista, o botão voltar pode redirecionar para o Dashboard
-            window.location.href = "dashboard.html"; // Mude para o caminho correto
+    <script>
+        // LÓGICA DO MENU RECLINÁVEL E NAVEGAÇÃO
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-collapsed');
         }
-    }
-</script>
 
+        function showSection(id, btn) {
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        window.onload = function() {
+            const email = localStorage.getItem("userEmail") || "empresa@pestcontrolx.com";
+            document.getElementById("userName").innerText = email;
+            
+            // Puxar do localStorage caso já tenha salvo
+            document.getElementById("inputSobre").value = localStorage.getItem("empresaSobre") || "";
+            document.getElementById("inputMensagemBot").value = localStorage.getItem("empresaBotMsg") || "";
+            
+            conectarChat();
+        };
+
+        // SALVAR DADOS DO SOBRE E DO BOT
+        function salvarDadosPerfil(e) {
+            e.preventDefault();
+            const sobre = document.getElementById("inputSobre").value;
+            const botMsg = document.getElementById("inputMensagemBot").value;
+
+            localStorage.setItem("empresaSobre", sobre);
+            localStorage.setItem("empresaBotMsg", botMsg);
+
+            alert("Perfil atualizado com sucesso! Os dados já estão disponíveis para consulta no App Mobile.");
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        // LÓGICA DO CHAT (STOMP WEBSOCKET)
+        var stompClient = null;
+        const SERVER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
+
+        function conectarChat() {
+            var socket = new SockJS(SERVER_URL);
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                printMensagem("SISTEMA DE ATENDIMENTO CONECTADO", "received");
+                
+                stompClient.subscribe('/topic/mensagens', function (msg) {
+                    var dados = JSON.parse(msg.body);
+                    if(dados.remetente !== 'EMPRESA') {
+                        printMensagem(dados.remetente + ": " + dados.texto, "received");
+                        atualizarTabelaClientes(dados.remetente);
+                    }
+                });
+            }, function(err) {
+                setTimeout(conectarChat, 5000);
+            });
+        }
+
+        function enviarMsgStomp() {
+            var input = document.getElementById('msg-input');
+            var texto = input.value.trim();
+            
+            if(texto && stompClient) {
+                var payload = JSON.stringify({'remetente': 'EMPRESA', 'texto': texto});
+                stompClient.send("/app/enviar", {}, payload);
+                printMensagem("VOCÊ: " + texto, "sent");
+                input.value = '';
+            }
+        }
+
+        function printMensagem(txt, tipo) {
+            var box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="msg ${tipo}">${txt}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function atualizarTabelaClientes(clienteNome) {
+            const corpo = document.getElementById("lista-clientes-corpo");
+            corpo.innerHTML = `<tr>
+                <td>#1024</td>
+                <td>${clienteNome}</td>
+                <td><span class="status-badge">Nova Mensagem</span></td>
+            </tr>`;
+        }
+    </script>
 </body>
 </html>
