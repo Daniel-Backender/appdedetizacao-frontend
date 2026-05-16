@@ -1,4 +1,4 @@
-// 1. Configuração de URL - Mude para a sua URL do Render!
+// 1. Configuração de URL - Backend no Render
 const API_URL = "https://appdedetizacao.onrender.com";
 const token = localStorage.getItem("token");
 
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const elNome = document.getElementById("userName");
     
     if (elNome) {
-        elNome.innerText = nome; // Isso tira o "Carregando..."
+        elNome.innerText = nome; // Remove o "Carregando..." do painel
     }
 
     // Valida o token no backend (Render)
@@ -41,11 +41,11 @@ function mostrarSecao(idSecao) {
         secaoAtiva.style.display = 'block';
     }
 
-    // Remove classe 'active' de todos os botões e adiciona no clicado
+    // Gerenciamento estético de aba ativa
     document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
-    // Opcional: Adicione lógica para destacar o botão selecionado
 }
 
+// 5. Encerramento de Sessão
 function logout() {
     localStorage.clear();
     window.location.href = "login.html";
