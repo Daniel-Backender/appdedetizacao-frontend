@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PestControlX - Clientes</title>
+    <style>
+        /* ESTILOS BASE E CORES FIÉIS AO MOCKUP */
+        :root {
+            --verde-pest: #4ade80; /* Verde vibrante das imagens */
+            --verde-escuro: #16a34a;
+            --cinza-fundo: #f3f4f6;
+            --cinza-escuro: #4b5563;
+            --cinza-header: #374151;
+            --texto-escuro: #1f2937;
+            --vermelho-inativo: #ef4444;
+            --amarelo-pendente: #facc15;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--cinza-fundo);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Container simulando a tela do celular/app */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* HEADER */
+        .header {
+            background: linear-gradient(to right, var(--verde-pest), #86efac);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-voltar {
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            color: var(--verde-escuro);
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: black;
+            margin: 0;
+        }
+
+        .header-title span { color: red; } /* O 'X' vermelho */
+
+        .sub-header {
+            background: var(--cinza-header);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* TELA 1: LISTAGEM */
+        #telaLista { padding: 15px; }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .search-bar button {
+            background: var(--verde-escuro);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .filtros {
+            display: flex;
+            background: gray;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .filtros button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .filtros button.active { background: var(--verde-pest); color: black; }
+
+        /* Tabela */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 12px;
+        }
+
+        th { background: #bbf7d0; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
+
+        .badge-ativo { color: var(--verde-escuro); font-weight: bold; }
+        .badge-inativo {
+            background: var(--vermelho-inativo);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .btn-detalhes {
+            background: var(--verde-escuro);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-detalhes-cinza { background: gray; }
+
+        /* Rodapé Fixo */
+        .footer-actions {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-acao {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 25px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-novo { background: var(--verde-pest); color: black; }
+        .btn-excluir { background: gray; }
+
+        /* TELA 2: DETALHES DO CLIENTE */
+        #telaDetalhes { display: none; padding: 15px; }
+
+        .card-perfil {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            gap: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            background: #ccc;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .badge-avatar-ativo {
+            background: var(--verde-escuro);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: -10px;
+            z-index: 2;
+        }
+
+        .info-perfil p { margin: 4px 0; font-size: 14px; }
+        .info-perfil strong { color: var(--texto-escuro); }
+
+        .secao-titulo {
+            background: #bbf7d0;
+            color: var(--verde-escuro);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .secao-conteudo {
+            padding: 0 10px 15px 10px;
+            font-size: 14px;
+        }
+
+        .secao-conteudo p { margin: 6px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+
+        .historico-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .status-concluido { background: var(--verde-escuro); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;}
+        .status-pendente { background: var(--amarelo-pendente); color: black; padding: 2px 8px; border-radius: 10px; font-size: 11px;}
+
+        ul.obs-list { padding-left: 20px; margin: 0; color: var(--cinza-escuro); }
+        ul.obs-list li::marker { color: var(--verde-pest); font-size: 1.2em; }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- HEADER FIXO -->
+    <div class="header">
+        <button class="btn-voltar" onclick="voltarTela()">&#8617;</button>
+        <h1 class="header-title">PestControl<span>X</span></h1>
+        <div style="width: 40px;"></div> <!-- Espaçador para centralizar o título -->
+    </div>
+
+    <!-- ==========================================
+         TELA 1: LISTAGEM DE CLIENTES
+         ========================================== -->
+    <div id="telaLista">
+        <div class="sub-header">Clientes registrados</div>
+        <br>
+        
+        <div class="search-bar">
+            <input type="text" placeholder="Buscar cliente (nome, CPF ou e-mail)">
+            <button>Pesquisar</button>
+        </div>
+
+        <div class="filtros">
+            <button class="active">Todos</button>
+            <button>Ativos</button>
+            <button>Inativos</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>E-mail</th>
+                    <th>Ativos</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tabelaClientes">
+                <!-- Linha 1 -->
+                <tr>
+                    <td><strong>Carlos Silva</strong></td>
+                    <td>123.456.789-00</td>
+                    <td>carlos@gmail.com</td>
+                    <td class="badge-ativo">(11)98985-0000</td>
+                    <td><button class="btn-detalhes" onclick="abrirDetalhes()">👁 Detalhes</button></td>
+                </tr>
+                <!-- Linha 2 -->
+                <tr>
+                    <td><strong>Maria Souza</strong></td>
+                    <td>664.852.361-00</td>
+                    <td>maria@gmail.com</td>
+                    <td><span class="badge-inativo">Inativo</span></td>
+                    <td><button class="btn-detalhes btn-detalhes-cinza" onclick="abrirDetalhes()">👁 Detalhes</button></td>
+                </tr>
+                <!-- Linha 3 -->
+                <tr>
+                    <td><strong>Pedro Jesus</strong></td>
+                    <td>187.326.739-00</td>
+                    <td>pedro@gmail.com</td>
+                    <td class="badge-ativo">(11)75405-9800</td>
+                    <td><button class="btn-detalhes btn-detalhes-cinza" onclick="abrirDetalhes()">👁 Detalhes</button></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="footer-actions" style="position: relative; margin-top: 30px;">
+            <button class="btn-acao btn-novo">⊕ Cadastrar Novo Cliente</button>
+            <button class="btn-acao btn-excluir">👁 Detalhes</button>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         TELA 2: DETALHES DO CLIENTE
+         ========================================== -->
+    <div id="telaDetalhes">
+        <div class="card-perfil">
+            <div>
+                <div class="avatar">
+                    <svg width="40" height="40" fill="#fff" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+                <div class="badge-avatar-ativo">Ativo</div>
+            </div>
+            <div class="info-perfil">
+                <p>Nome: <strong>Carlos Silva</strong></p>
+                <p>CPF: <strong>123.456.789-00</strong></p>
+                <p>Data de Nascimento: <strong>10/05/1985</strong></p>
+                <p>Telefone: <strong>(11) 98985-0000</strong></p>
+                <p>E-mail: <strong>carlos@gmail.com</strong></p>
+            </div>
+        </div>
+
+        <div class="secao-titulo">Endereço</div>
+        <div class="secao-conteudo">
+            <p>Rua: <strong>Rua das Flores</strong></p>
+            <p>Número: <strong>123</strong></p>
+            <p>Bairro: <strong>Centro</strong></p>
+            <p style="display: flex; justify-content: space-between;">
+                <span>Cidade: <strong>São Paulo</strong></span>
+                <span>CEP: <strong>01234-567</strong></span>
+            </p>
+        </div>
+
+        <div class="secao-titulo">Histórico de Serviços</div>
+        <div class="secao-conteudo">
+            <div class="historico-item">
+                <span>✔️ Dedetização - <strong>12/03/2026</strong></span>
+                <span class="status-concluido">Concluído</span>
+            </div>
+            <div class="historico-item">
+                <span>🕒 Controle de Pragas - <strong>05/02/2026</strong></span>
+                <span class="status-pendente">Pendente</span>
+            </div>
+            <div class="historico-item">
+                <span>✔️ Limpeza de caixa d'água - <strong>20/01/2026</strong></span>
+                <span class="status-concluido">Concluído</span>
+            </div>
+        </div>
+
+        <div class="secao-titulo">Observações</div>
+        <div class="secao-conteudo">
+            <ul class="obs-list">
+                <li>Cliente prefere atendimento pela manhã</li>
+                <li>Local com infestação recorrente</li>
+                <li>Possui animais de estimação</li>
+            </ul>
+        </div>
+
+        <div class="footer-actions" style="position: relative; margin-top: 20px; padding-bottom: 20px;">
+            <button class="btn-acao btn-novo" style="background: var(--verde-escuro);">✎ Editar Cliente</button>
+            <button class="btn-acao btn-excluir" style="background: #9ca3af;">🗑 Excluir Cliente</button>
+            <button class="btn-acao btn-novo">🤝 Novo Cliente</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- SCRIPT DE AUTENTICAÇÃO E TRANSIÇÃO DE TELAS -->
+<script>
+    // --- Lógica de Segurança (Igual ao seu arquivo JS original) ---
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("Acesso negado! Faça o login primeiro.");
+        // Descomente a linha abaixo no projeto final
+        // window.location.href = "login.html"; 
+    } else {
+        // Validação no backend
+        fetch("https://appdedetizacao.onrender.com/auth/validar", {
+            headers: { "Authorization": "Bearer " + token }
+        }).then(res => {
+            if (!res.ok) {
+                localStorage.clear();
+                // window.location.href = "login.html";
+            }
+        });
+    }
+
+    // --- Lógica de Transição de Telas ---
+    const telaLista = document.getElementById("telaLista");
+    const telaDetalhes = document.getElementById("telaDetalhes");
+
+    function abrirDetalhes() {
+        // Esconde a lista e mostra os detalhes
+        telaLista.style.display = "none";
+        telaDetalhes.style.display = "block";
+    }
+
+    function voltarTela() {
+        // Se a tela de detalhes estiver aberta, volta para a lista
+        if (telaDetalhes.style.display === "block") {
+            telaDetalhes.style.display = "none";
+            telaLista.style.display = "block";
+        } else {
+            // Se já estiver na lista, o botão voltar pode redirecionar para o Dashboard
+            window.location.href = "dashboard.html"; // Mude para o caminho correto
+        }
+    }
+</script>
+
+</body>
+</html>

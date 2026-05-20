@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PestControlX - Painel Corporativo</title>
+
+    <link rel="stylesheet" href="css/dashboard_empresa.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+
+</head>
+<body>
+
+    <header class="topbar">
+        <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <div style="font-weight: 600; color: var(--text-muted);">Painel de Controle v2.1</div>
+    </header>
+
+    <nav class="sidebar">
+        <div class="logo-area">
+            <i class="fa-solid fa-bug" style="color: var(--pest-green); font-size: 24px;"></i>
+            <h2>PestControl<span>X</span></h2>
+        </div>
+
+        <div class="profile-area">
+            <div class="profile-pic"><i class="fa-solid fa-user-tie"></i></div>
+            <div class="profile-name" id="userName">Carregando...</div>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="showSection('clientes', this)"><i class="fa-solid fa-users"></i> <span>Clientes</span></button>
+            <button class="nav-btn" onclick="showSection('sobre', this)"><i class="fa-solid fa-id-card"></i> <span>Sobre a Empresa</span></button>
+            <button class="nav-btn" onclick="showSection('chat', this)"><i class="fa-regular fa-comments"></i> <span>Central de Chat</span></button>
+        </div>
+
+        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR</span></button>
+    </nav>
+
+    <main class="main-content">
+        
+        <section id="clientes" class="section-view active">
+            <h1>Clientes Registrados</h1>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID da Conversa</th>
+                            <th>Identificador do Cliente</th>
+                            <th>Status do Atendimento</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-clientes-corpo">
+                        <tr>
+                            <td>#1024</td>
+                            <td>Usuário do Aplicativo Mobile</td>
+                            <td><span class="status-badge">Ativo</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="sobre" class="section-view">
+            <h1>Configurações do Perfil (App)</h1>
+            <div class="card">
+                <form id="formPerfilEmpresa" onsubmit="salvarDadosPerfil(event)">
+                    <div class="form-group">
+                        <label for="inputSobre">Descrição da Empresa ("Sobre")</label>
+                        <textarea id="inputSobre" rows="5" placeholder="Conte aos clientes o histórico da sua empresa, certificações e especialidades de dedetização..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="inputMensagemBot">Mensagem de Saudação Automática (Chatbot)</label>
+                        <input type="text" id="inputMensagemBot" placeholder="Ex: Olá! Seja bem-vindo à nossa dedetizadora. Em que podemos ajudar hoje?">
+                    </div>
+                    <button type="submit" class="btn-salvar">SALVAR PERFIL</button>
+                </form>
+            </div>
+        </section>
+
+        <section id="chat" class="section-view">
+            <h1>Terminal de Atendimento</h1>
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-box"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="msg-input" placeholder="Digite a resposta para o cliente..." onkeypress="if(event.key==='Enter') enviarMsgStomp()">
+                    <button onclick="enviarMsgStomp()">ENVIAR</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // LÓGICA DO MENU RECLINÁVEL E NAVEGAÇÃO
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-collapsed');
+        }
+
+        function showSection(id, btn) {
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        window.onload = function() {
+            const email = localStorage.getItem("userEmail") || "empresa@pestcontrolx.com";
+            document.getElementById("userName").innerText = email;
+            
+            // Puxar do localStorage caso já tenha salvo
+            document.getElementById("inputSobre").value = localStorage.getItem("empresaSobre") || "";
+            document.getElementById("inputMensagemBot").value = localStorage.getItem("empresaBotMsg") || "";
+            
+            conectarChat();
+        };
+
+        // SALVAR DADOS DO SOBRE E DO BOT
+        function salvarDadosPerfil(e) {
+            e.preventDefault();
+            const sobre = document.getElementById("inputSobre").value;
+            const botMsg = document.getElementById("inputMensagemBot").value;
+
+            localStorage.setItem("empresaSobre", sobre);
+            localStorage.setItem("empresaBotMsg", botMsg);
+
+            alert("Perfil atualizado com sucesso! Os dados já estão disponíveis para consulta no App Mobile.");
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        // LÓGICA DO CHAT (STOMP WEBSOCKET)
+        var stompClient = null;
+        const SERVER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
+
+        function conectarChat() {
+            var socket = new SockJS(SERVER_URL);
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                printMensagem("SISTEMA DE ATENDIMENTO CONECTADO", "received");
+                
+                stompClient.subscribe('/topic/mensagens', function (msg) {
+                    var dados = JSON.parse(msg.body);
+                    if(dados.remetente !== 'EMPRESA') {
+                        printMensagem(dados.remetente + ": " + dados.texto, "received");
+                        atualizarTabelaClientes(dados.remetente);
+                    }
+                });
+            }, function(err) {
+                setTimeout(conectarChat, 5000);
+            });
+        }
+
+        function enviarMsgStomp() {
+            var input = document.getElementById('msg-input');
+            var texto = input.value.trim();
+            
+            if(texto && stompClient) {
+                var payload = JSON.stringify({'remetente': 'EMPRESA', 'texto': texto});
+                stompClient.send("/app/enviar", {}, payload);
+                printMensagem("VOCÊ: " + texto, "sent");
+                input.value = '';
+            }
+        }
+
+        function printMensagem(txt, tipo) {
+            var box = document.getElementById('chat-box');
+            box.innerHTML += `<div class="msg ${tipo}">${txt}</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function atualizarTabelaClientes(clienteNome) {
+            const corpo = document.getElementById("lista-clientes-corpo");
+            corpo.innerHTML = `<tr>
+                <td>#1024</td>
+                <td>${clienteNome}</td>
+                <td><span class="status-badge">Nova Mensagem</span></td>
+            </tr>`;
+        }
+    </script>
+</body>
+</html>
