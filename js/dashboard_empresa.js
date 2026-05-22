@@ -3,33 +3,31 @@
 // =========================================================
 const API_URL = "https://appdedetizacao.onrender.com";
 const RENDER_URL = `${API_URL}/ws-pestcontrol`;
-const token = localStorage.getItem("token");
-const empresaId = localStorage.getItem("empresaId");
 let stompClient = null;
 
 // =========================================================
-// 2. VERIFICAÇÃO DE SEGURANÇA
+// 2. VERIFICAÇÃO DE SEGURANÇA IMEDIATA
 // =========================================================
-if (!token) {
-    window.location.href = "login.html";
+if (!localStorage.getItem("token")) {
+    window.location.href = "index.html";
 }
 
 // =========================================================
 // 3. INICIALIZAÇÃO GERAL
 // =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-    // 1. Carrega dados do usuário
+    // Carrega dados do usuário
     const email = localStorage.getItem("userEmail") || "empresa@pestcontrolx.com";
     const elNome = document.getElementById("userName");
     if (elNome) elNome.innerText = email;
 
-    // 2. Preenche cache local no formulário
+    // Preenche cache local no formulário
     const inputSobre = document.getElementById("inputSobre");
     const inputMsgBot = document.getElementById("inputMensagemBot");
     if (inputSobre) inputSobre.value = localStorage.getItem("empresaSobre") || "";
     if (inputMsgBot) inputMsgBot.value = localStorage.getItem("empresaBotMsg") || "";
 
-    // 3. Conecta o chat WebSocket (as chamadas de API internas enviarão o Token)
+    // Inicializa o chat WebSocket
     conectarChat();
 });
 
@@ -53,23 +51,35 @@ function showSection(idSecao, btn) {
 // =========================================================
 async function salvarDadosPerfil(e) {
     e.preventDefault();
+    
+    // Captura os valores atualizados direto do localStorage no momento do clique
+    const tokenAtual = localStorage.getItem("token");
+    
+    // Busca inteligente: tenta 'empresaId', se não achar tenta 'id' ou 'usuarioId'
+    const idEmpresaAtual = localStorage.getItem("empresaId") || 
+                           localStorage.getItem("id") || 
+                           localStorage.getItem("usuarioId");
+
     const sobre = document.getElementById("inputSobre").value;
     const botMsg = document.getElementById("inputMensagemBot").value;
 
+    // Salva no cache local para manter preenchido na tela
     localStorage.setItem("empresaSobre", sobre);
     localStorage.setItem("empresaBotMsg", botMsg);
 
-    if (!empresaId || !token) {
-        alert("Erro: ID da empresa ou Token ausente. Faça login novamente.");
+    // Validação de segurança robusta
+    if (!tokenAtual || !idEmpresaAtual) {
+        console.error("Dados ausentes no localStorage:", { token: tokenAtual, id: idEmpresaAtual });
+        alert("Erro: Sessão inválida ou ID da empresa não encontrado. Faça login novamente.");
         return logout();
     }
 
     try {
-        const response = await fetch(`${API_URL}/api/empresas/${empresaId}`, {
+        const response = await fetch(`${API_URL}/api/empresas/${idEmpresaAtual}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Authorization': `Bearer ${tokenAtual}`
             },
             body: JSON.stringify({ sobre: sobre, mensagemAutomatica: botMsg })
         });
@@ -77,12 +87,17 @@ async function salvarDadosPerfil(e) {
         if (response.ok) {
             alert("Perfil atualizado no Banco de Dados com sucesso! 🚀");
         } else {
-            const erro = await response.text();
-            alert("Erro ao salvar: " + erro);
+            if (response.status === 401 || response.status === 403) {
+                alert("Sessão expirada ou não autorizada. Por favor, refaça o login.");
+                logout();
+            } else {
+                const erroText = await response.text();
+                alert("Erro ao salvar: " + erroText);
+            }
         }
     } catch (error) {
         console.error("Erro de rede:", error);
-        alert("Falha ao conectar com o servidor.");
+        alert("Falha ao conectar com o servidor do Render.");
     }
 }
 
@@ -127,7 +142,7 @@ function tocarSomNotificacao() {
             osc2.stop(audioCtx.currentTime + 0.15);
         }, 70);
     } catch (err) {
-        console.warn("Áudio bloqueado.", err);
+        console.warn("Áudio bloqueado pelo navegador.", err);
     }
 }
 
@@ -163,14 +178,13 @@ function conectarChat() {
                 printMensagem(`[${dados.remetente}]: ${dados.texto}`, "received");
                 atualizarTabelaClientes(dados.remetente);
                 
-                // Dispara os efeitos visuais e sonoros do seu código original
                 tocarSomNotificacao();
                 piscarJanelaTerminal();
             }
         });
     }, function(error) {
         atualizarStatusInterface("SISTEMA OFFLINE", "#ff3333");
-        console.error('Queda de conexão. Nova tentativa em 5s...', error);
+        console.error('Queda de conexão WebSocket. Nova tentativa em 5s...', error);
         setTimeout(conectarChat, 5000);
     });
 }
@@ -223,5 +237,5 @@ function atualizarTabelaClientes(clienteNome) {
 // =========================================================
 function logout() {
     localStorage.clear();
-    window.location.href = "login.html";
+    window.location.href = "index.html";
 }
