@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PestControlX - Clientes</title>
     <style>
-        /* ESTILOS BASE E CORES FIÉIS AO MOCKUP */
         :root {
-            --verde-pest: #4ade80; /* Verde vibrante das imagens */
+            --verde-pest: #4ade80; 
             --verde-escuro: #16a34a;
             --cinza-fundo: #f3f4f6;
             --cinza-escuro: #4b5563;
@@ -26,7 +25,6 @@
             justify-content: center;
         }
 
-        /* Container simulando a tela do celular/app */
         .app-container {
             width: 100%;
             max-width: 480px;
@@ -35,9 +33,9 @@
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
             position: relative;
             overflow-x: hidden;
+            padding-bottom: 80px;
         }
 
-        /* HEADER */
         .header {
             background: linear-gradient(to right, var(--verde-pest), #86efac);
             padding: 15px 20px;
@@ -56,6 +54,9 @@
             color: var(--verde-escuro);
             cursor: pointer;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .header-title {
@@ -65,7 +66,7 @@
             margin: 0;
         }
 
-        .header-title span { color: red; } /* O 'X' vermelho */
+        .header-title span { color: red; } 
 
         .sub-header {
             background: var(--cinza-header);
@@ -76,7 +77,6 @@
             font-size: 18px;
         }
 
-        /* TELA 1: LISTAGEM */
         #telaLista { padding: 15px; }
 
         .search-bar {
@@ -87,7 +87,7 @@
 
         .search-bar input {
             flex: 1;
-            padding: 10px;
+            padding: 10px 15px;
             border: 1px solid #ccc;
             border-radius: 20px;
             outline: none;
@@ -105,7 +105,7 @@
 
         .filtros {
             display: flex;
-            background: gray;
+            background: #d1d5db;
             border-radius: 20px;
             overflow: hidden;
             margin-bottom: 20px;
@@ -116,14 +116,14 @@
             padding: 10px;
             border: none;
             background: transparent;
-            color: white;
+            color: var(--cinza-escuro);
             font-weight: bold;
             cursor: pointer;
+            transition: 0.2s;
         }
 
-        .filtros button.active { background: var(--verde-pest); color: black; }
+        .filtros button.active { background: var(--verde-escuro); color: white; }
 
-        /* Tabela */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -133,7 +133,7 @@
             font-size: 12px;
         }
 
-        th { background: #bbf7d0; padding: 10px; text-align: left; }
+        th { background: #bbf7d0; padding: 10px; text-align: left; color: #166534; }
         td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
 
         .badge-ativo { color: var(--verde-escuro); font-weight: bold; }
@@ -150,43 +150,41 @@
             background: var(--verde-escuro);
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 15px;
             cursor: pointer;
             font-size: 11px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            font-weight: bold;
         }
 
         .btn-detalhes-cinza { background: gray; }
 
-        /* Rodapé Fixo */
         .footer-actions {
             position: absolute;
             bottom: 20px;
+            left: 0;
             width: 100%;
             display: flex;
             justify-content: center;
             gap: 10px;
+            padding: 0 15px;
         }
 
         .btn-acao {
-            padding: 12px 20px;
+            flex: 1;
+            padding: 12px;
             border: none;
             border-radius: 25px;
             font-weight: bold;
             color: white;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            text-align: center;
+            font-size: 13px;
         }
 
-        .btn-novo { background: var(--verde-pest); color: black; }
-        .btn-excluir { background: gray; }
+        .btn-novo { background: var(--verde-escuro); }
+        .btn-excluir { background: #6b7280; }
 
-        /* TELA 2: DETALHES DO CLIENTE */
         #telaDetalhes { display: none; padding: 15px; }
 
         .card-perfil {
@@ -200,29 +198,33 @@
             border: 1px solid #eee;
         }
 
-        .avatar {
-            width: 80px;
-            height: 80px;
-            background: #ccc;
-            border-radius: 50%;
+        .avatar-container {
             display: flex;
             flex-direction: column;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 70px;
+            height: 70px;
+            background: #374151;
+            border-radius: 50%;
+            display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        .badge-avatar-ativo {
-            background: var(--verde-escuro);
+        .badge-avatar-status {
             color: white;
             padding: 2px 10px;
             border-radius: 10px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
             margin-top: -10px;
             z-index: 2;
         }
 
-        .info-perfil p { margin: 4px 0; font-size: 14px; }
+        .info-perfil p { margin: 4px 0; font-size: 13px; }
         .info-perfil strong { color: var(--texto-escuro); }
 
         .secao-titulo {
@@ -231,11 +233,12 @@
             padding: 8px 15px;
             border-radius: 20px;
             font-weight: bold;
+            margin-top: 15px;
             margin-bottom: 10px;
         }
 
         .secao-conteudo {
-            padding: 0 10px 15px 10px;
+            padding: 0 10px;
             font-size: 14px;
         }
 
@@ -253,37 +256,31 @@
         .status-pendente { background: var(--amarelo-pendente); color: black; padding: 2px 8px; border-radius: 10px; font-size: 11px;}
 
         ul.obs-list { padding-left: 20px; margin: 0; color: var(--cinza-escuro); }
-        ul.obs-list li::marker { color: var(--verde-pest); font-size: 1.2em; }
-
     </style>
 </head>
 <body>
 
 <div class="app-container">
     
-    <!-- HEADER FIXO -->
     <div class="header">
         <button class="btn-voltar" onclick="voltarTela()">&#8617;</button>
         <h1 class="header-title">PestControl<span>X</span></h1>
-        <div style="width: 40px;"></div> <!-- Espaçador para centralizar o título -->
+        <div style="width: 40px;"></div>
     </div>
 
-    <!-- ==========================================
-         TELA 1: LISTAGEM DE CLIENTES
-         ========================================== -->
     <div id="telaLista">
-        <div class="sub-header">Clientes registrados</div>
+        <div class="sub-header">Clientes Registrados</div>
         <br>
         
         <div class="search-bar">
-            <input type="text" placeholder="Buscar cliente (nome, CPF ou e-mail)">
-            <button>Pesquisar</button>
+            <input type="text" id="inputBusca" placeholder="Buscar por nome..." oninput="filtrarClientes()">
+            <button onclick="filtrarClientes()">Pesquisar</button>
         </div>
 
         <div class="filtros">
-            <button class="active">Todos</button>
-            <button>Ativos</button>
-            <button>Inativos</button>
+            <button id="btnFiltroTodos" class="active" onclick="mudarFiltro('todos')">Todos</button>
+            <button id="btnFiltroAtivos" onclick="mudarFiltro('ativos')">Ativos</button>
+            <button id="btnFiltroInativos" onclick="mudarFiltro('inativos')">Inativos</button>
         </div>
 
         <table>
@@ -291,152 +288,199 @@
                 <tr>
                     <th>Nome</th>
                     <th>CPF</th>
-                    <th>E-mail</th>
-                    <th>Ativos</th>
+                    <th>Status / Tel</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabelaClientes">
-                <!-- Linha 1 -->
-                <tr>
-                    <td><strong>Carlos Silva</strong></td>
-                    <td>123.456.789-00</td>
-                    <td>carlos@gmail.com</td>
-                    <td class="badge-ativo">(11)98985-0000</td>
-                    <td><button class="btn-detalhes" onclick="abrirDetalhes()">👁 Detalhes</button></td>
-                </tr>
-                <!-- Linha 2 -->
-                <tr>
-                    <td><strong>Maria Souza</strong></td>
-                    <td>664.852.361-00</td>
-                    <td>maria@gmail.com</td>
-                    <td><span class="badge-inativo">Inativo</span></td>
-                    <td><button class="btn-detalhes btn-detalhes-cinza" onclick="abrirDetalhes()">👁 Detalhes</button></td>
-                </tr>
-                <!-- Linha 3 -->
-                <tr>
-                    <td><strong>Pedro Jesus</strong></td>
-                    <td>187.326.739-00</td>
-                    <td>pedro@gmail.com</td>
-                    <td class="badge-ativo">(11)75405-9800</td>
-                    <td><button class="btn-detalhes btn-detalhes-cinza" onclick="abrirDetalhes()">👁 Detalhes</button></td>
-                </tr>
-            </tbody>
+                </tbody>
         </table>
 
-        <div class="footer-actions" style="position: relative; margin-top: 30px;">
-            <button class="btn-acao btn-novo">⊕ Cadastrar Novo Cliente</button>
-            <button class="btn-acao btn-excluir">👁 Detalhes</button>
+        <div class="footer-actions">
+            <button class="btn-acao btn-novo" onclick="alert('Funcionalidade de cadastro via mobile em desenvolvimento!')">⊕ Novo Cliente</button>
         </div>
     </div>
 
-    <!-- ==========================================
-         TELA 2: DETALHES DO CLIENTE
-         ========================================== -->
     <div id="telaDetalhes">
+        <div class="sub-header">Ficha do Cliente</div>
+        <br>
         <div class="card-perfil">
-            <div>
+            <div class="avatar-container">
                 <div class="avatar">
-                    <svg width="40" height="40" fill="#fff" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <svg width="35" height="35" fill="#fff" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 </div>
-                <div class="badge-avatar-ativo">Ativo</div>
+                <div id="detalheBadgeStatus" class="badge-avatar-status">Ativo</div>
             </div>
-            <div class="info-perfil">
-                <p>Nome: <strong>Carlos Silva</strong></p>
-                <p>CPF: <strong>123.456.789-00</strong></p>
-                <p>Data de Nascimento: <strong>10/05/1985</strong></p>
-                <p>Telefone: <strong>(11) 98985-0000</strong></p>
-                <p>E-mail: <strong>carlos@gmail.com</strong></p>
-            </div>
+            <div class="info-perfil" id="detalheGeral">
+                </div>
         </div>
 
         <div class="secao-titulo">Endereço</div>
-        <div class="secao-conteudo">
-            <p>Rua: <strong>Rua das Flores</strong></p>
-            <p>Número: <strong>123</strong></p>
-            <p>Bairro: <strong>Centro</strong></p>
-            <p style="display: flex; justify-content: space-between;">
-                <span>Cidade: <strong>São Paulo</strong></span>
-                <span>CEP: <strong>01234-567</strong></span>
-            </p>
-        </div>
+        <div class="secao-conteudo" id="detalheEndereco">
+            </div>
 
         <div class="secao-titulo">Histórico de Serviços</div>
-        <div class="secao-conteudo">
-            <div class="historico-item">
-                <span>✔️ Dedetização - <strong>12/03/2026</strong></span>
-                <span class="status-concluido">Concluído</span>
+        <div class="secao-conteudo" id="detalheHistorico">
             </div>
-            <div class="historico-item">
-                <span>🕒 Controle de Pragas - <strong>05/02/2026</strong></span>
-                <span class="status-pendente">Pendente</span>
-            </div>
-            <div class="historico-item">
-                <span>✔️ Limpeza de caixa d'água - <strong>20/01/2026</strong></span>
-                <span class="status-concluido">Concluído</span>
-            </div>
-        </div>
 
         <div class="secao-titulo">Observações</div>
         <div class="secao-conteudo">
-            <ul class="obs-list">
-                <li>Cliente prefere atendimento pela manhã</li>
-                <li>Local com infestação recorrente</li>
-                <li>Possui animais de estimação</li>
-            </ul>
+            <ul class="obs-list" id="detalheObs">
+                </ul>
         </div>
 
-        <div class="footer-actions" style="position: relative; margin-top: 20px; padding-bottom: 20px;">
-            <button class="btn-acao btn-novo" style="background: var(--verde-escuro);">✎ Editar Cliente</button>
-            <button class="btn-acao btn-excluir" style="background: #9ca3af;">🗑 Excluir Cliente</button>
-            <button class="btn-acao btn-novo">🤝 Novo Cliente</button>
+        <div class="footer-actions">
+            <button class="btn-acao btn-excluir" onclick="voltarTela()">Voltar para Lista</button>
         </div>
     </div>
 
 </div>
 
-<!-- SCRIPT DE AUTENTICAÇÃO E TRANSIÇÃO DE TELAS -->
 <script>
-    // --- Lógica de Segurança (Igual ao seu arquivo JS original) ---
-    const token = localStorage.getItem("token");
+    // Mock de Banco de Dados de Clientes para Simulação Completa
+    const dadosClientes = [
+        {
+            id: 1, nome: "Carlos Silva", cpf: "123.456.789-00", email: "carlos@gmail.com", ativo: true, telefone: "(11) 98985-0000", nascimento: "10/05/1985",
+            rua: "Rua das Flores", numero: "123", bairro: "Centro", cidade: "São Paulo", cep: "01234-567",
+            historico: [
+                { servico: "Dedetização", data: "12/03/2026", status: "Concluído", classe: "status-concluido" },
+                { servico: "Controle de Pragas", data: "05/02/2026", status: "Pendente", classe: "status-pendente" }
+            ],
+            obs: ["Cliente prefere atendimento pela manhã", "Local com infestação recorrente", "Possui animais de estimação"]
+        },
+        {
+            id: 2, nome: "Maria Souza", cpf: "664.852.361-00", email: "maria@gmail.com", ativo: false, telefone: "(11) 97120-4411", nascimento: "22/11/1990",
+            rua: "Av. Paulista", numero: "1500", bairro: "Bela Vista", cidade: "São Paulo", cep: "01311-200",
+            historico: [
+                { servico: "Desratização", data: "15/01/2026", status: "Concluído", classe: "status-concluido" }
+            ],
+            obs: ["Portão eletrônico quebrado", "Solicitou ligar antes de chegar"]
+        },
+        {
+            id: 3, nome: "Pedro Jesus", cpf: "187.326.739-00", email: "pedro@gmail.com", ativo: true, telefone: "(11) 75405-9800", nascimento: "04/07/1978",
+            rua: "Rua Mato Grosso", numero: "45", bairro: "Jardins", cidade: "São Paulo", cep: "01412-010",
+            historico: [
+                { servico: "Limpeza de Caixa d'Água", data: "20/01/2026", status: "Concluído", classe: "status-concluido" }
+            ],
+            obs: ["Caixa d'água de difícil acesso (necessita escada longa)"]
+        }
+    ];
 
+    let filtroAtual = 'todos';
+
+    // Inicialização segura com validação de token
+    const token = localStorage.getItem("token");
     if (!token) {
         alert("Acesso negado! Faça o login primeiro.");
-        // Descomente a linha abaixo no projeto final
-        // window.location.href = "login.html"; 
-    } else {
-        // Validação no backend
-        fetch("https://appdedetizacao.onrender.com/auth/validar", {
-            headers: { "Authorization": "Bearer " + token }
-        }).then(res => {
-            if (!res.ok) {
-                localStorage.clear();
-                // window.location.href = "login.html";
-            }
+    }
+
+    function renderizarTabela() {
+        const tbody = document.getElementById("tabelaClientes");
+        tbody.innerHTML = "";
+        const termo = document.getElementById("inputBusca").value.toLowerCase();
+
+        dadosClientes.forEach(c => {
+            // Filtro de Busca por Texto
+            if (!c.nome.toLowerCase().includes(termo) && !c.cpf.includes(termo) && !c.email.toLowerCase().includes(termo)) return;
+            
+            // Filtro de Abas (Status)
+            if (filtroAtual === 'ativos' && !c.ativo) return;
+            if (filtroAtual === 'inativos' && c.ativo) return;
+
+            const statusTd = c.ativo ? `<span class="badge-ativo">${c.telefone}</span>` : `<span class="badge-inativo">Inativo</span>`;
+            const btnClasse = c.ativo ? "btn-detalhes" : "btn-detalhes btn-detalhes-cinza";
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${c.nome}</strong></td>
+                    <td>${c.cpf}</td>
+                    <td>${statusTd}</td>
+                    <td><button class="${btnClasse}" onclick="abrirDetalhes(${c.id})">👁 Ver</button></td>
+                </tr>
+            `;
         });
     }
 
-    // --- Lógica de Transição de Telas ---
-    const telaLista = document.getElementById("telaLista");
-    const telaDetalhes = document.getElementById("telaDetalhes");
+    function mudarFiltro(tipo) {
+        filtroAtual = tipo;
+        document.getElementById("btnFiltroTodos").classList.remove("active");
+        document.getElementById("btnFiltroAtivos").classList.remove("active");
+        document.getElementById("btnFiltroInativos").classList.remove("active");
 
-    function abrirDetalhes() {
-        // Esconde a lista e mostra os detalhes
-        telaLista.style.display = "none";
-        telaDetalhes.style.display = "block";
+        if(tipo === 'todos') document.getElementById("btnFiltroTodos").classList.add("active");
+        if(tipo === 'ativos') document.getElementById("btnFiltroAtivos").classList.add("active");
+        if(tipo === 'inativos') document.getElementById("btnFiltroInativos").classList.add("active");
+
+        renderizarTabela();
+    }
+
+    function filtrarClientes() {
+        renderizarTabela();
+    }
+
+    function abrirDetalhes(id) {
+        const cliente = dadosClientes.find(c => c.id === id);
+        if(!cliente) return;
+
+        // Configura Status Avatar Badge
+        const badgeStatus = document.getElementById("detalheBadgeStatus");
+        badgeStatus.innerText = cliente.ativo ? "Ativo" : "Inativo";
+        badgeStatus.style.background = cliente.ativo ? "var(--verde-escuro)" : "var(--vermelho-inativo)";
+
+        // Preenche dados gerais
+        document.getElementById("detalheGeral").innerHTML = `
+            <p>Nome: <strong>${cliente.nome}</strong></p>
+            <p>CPF: <strong>${cliente.cpf}</strong></p>
+            <p>Nascimento: <strong>${cliente.nascimento}</strong></p>
+            <p>Telefone: <strong>${cliente.telefone}</strong></p>
+            <p>E-mail: <strong>${cliente.email}</strong></p>
+        `;
+
+        // Preenche Endereço
+        document.getElementById("detalheEndereco").innerHTML = `
+            <p>Rua: <strong>${cliente.rua}</strong></p>
+            <p>Número: <strong>${cliente.numero}</strong></p>
+            <p>Bairro: <strong>${cliente.bairro}</strong></p>
+            <p style="display: flex; justify-content: space-between;">
+                <span>Cidade: <strong>${cliente.cidade}</strong></span>
+                <span>CEP: <strong>${cliente.cep}</strong></span>
+            </p>
+        `;
+
+        // Preenche Histórico
+        const divHist = document.getElementById("detalheHistorico");
+        divHist.innerHTML = "";
+        cliente.historico.forEach(h => {
+            divHist.innerHTML += `
+                <div class="historico-item">
+                    <span>⚙️ ${h.servico} - <strong>${h.data}</strong></span>
+                    <span class="${h.classe}">${h.status}</span>
+                </div>
+            `;
+        });
+
+        // Preenche observações
+        const ulObs = document.getElementById("detalheObs");
+        ulObs.innerHTML = "";
+        cliente.obs.forEach(o => {
+            ulObs.innerHTML += `<li>${o}</li>`;
+        });
+
+        document.getElementById("telaLista").style.display = "none";
+        document.getElementById("telaDetalhes").style.display = "block";
     }
 
     function voltarTela() {
-        // Se a tela de detalhes estiver aberta, volta para a lista
-        if (telaDetalhes.style.display === "block") {
-            telaDetalhes.style.display = "none";
-            telaLista.style.display = "block";
+        if (document.getElementById("telaDetalhes").style.display === "block") {
+            document.getElementById("telaDetalhes").style.display = "none";
+            document.getElementById("telaLista").style.display = "block";
         } else {
-            // Se já estiver na lista, o botão voltar pode redirecionar para o Dashboard
-            window.location.href = "dashboard.html"; // Mude para o caminho correto
+            window.location.href = "dashboard.html";
         }
     }
-</script>
 
+    // Inicializar tabela
+    window.onload = renderizarTabela;
+</script>
 </body>
 </html>

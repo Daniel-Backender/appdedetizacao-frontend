@@ -1,228 +1,207 @@
 // =========================================================
-// 1. CONFIGURAÇÕES E CONSTANTES GLOBAIS
+// 1. CONFIGURAÇÕES GLOBAIS E ESTADO
 // =========================================================
 const API_URL = "https://appdedetizacao.onrender.com";
 const RENDER_URL = `${API_URL}/ws-pestcontrol`;
 let stompClient = null;
 
+// ESTADO DO CHAT (Estilo Telegram)
+let currentChatClienteId = null;
+let currentChatSubscription = null;
+const empresaId = localStorage.getItem("empresaId");
+const token = localStorage.getItem("token");
+
 // =========================================================
-// 2. VERIFICAÇÃO DE SEGURANÇA IMEDIATA
+// 2. SEGURANÇA E INICIALIZAÇÃO
 // =========================================================
-if (!localStorage.getItem("token")) {
+if (!token || !empresaId) {
+    alert("Sessão inválida. Redirecionando para login.");
     window.location.href = "index.html";
 }
 
-// =========================================================
-// 3. INICIALIZAÇÃO GERAL
-// =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-    // Carrega dados do usuário
-    const email = localStorage.getItem("userEmail") || "empresa@pestcontrolx.com";
+    const email = localStorage.getItem("userEmail") || "admin@pestcontrolx.com";
     const elNome = document.getElementById("userName");
     if (elNome) elNome.innerText = email;
 
-    // Preenche cache local no formulário
-    const inputSobre = document.getElementById("inputSobre");
-    const inputMsgBot = document.getElementById("inputMensagemBot");
-    if (inputSobre) inputSobre.value = localStorage.getItem("empresaSobre") || "";
-    if (inputMsgBot) inputMsgBot.value = localStorage.getItem("empresaBotMsg") || "";
-
-    // Inicializa o chat WebSocket
-    conectarChat();
+    // Conecta o núcleo do WebSockets
+    conectarServidorWebSocket();
+    
+    // Carrega a lista de clientes para a barra lateral do chat
+    carregarListaClientesParaChat();
 });
 
 // =========================================================
-// 4. LÓGICA DE INTERFACE (MENU E ABAS)
+// 3. NÚCLEO WEBSOCKET (ESTILO TELEGRAM)
 // =========================================================
-function toggleSidebar() {
-    document.body.classList.toggle('sidebar-collapsed');
+function conectarServidorWebSocket() {
+    atualizarStatusInterface("SISTEMA CONECTANDO...", "#ffaa00");
+    const socket = new SockJS(RENDER_URL);
+    stompClient = Stomp.over(socket);
+    stompClient.debug = null; 
+
+    stompClient.connect({}, function (frame) {
+        atualizarStatusInterface("SERVIDOR ONLINE", "#3DDC84");
+        
+        // Aqui você pode se inscrever em um tópico geral para notificações de sistema
+        stompClient.subscribe(`/topic/empresa/${empresaId}/notificacoes`, function(msg) {
+            tocarSomNotificacao();
+            console.log("Notificação Global:", msg.body);
+        });
+
+    }, function(error) {
+        atualizarStatusInterface("FALHA CRÍTICA - RECONECTANDO...", "#ff3333");
+        setTimeout(conectarServidorWebSocket, 5000);
+    });
 }
 
-function showSection(idSecao, btn) {
-    document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+// =========================================================
+// 4. LÓGICA DE SALAS DE CHAT (O "TELEGRAM")
+// =========================================================
+async function abrirChatComCliente(clienteId, clienteNome) {
+    currentChatClienteId = clienteId;
     
-    document.getElementById(idSecao).classList.add('active');
-    if (btn) btn.classList.add('active');
+    // Atualiza a UI para mostrar com quem estamos falando
+    const headerChat = document.getElementById('chat-header-title');
+    if(headerChat) headerChat.innerText = `Chat: ${clienteNome}`;
+    
+    const box = document.getElementById('chat-box');
+    box.innerHTML = `<div class="msg system" style="color:#00ffcc; text-align:center;">Carregando banco de dados criptografado...</div>`;
+
+    // 1. Desconecta da sala anterior (se existir)
+    if (currentChatSubscription) {
+        currentChatSubscription.unsubscribe();
+    }
+
+    // 2. Carrega o Histórico do Banco de Dados via REST
+    try {
+        const response = await fetch(`${API_URL}/api/chat/historico/${empresaId}/${clienteId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const historico = await response.json();
+        
+        box.innerHTML = ""; // Limpa a tela
+        historico.forEach(msg => {
+            const tipo = msg.remetente === "EMPRESA" ? "sent" : "received";
+            printMensagem(msg.texto, tipo);
+        });
+    } catch(err) {
+        console.error("Erro ao carregar histórico", err);
+    }
+
+    // 3. Conecta na Nova Sala Exclusiva (WebSocket)
+    const topicPath = `/topic/chat/${empresaId}/${clienteId}`;
+    currentChatSubscription = stompClient.subscribe(topicPath, function (msg) {
+        const dados = JSON.parse(msg.body);
+        
+        // Se a mensagem que chegou NÃO for nossa, pinta na tela e toca som
+        if (dados.remetente !== 'EMPRESA') {
+            printMensagem(dados.texto, "received");
+            tocarSomNotificacao();
+            piscarJanelaTerminal();
+        }
+    });
 }
 
-// =========================================================
-// 5. SALVAR DADOS NO BANCO DO RENDER (FETCH PUT)
-// =========================================================
-async function salvarDadosPerfil(e) {
-    if (e) e.preventDefault();
-    
-    const tokenAtual = localStorage.getItem("token");
-    const idEmpresaAtual = localStorage.getItem("empresaId");
-
-    // Validação agressiva
-    if (!idEmpresaAtual || idEmpresaAtual === "null" || idEmpresaAtual === "undefined") {
-        console.error("FALHA: ID da empresa está nulo. LocalStorage:", localStorage);
-        alert("Sua sessão está corrompida. O sistema não sabe quem é sua empresa. Por favor, faça login novamente.");
-        logout();
+function enviarMsgStomp() {
+    const input = document.getElementById('msg-input');
+    if (!input || !currentChatClienteId) {
+        alert("Selecione um cliente na lista primeiro para iniciar a transmissão.");
         return;
     }
 
-    const sobre = document.getElementById("inputSobre").value;
-    const botMsg = document.getElementById("inputMensagemBot").value;
-
-    try {
-        // A URL agora só será chamada se o ID for válido
-        const response = await fetch(`${API_URL}/api/empresas/${idEmpresaAtual}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${tokenAtual}`
-            },
-            body: JSON.stringify({ sobre: sobre, mensagemAutomatica: botMsg })
+    const textoDigitado = input.value.trim();
+    
+    if (textoDigitado !== "" && stompClient && stompClient.connected) {
+        // Envia para a sala privada: /app/chat/{empresaId}/{clienteId}
+        const destination = `/app/chat/${empresaId}/${currentChatClienteId}`;
+        const payload = JSON.stringify({
+            remetente: 'EMPRESA',
+            texto: textoDigitado 
         });
-
-        if (response.ok) {
-            alert("Perfil atualizado com sucesso! 🚀");
-        } else {
-            const erroText = await response.text();
-            alert("Erro do Servidor: " + erroText);
-        }
-    } catch (error) {
-        console.error("Erro de rede:", error);
-        alert("Falha de conexão com o servidor.");
+        
+        stompClient.send(destination, {}, payload);
+        
+        // Exibe imediatamente na nossa tela
+        printMensagem(textoDigitado, "sent");
+        input.value = '';
+        input.focus();
     }
 }
 
 // =========================================================
-// 6. EFEITOS ESPECIAIS DO CHAT (ÁUDIO E VISUAL NEON)
+// 5. RENDERIZAÇÃO E UI/UX CYBER-INDUSTRIAL
 // =========================================================
-function atualizarStatusInterface(texto, corHex) {
-    const el = document.getElementById('status-chat');
-    if (el) {
-        el.innerText = texto;
-        el.style.borderColor = corHex;
-        el.style.color = corHex;
-        el.style.boxShadow = `0 0 10px ${corHex}`;
+function printMensagem(txt, tipo) {
+    const box = document.getElementById('chat-box');
+    if (box) {
+        // Usa o estilo de box do PestControlX
+        box.innerHTML += `<div class="msg ${tipo}" style="margin: 8px 0; padding: 10px; border-radius: 5px; ${tipo === 'sent' ? 'background:#1a4d33; border: 1px solid #3DDC84; text-align:right;' : 'background:#222; border: 1px solid #444; text-align:left;'}">${txt}</div>`;
+        box.scrollTop = box.scrollHeight; 
     }
 }
 
 function tocarSomNotificacao() {
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        let osc1 = audioCtx.createOscillator();
-        let gain1 = audioCtx.createGain();
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-        gain1.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-        osc1.connect(gain1);
-        gain1.connect(audioCtx.destination);
-        osc1.start();
-        osc1.stop(audioCtx.currentTime + 0.1);
-        
-        setTimeout(() => {
-            let osc2 = audioCtx.createOscillator();
-            let gain2 = audioCtx.createGain();
-            osc2.type = 'sine';
-            osc2.frequency.setValueAtTime(783.99, audioCtx.currentTime); // G5
-            gain2.gain.setValueAtTime(0.08, audioCtx.currentTime);
-            gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
-            osc2.connect(gain2);
-            gain2.connect(audioCtx.destination);
-            osc2.start();
-            osc2.stop(audioCtx.currentTime + 0.15);
-        }, 70);
-    } catch (err) {
-        console.warn("Áudio bloqueado pelo navegador.", err);
-    }
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    } catch (err) {}
 }
 
 function piscarJanelaTerminal() {
     const painelChat = document.getElementById('terminal-container');
     if (painelChat) {
-        painelChat.style.boxShadow = "0 0 35px #3DDC84";
-        painelChat.style.borderColor = "#3DDC84";
-        setTimeout(() => {
-            painelChat.style.boxShadow = "none";
-            painelChat.style.borderColor = "var(--border-color)"; 
-        }, 350);
+        painelChat.style.boxShadow = "0 0 40px #3DDC84";
+        setTimeout(() => painelChat.style.boxShadow = "none", 400);
+    }
+}
+
+function atualizarStatusInterface(texto, corHex) {
+    const el = document.getElementById('status-chat');
+    if (el) {
+        el.innerText = texto;
+        el.style.color = corHex;
+        el.style.textShadow = `0 0 10px ${corHex}`;
     }
 }
 
 // =========================================================
-// 7. WEBSOCKET STOMP (LÓGICA PRINCIPAL DO CHAT)
+// 6. SOLICITAÇÕES E CLIENTES (PREPARAÇÃO P/ ORDEM DE SERVIÇO)
 // =========================================================
-function conectarChat() {
-    atualizarStatusInterface("CONECTANDO...", "#ffaa00");
-    const socket = new SockJS(RENDER_URL);
-    stompClient = Stomp.over(socket);
-    stompClient.debug = null; 
-
-    stompClient.connect({}, function (frame) {
-        atualizarStatusInterface("SISTEMA ONLINE", "#3DDC84");
-        printMensagem("SISTEMA DE ATENDIMENTO CONECTADO.", "received");
-        
-        stompClient.subscribe('/topic/mensagens', function (msg) {
-            const dados = JSON.parse(msg.body);
-            
-            if (dados.remetente !== 'EMPRESA') {
-                printMensagem(`[${dados.remetente}]: ${dados.texto}`, "received");
-                atualizarTabelaClientes(dados.remetente);
-                
-                tocarSomNotificacao();
-                piscarJanelaTerminal();
-            }
+async function carregarListaClientesParaChat() {
+    // Essa função simula a busca de clientes cadastrados no banco para montar o menu lateral
+    try {
+        const response = await fetch(`${API_URL}/api/clientes/empresa/${empresaId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
-    }, function(error) {
-        atualizarStatusInterface("SISTEMA OFFLINE", "#ff3333");
-        console.error('Queda de conexão WebSocket. Nova tentativa em 5s...', error);
-        setTimeout(conectarChat, 5000);
-    });
-}
-
-function enviarMsgStomp() {
-    const input = document.getElementById('msg-input');
-    if (!input) return;
-
-    const textoDigitado = input.value.trim();
-    
-    if (textoDigitado !== "") {
-        if (stompClient && stompClient.connected) {
-            const payload = JSON.stringify({
-                'remetente': 'EMPRESA',
-                'texto': textoDigitado 
-            });
-            stompClient.send("/app/enviar", {}, payload);
+        
+        if (response.ok) {
+            const clientes = await response.json();
+            const container = document.getElementById('lista-contatos-chat'); // Precisa existir no HTML
+            if(!container) return;
             
-            printMensagem(`VOCÊ: ${textoDigitado}`, "sent");
-            input.value = '';
-            input.focus();
-        } else {
-            console.warn("Bloqueado: WebSocket desconectado.");
-            atualizarStatusInterface("RECONECTANDO...", "#ffaa00");
+            container.innerHTML = "";
+            clientes.forEach(cli => {
+                container.innerHTML += `
+                    <div class="contato-chat-item" onclick="abrirChatComCliente(${cli.id}, '${cli.nome}')" style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer; color: #3DDC84;">
+                        ${cli.nome}
+                    </div>
+                `;
+            });
         }
+    } catch (e) {
+        console.error("Erro ao carregar clientes para o chat", e);
     }
 }
 
-function printMensagem(txt, tipo) {
-    const box = document.getElementById('chat-box');
-    if (box) {
-        box.innerHTML += `<div class="msg ${tipo}">${txt}</div>`;
-        box.scrollTop = box.scrollHeight; 
-    }
-}
-
-function atualizarTabelaClientes(clienteNome) {
-    const corpo = document.getElementById("lista-clientes-corpo");
-    if (corpo) {
-        corpo.innerHTML = `<tr>
-            <td>#1024</td>
-            <td>${clienteNome}</td>
-            <td><span class="status-badge" style="color: #000; background: #3DDC84; box-shadow: 0 0 5px #3DDC84;">Nova Mensagem</span></td>
-        </tr>`;
-    }
-}
-
-// =========================================================
-// 8. LOGOUT
-// =========================================================
 function logout() {
     localStorage.clear();
     window.location.href = "index.html";

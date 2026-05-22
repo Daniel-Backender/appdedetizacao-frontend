@@ -7,39 +7,43 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         body { background: #0a0a0a; color: #3DDC84; font-family: 'Courier New', monospace; padding: 20px; }
-        #chat { height: 400px; border: 2px solid #3DDC84; overflow-y: scroll; padding: 10px; margin-bottom: 10px; background: #000; box-shadow: 0 0 10px #3DDC84; }
-        input { width: 80%; padding: 10px; background: #111; border: 1px solid #3DDC84; color: #fff; outline: none; }
-        button { padding: 10px 20px; background: #3DDC84; border: none; font-weight: bold; cursor: pointer; color: #000; }
-        .msg-empresa { color: #3DDC84; }
-        .msg-tecnico { color: #ffffff; }
+        #chat { height: 400px; border: 2px solid #3DDC84; overflow-y: auto; padding: 10px; margin-bottom: 10px; background: #000; box-shadow: 0 0 10px #3DDC84; }
+        input { width: 75%; padding: 12px; background: #111; border: 1px solid #3DDC84; color: #fff; outline: none; font-family: 'Courier New', monospace; }
+        button { padding: 12px 24px; background: #3DDC84; border: none; font-weight: bold; cursor: pointer; color: #000; font-family: 'Courier New', monospace; }
+        button:hover { background: #2cb36b; box-shadow: 0 0 8px #3DDC84; }
+        .msg-empresa { color: #3DDC84; margin: 6px 0; }
+        .msg-tecnico { color: #ffffff; margin: 6px 0; }
+        .status-log { color: #888; font-size: 12px; font-style: italic; }
     </style>
 </head>
 <body>
-    <h1>[ PESTCONTROL-X CHAT ]</h1>
-    <div id="chat"></div>
+    <h1>[ PESTCONTROL-X CHAT TERMINAL ]</h1>
+    <div id="chat">
+        <p class="status-log">Iniciando conexão com o servidor...</p>
+    </div>
     <input type="text" id="msg" placeholder="Resposta para o técnico..." onkeypress="if(event.key==='Enter') enviar()">
     <button onclick="enviar()">ENVIAR</button>
 
     <script>
         var stompClient = null;
-        // URL DO SEU RENDER CORRIGIDA
         const SOCKET_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
 
         function conectar() {
+            var chat = document.getElementById('chat');
             var socket = new SockJS(SOCKET_URL);
             stompClient = Stomp.over(socket);
+            stompClient.debug = null; // Remove logs poluídos no console do navegador
+
             stompClient.connect({}, function (frame) {
-                console.log('Conectado!');
+                chat.innerHTML += `<p class="status-log" style="color: #00ff00;">> Conectado com sucesso ao barramento da nuvem.</p>`;
                 stompClient.subscribe('/topic/mensagens', function (msg) {
                     var dados = JSON.parse(msg.body);
-                    var chat = document.getElementById('chat');
-                    
-                    // Ajustado para 'texto' (conforme seu Java)
                     var classe = dados.remetente === 'EMPRESA' ? 'msg-empresa' : 'msg-tecnico';
-                    chat.innerHTML += `<p class="${classe}"><strong>${dados.remetente}:</strong> ${dados.texto}</p>`;
+                    chat.innerHTML += `<p class="${classe}"><strong>[${dados.remetente}]:</strong> ${dados.texto}</p>`;
                     chat.scrollTop = chat.scrollHeight;
                 });
             }, function(error) {
+                chat.innerHTML += `<p class="status-log" style="color: red;">> Conexão perdida. Tentando reconectar em 5s...</p>`;
                 setTimeout(conectar, 5000);
             });
         }
@@ -48,14 +52,13 @@
             var input = document.getElementById('msg');
             var texto = input.value.trim();
             if (texto && stompClient) {
-                // Enviando como 'texto' para o Java entender
                 var payload = JSON.stringify({'remetente': 'EMPRESA', 'texto': texto});
                 stompClient.send("/app/enviar", {}, payload);
                 input.value = '';
             }
         }
 
-        conectar();
+        window.onload = conectar;
     </script>
 </body>
 </html>
