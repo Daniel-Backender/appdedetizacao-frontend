@@ -2,170 +2,206 @@
 // 1. CONFIGURAÇÕES E CONSTANTES GLOBAIS
 // =========================================================
 const API_URL = "https://appdedetizacao.onrender.com";
+const RENDER_URL = `${API_URL}/ws-pestcontrol`;
 const token = localStorage.getItem("token");
 const empresaId = localStorage.getItem("empresaId");
+let stompClient = null;
 
 // =========================================================
-// 2. VERIFICAÇÃO DE SEGURANÇA IMEDIATA
+// 2. VERIFICAÇÃO DE SEGURANÇA
 // =========================================================
 if (!token) {
     window.location.href = "login.html";
 }
 
 // =========================================================
-// 3. INICIALIZAÇÃO DA PÁGINA
+// 3. INICIALIZAÇÃO GERAL
 // =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-    // Carrega dados do usuário no painel
+    // Carrega dados do usuário
     const email = localStorage.getItem("userEmail") || "empresa@pestcontrolx.com";
     const elNome = document.getElementById("userName");
     if (elNome) elNome.innerText = email;
 
-    // Preenche os campos do perfil com dados do cache local (para a tela carregar rápido)
+    // Preenche cache local no formulário
     const inputSobre = document.getElementById("inputSobre");
     const inputMsgBot = document.getElementById("inputMensagemBot");
     if (inputSobre) inputSobre.value = localStorage.getItem("empresaSobre") || "";
     if (inputMsgBot) inputMsgBot.value = localStorage.getItem("empresaBotMsg") || "";
 
-    // Valida o token silenciosamente no backend do Render
+    // Valida o token e inicializa chat
     fetch(`${API_URL}/auth/validar`, {
         headers: { "Authorization": "Bearer " + token }
     })
-    .then(res => {
-        if (!res.ok) logout();
-    })
-    .catch(err => console.error("Erro de conexão com API:", err));
+    .then(res => { if (!res.ok) logout(); })
+    .catch(err => console.error("Erro API:", err));
 
-    // Inicia a conexão com o servidor de Chat (WebSockets)
     conectarChat();
 });
 
 // =========================================================
-// 4. LÓGICA DE NAVEGAÇÃO E UI (MENU RECLINÁVEL E ABAS)
+// 4. LÓGICA DE INTERFACE (MENU E ABAS)
 // =========================================================
 function toggleSidebar() {
     document.body.classList.toggle('sidebar-collapsed');
 }
 
-function mostrarSecao(idSecao, btn) {
-    // Esconde todas as seções (cobre tanto classes .section-view quanto .content-section)
-    document.querySelectorAll('.section-view, .content-section').forEach(secao => {
-        secao.classList.remove('active');
-        secao.style.display = 'none';
-    });
+function showSection(idSecao, btn) {
+    document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     
-    // Remove classe 'active' de todos os botões do menu
-    document.querySelectorAll('.nav-btn, .nav-link').forEach(b => {
-        b.classList.remove('active');
-    });
-    
-    // Mostra a seção alvo
-    const secaoAtiva = document.getElementById(idSecao);
-    if (secaoAtiva) {
-        secaoAtiva.classList.add('active');
-        secaoAtiva.style.display = 'block';
-    }
-    
-    // Deixa o botão clicado "aceso"
+    document.getElementById(idSecao).classList.add('active');
     if (btn) btn.classList.add('active');
 }
 
 // =========================================================
-// 5. SALVAR DADOS DO PERFIL (SOBRE E BOT MENSAGEM)
+// 5. SALVAR DADOS NO BANCO DO RENDER (FETCH PUT)
 // =========================================================
 async function salvarDadosPerfil(e) {
     e.preventDefault();
-    
     const sobre = document.getElementById("inputSobre").value;
     const botMsg = document.getElementById("inputMensagemBot").value;
 
-    // Atualiza o cache local para a interface não piscar na próxima vez
     localStorage.setItem("empresaSobre", sobre);
     localStorage.setItem("empresaBotMsg", botMsg);
 
     if (!empresaId || !token) {
-        alert("Erro de autenticação: ID da empresa ou Token ausente. Faça login novamente.");
+        alert("Erro: ID da empresa ou Token ausente. Faça login novamente.");
         return logout();
     }
 
     try {
-        // Dispara o PUT para o Spring Boot no Render
         const response = await fetch(`${API_URL}/api/empresas/${empresaId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({
-                sobre: sobre,
-                mensagemAutomatica: botMsg
-            })
+            body: JSON.stringify({ sobre: sobre, mensagemAutomatica: botMsg })
         });
 
         if (response.ok) {
-            alert("Perfil salvo com sucesso no banco de dados! 🚀 Os dados já aparecerão no App.");
+            alert("Perfil atualizado no Banco de Dados com sucesso! 🚀");
         } else {
             const erro = await response.text();
-            alert("Erro ao salvar no servidor: " + erro);
-            console.error("HTTP Status:", response.status);
+            alert("Erro ao salvar: " + erro);
         }
     } catch (error) {
         console.error("Erro de rede:", error);
-        alert("Falha ao se comunicar com o servidor Render.");
+        alert("Falha ao conectar com o servidor.");
     }
 }
 
 // =========================================================
-// 6. LÓGICA DO CHAT (STOMP WEBSOCKETS)
+// 6. EFEITOS ESPECIAIS DO CHAT (ÁUDIO E VISUAL NEON)
 // =========================================================
-let stompClient = null;
+function atualizarStatusInterface(texto, corHex) {
+    const el = document.getElementById('status-chat');
+    if (el) {
+        el.innerText = texto;
+        el.style.borderColor = corHex;
+        el.style.color = corHex;
+        el.style.boxShadow = `0 0 10px ${corHex}`;
+    }
+}
 
+function tocarSomNotificacao() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        let osc1 = audioCtx.createOscillator();
+        let gain1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        gain1.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start();
+        osc1.stop(audioCtx.currentTime + 0.1);
+        
+        setTimeout(() => {
+            let osc2 = audioCtx.createOscillator();
+            let gain2 = audioCtx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(783.99, audioCtx.currentTime); // G5
+            gain2.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start();
+            osc2.stop(audioCtx.currentTime + 0.15);
+        }, 70);
+    } catch (err) {
+        console.warn("Áudio bloqueado.", err);
+    }
+}
+
+function piscarJanelaTerminal() {
+    const painelChat = document.getElementById('terminal-container');
+    if (painelChat) {
+        painelChat.style.boxShadow = "0 0 35px #3DDC84";
+        painelChat.style.borderColor = "#3DDC84";
+        setTimeout(() => {
+            painelChat.style.boxShadow = "none";
+            painelChat.style.borderColor = "var(--border-color)"; 
+        }, 350);
+    }
+}
+
+// =========================================================
+// 7. WEBSOCKET STOMP (LÓGICA PRINCIPAL DO CHAT)
+// =========================================================
 function conectarChat() {
-    // Conecta ao endpoint configurado no seu WebSocketConfig.java
-    const socket = new SockJS(`${API_URL}/ws-pestcontrol`);
+    atualizarStatusInterface("CONECTANDO...", "#ffaa00");
+    const socket = new SockJS(RENDER_URL);
     stompClient = Stomp.over(socket);
-    
-    // Desativa os logs gigantes do Stomp no console (opcional, mas deixa limpo)
     stompClient.debug = null; 
 
     stompClient.connect({}, function (frame) {
-        printMensagem("SISTEMA DE ATENDIMENTO CONECTADO", "received");
+        atualizarStatusInterface("SISTEMA ONLINE", "#3DDC84");
+        printMensagem("SISTEMA DE ATENDIMENTO CONECTADO.", "received");
         
-        // Fica ouvindo as mensagens que chegam no tópico
         stompClient.subscribe('/topic/mensagens', function (msg) {
             const dados = JSON.parse(msg.body);
             
-            // Impede que a tela duplique a mensagem que a própria empresa acabou de mandar
-            if(dados.remetente !== 'EMPRESA') {
-                printMensagem(dados.remetente + ": " + dados.texto, "received");
+            if (dados.remetente !== 'EMPRESA') {
+                printMensagem(`[${dados.remetente}]: ${dados.texto}`, "received");
                 atualizarTabelaClientes(dados.remetente);
+                
+                // Dispara os efeitos visuais e sonoros do seu código original
+                tocarSomNotificacao();
+                piscarJanelaTerminal();
             }
         });
-    }, function(err) {
-        console.error("Queda no WebSocket. Tentando reconectar em 5 segundos...", err);
+    }, function(error) {
+        atualizarStatusInterface("SISTEMA OFFLINE", "#ff3333");
+        console.error('Queda de conexão. Nova tentativa em 5s...', error);
         setTimeout(conectarChat, 5000);
     });
 }
 
 function enviarMsgStomp() {
     const input = document.getElementById('msg-input');
-    const texto = input.value.trim();
+    if (!input) return;
+
+    const textoDigitado = input.value.trim();
     
-    if(texto && stompClient) {
-        // Monta o objeto DTO que o seu ChatController.java está esperando
-        const payload = JSON.stringify({
-            'remetente': 'EMPRESA', 
-            'texto': texto
-        });
-        
-        // Dispara para o @MessageMapping("/enviar")
-        stompClient.send("/app/enviar", {}, payload);
-        
-        // Imprime na tela imediatamente
-        printMensagem("VOCÊ: " + texto, "sent");
-        input.value = '';
-    } else if (!stompClient) {
-        alert("O chat está desconectado. Aguarde a reconexão automática.");
+    if (textoDigitado !== "") {
+        if (stompClient && stompClient.connected) {
+            const payload = JSON.stringify({
+                'remetente': 'EMPRESA',
+                'texto': textoDigitado 
+            });
+            stompClient.send("/app/enviar", {}, payload);
+            
+            printMensagem(`VOCÊ: ${textoDigitado}`, "sent");
+            input.value = '';
+            input.focus();
+        } else {
+            console.warn("Bloqueado: WebSocket desconectado.");
+            atualizarStatusInterface("RECONECTANDO...", "#ffaa00");
+        }
     }
 }
 
@@ -173,7 +209,6 @@ function printMensagem(txt, tipo) {
     const box = document.getElementById('chat-box');
     if (box) {
         box.innerHTML += `<div class="msg ${tipo}">${txt}</div>`;
-        // Desce a barra de rolagem automaticamente para a última mensagem
         box.scrollTop = box.scrollHeight; 
     }
 }
@@ -181,17 +216,16 @@ function printMensagem(txt, tipo) {
 function atualizarTabelaClientes(clienteNome) {
     const corpo = document.getElementById("lista-clientes-corpo");
     if (corpo) {
-        // Atualiza a tabela com um aviso visual (pode ser estilizado com neon/glow no CSS)
         corpo.innerHTML = `<tr>
             <td>#1024</td>
             <td>${clienteNome}</td>
-            <td><span class="status-badge" style="color: #0f0; text-shadow: 0 0 5px #0f0;">Nova Mensagem</span></td>
+            <td><span class="status-badge" style="color: #000; background: #3DDC84; box-shadow: 0 0 5px #3DDC84;">Nova Mensagem</span></td>
         </tr>`;
     }
 }
 
 // =========================================================
-// 7. ENCERRAMENTO DE SESSÃO
+// 8. LOGOUT
 // =========================================================
 function logout() {
     localStorage.clear();
