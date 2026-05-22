@@ -50,31 +50,24 @@ function showSection(idSecao, btn) {
 // 5. SALVAR DADOS NO BANCO DO RENDER (FETCH PUT)
 // =========================================================
 async function salvarDadosPerfil(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
-    // Captura os valores atualizados direto do localStorage no momento do clique
     const tokenAtual = localStorage.getItem("token");
-    
-    // Busca inteligente: tenta 'empresaId', se não achar tenta 'id' ou 'usuarioId'
-    const idEmpresaAtual = localStorage.getItem("empresaId") || 
-                           localStorage.getItem("id") || 
-                           localStorage.getItem("usuarioId");
+    const idEmpresaAtual = localStorage.getItem("empresaId");
+
+    // Validação agressiva
+    if (!idEmpresaAtual || idEmpresaAtual === "null" || idEmpresaAtual === "undefined") {
+        console.error("FALHA: ID da empresa está nulo. LocalStorage:", localStorage);
+        alert("Sua sessão está corrompida. O sistema não sabe quem é sua empresa. Por favor, faça login novamente.");
+        logout();
+        return;
+    }
 
     const sobre = document.getElementById("inputSobre").value;
     const botMsg = document.getElementById("inputMensagemBot").value;
 
-    // Salva no cache local para manter preenchido na tela
-    localStorage.setItem("empresaSobre", sobre);
-    localStorage.setItem("empresaBotMsg", botMsg);
-
-    // Validação de segurança robusta
-    if (!tokenAtual || !idEmpresaAtual) {
-        console.error("Dados ausentes no localStorage:", { token: tokenAtual, id: idEmpresaAtual });
-        alert("Erro: Sessão inválida ou ID da empresa não encontrado. Faça login novamente.");
-        return logout();
-    }
-
     try {
+        // A URL agora só será chamada se o ID for válido
         const response = await fetch(`${API_URL}/api/empresas/${idEmpresaAtual}`, {
             method: 'PUT',
             headers: {
@@ -85,19 +78,14 @@ async function salvarDadosPerfil(e) {
         });
 
         if (response.ok) {
-            alert("Perfil atualizado no Banco de Dados com sucesso! 🚀");
+            alert("Perfil atualizado com sucesso! 🚀");
         } else {
-            if (response.status === 401 || response.status === 403) {
-                alert("Sessão expirada ou não autorizada. Por favor, refaça o login.");
-                logout();
-            } else {
-                const erroText = await response.text();
-                alert("Erro ao salvar: " + erroText);
-            }
+            const erroText = await response.text();
+            alert("Erro do Servidor: " + erroText);
         }
     } catch (error) {
         console.error("Erro de rede:", error);
-        alert("Falha ao conectar com o servidor do Render.");
+        alert("Falha de conexão com o servidor.");
     }
 }
 
