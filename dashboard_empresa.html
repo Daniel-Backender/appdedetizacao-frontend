@@ -7,7 +7,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         :root {
             --bg-main: #F4F6F9; /* Cinza claro de fundo industrial */
@@ -200,98 +201,6 @@
         </section>
     </main>
 
-    <script>
-        // LÓGICA DO MENU RECLINÁVEL E NAVEGAÇÃO
-        function toggleSidebar() {
-            document.body.classList.toggle('sidebar-collapsed');
-        }
-
-        function showSection(id, btn) {
-            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            
-            document.getElementById(id).classList.add('active');
-            btn.classList.add('active');
-        }
-
-        window.onload = function() {
-            const email = localStorage.getItem("userEmail") || "empresa@pestcontrolx.com";
-            document.getElementById("userName").innerText = email;
-            
-            // Puxar do localStorage caso já tenha salvo
-            document.getElementById("inputSobre").value = localStorage.getItem("empresaSobre") || "";
-            document.getElementById("inputMensagemBot").value = localStorage.getItem("empresaBotMsg") || "";
-            
-            conectarChat();
-        };
-
-        // SALVAR DADOS DO SOBRE E DO BOT
-        function salvarDadosPerfil(e) {
-            e.preventDefault();
-            const sobre = document.getElementById("inputSobre").value;
-            const botMsg = document.getElementById("inputMensagemBot").value;
-
-            localStorage.setItem("empresaSobre", sobre);
-            localStorage.setItem("empresaBotMsg", botMsg);
-
-            alert("Perfil atualizado com sucesso! Os dados já estão disponíveis para consulta no App Mobile.");
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = "index.html";
-        }
-
-        // LÓGICA DO CHAT (STOMP WEBSOCKET)
-        var stompClient = null;
-        const SERVER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
-
-        function conectarChat() {
-            var socket = new SockJS(SERVER_URL);
-            stompClient = Stomp.over(socket);
-            stompClient.debug = null;
-
-            stompClient.connect({}, function (frame) {
-                printMensagem("SISTEMA DE ATENDIMENTO CONECTADO", "received");
-                
-                stompClient.subscribe('/topic/mensagens', function (msg) {
-                    var dados = JSON.parse(msg.body);
-                    if(dados.remetente !== 'EMPRESA') {
-                        printMensagem(dados.remetente + ": " + dados.texto, "received");
-                        atualizarTabelaClientes(dados.remetente);
-                    }
-                });
-            }, function(err) {
-                setTimeout(conectarChat, 5000);
-            });
-        }
-
-        function enviarMsgStomp() {
-            var input = document.getElementById('msg-input');
-            var texto = input.value.trim();
-            
-            if(texto && stompClient) {
-                var payload = JSON.stringify({'remetente': 'EMPRESA', 'texto': texto});
-                stompClient.send("/app/enviar", {}, payload);
-                printMensagem("VOCÊ: " + texto, "sent");
-                input.value = '';
-            }
-        }
-
-        function printMensagem(txt, tipo) {
-            var box = document.getElementById('chat-box');
-            box.innerHTML += `<div class="msg ${tipo}">${txt}</div>`;
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function atualizarTabelaClientes(clienteNome) {
-            const corpo = document.getElementById("lista-clientes-corpo");
-            corpo.innerHTML = `<tr>
-                <td>#1024</td>
-                <td>${clienteNome}</td>
-                <td><span class="status-badge">Nova Mensagem</span></td>
-            </tr>`;
-        }
-    </script>
+    
 </body>
 </html>
