@@ -11,7 +11,7 @@ let stompClient = null;
 // 2. VERIFICAÇÃO DE SEGURANÇA
 // =========================================================
 if (!token) {
-    window.location.href = "login.html";
+    window.location.href = "index.html";
 }
 
 // =========================================================
