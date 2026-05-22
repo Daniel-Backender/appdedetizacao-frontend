@@ -11,31 +11,25 @@ let stompClient = null;
 // 2. VERIFICAÇÃO DE SEGURANÇA
 // =========================================================
 if (!token) {
-    window.location.href = "index.html";
+    window.location.href = "login.html";
 }
 
 // =========================================================
 // 3. INICIALIZAÇÃO GERAL
 // =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-    // Carrega dados do usuário
+    // 1. Carrega dados do usuário
     const email = localStorage.getItem("userEmail") || "empresa@pestcontrolx.com";
     const elNome = document.getElementById("userName");
     if (elNome) elNome.innerText = email;
 
-    // Preenche cache local no formulário
+    // 2. Preenche cache local no formulário
     const inputSobre = document.getElementById("inputSobre");
     const inputMsgBot = document.getElementById("inputMensagemBot");
     if (inputSobre) inputSobre.value = localStorage.getItem("empresaSobre") || "";
     if (inputMsgBot) inputMsgBot.value = localStorage.getItem("empresaBotMsg") || "";
 
-    // Valida o token e inicializa chat
-    fetch(`${API_URL}/auth/validar`, {
-        headers: { "Authorization": "Bearer " + token }
-    })
-    .then(res => { if (!res.ok) logout(); })
-    .catch(err => console.error("Erro API:", err));
-
+    // 3. Conecta o chat WebSocket (as chamadas de API internas enviarão o Token)
     conectarChat();
 });
 
