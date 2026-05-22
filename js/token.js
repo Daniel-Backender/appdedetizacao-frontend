@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const data = await response.json();
 
+            console.log("DEBUG: Estrutura da resposta do servidor:", data);
+
             if (!response.ok) throw new Error(data.message || "Código inválido");
 
             // 🔥 CORREÇÃO CRÍTICA: Salvando todos os dados que a Dashboard precisa!
