@@ -11,10 +11,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const codigo = document.getElementById("codigo").value.trim();
         const email = localStorage.getItem("emailTemp");
 
-        // CORREÇÃO: Removida a trava que causava o recarregamento infinito da página
         if (!email) {
             alert("Sessão expirada. Faça login novamente.");
-            window.location.href = "login.html";
+            // 🔥 CORREÇÃO: Apontando para o arquivo correto (index.html)
+            window.location.href = "index.html";
             return;
         }
 
@@ -29,10 +29,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (!response.ok) throw new Error(data.message || "Código inválido");
 
+            // 🔥 CORREÇÃO CRÍTICA: Salvando todos os dados que a Dashboard precisa!
             localStorage.setItem("token", data.token);
             localStorage.setItem("tipoUsuario", data.tipo);
             localStorage.setItem("userName", data.nome || "Usuário");
+            
+            // Grava o ID da empresa e o Email (Garante que a Dashboard funcione)
+            localStorage.setItem("empresaId", data.id || data.empresaId || data.usuarioId || "");
+            localStorage.setItem("userEmail", email);
 
+            // Limpeza
             localStorage.removeItem("emailTemp");
             localStorage.removeItem("tipoTemp");
 
@@ -44,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 window.location.href = "dashboard_admin.html";
             } else {
                 alert("Acesso permitido apenas via aplicativo para este tipo de conta.");
-                window.location.href = "login.html";
+                window.location.href = "index.html";
             }
 
         } catch (err) {

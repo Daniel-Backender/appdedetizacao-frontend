@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("loginForm");
-    const btnEsqueci = document.getElementById("txtEsqueciSenha"); // Verifique se este ID existe no HTML
+    const btnEsqueci = document.getElementById("txtEsqueciSenha"); 
     const BASE_URL = "https://appdedetizacao.onrender.com";
 
     // --- SISTEMA DE SEGURANÇA ---
@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.setItem("emailTemp", email);
                 localStorage.setItem("tipoTemp", data.tipo || "");
 
-                if (data.codigo_dev) console.log("LOG_SECURITY: Código DEV interseptado:", data.codigo_dev);
+                if (data.codigo_dev) console.log("LOG_SECURITY: Código DEV interceptado:", data.codigo_dev);
 
                 window.location.href = "token.html"; 
             } else {
@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Erro na rede. Verifique a conexão com a matriz.");
             btn.innerHTML = originalText;
             btn.disabled = false;
+            btn.style.boxShadow = "";
         }
     });
 
@@ -95,31 +96,32 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 1000);
     }
 
-    // --- ESQUECI A SENHA (INTEGRAÇÃO BACKEND) ---
-    btnEsqueci.addEventListener("click", async () => {
-        const emailRecuperar = prompt("Digite seu e-mail para recuperação:");
-        
-        if (!emailRecuperar) return;
+    // --- ESQUECI A SENHA ---
+    if (btnEsqueci) {
+        btnEsqueci.addEventListener("click", async () => {
+            const emailRecuperar = prompt("Digite seu e-mail para recuperação:");
+            
+            if (!emailRecuperar) return;
 
-        // Feedback visual industrial
-        btnEsqueci.innerText = "SOLICITANDO...";
+            btnEsqueci.innerText = "SOLICITANDO...";
 
-        try {
-            const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: emailRecuperar })
-            });
+            try {
+                const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: emailRecuperar })
+                });
 
-            if (res.ok) {
-                alert("Protocolo de recuperação enviado! Verifique sua caixa de entrada.");
-            } else {
-                alert("E-mail não localizado na base de dados.");
+                if (res.ok) {
+                    alert("Protocolo de recuperação enviado! Verifique sua caixa de entrada.");
+                } else {
+                    alert("E-mail não localizado na base de dados.");
+                }
+            } catch (err) {
+                alert("Erro ao conectar com o serviço de e-mail.");
+            } finally {
+                btnEsqueci.innerText = "Esqueceu sua senha?";
             }
-        } catch (err) {
-            alert("Erro ao conectar com o serviço de e-mail.");
-        } finally {
-            btnEsqueci.innerText = "Esqueceu sua senha?";
-        }
-    });
+        });
+    }
 });

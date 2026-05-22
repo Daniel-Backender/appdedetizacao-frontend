@@ -42,15 +42,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // BLOQUEIA O SELECT NO PASSO 2
         tipoSelect.disabled = true;
-
         document.getElementById("step1").classList.remove("active");
         document.getElementById("step2").classList.add("active");
     };
 
     window.prevStep = function() {
-        // LIBERA O SELECT SE VOLTAR
         tipoSelect.disabled = false;
         document.getElementById("step2").classList.remove("active");
         document.getElementById("step1").classList.add("active");
@@ -64,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
             nome: document.getElementById("nome").value,
             email: document.getElementById("email").value,
             senha: document.getElementById("senha").value,
-            tipo: tipoSelect.value, // Pega o valor mesmo estando disabled
+            tipo: tipoSelect.value, 
             cep: cepInput.value,
             rua: ruaInput.value,
             bairro: bairroInput.value,
@@ -88,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             alert("Cadastro realizado com sucesso!");
-            window.location.href = "index.html";
+            window.location.href = "index.html"; 
         } catch (err) {
             alert(err.message);
         }
