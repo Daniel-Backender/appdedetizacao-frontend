@@ -11,6 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
+        localStorage.clear(); 
+        sessionStorage.clear();
+
         if (tentativasFalhas >= LIMITE_TENTATIVAS) {
             alert(" ACESSO BLOQUEADO POR SEGURANÇA. AGUARDE O RESET DOS SISTEMAS.");
             return;
