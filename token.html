@@ -6,10 +6,10 @@
     <title>PestControlX - Verificação de Identidade</title>
     <style>
         :root {
-            --bg-global: #f4f6f9;
+            --bg-global: #f8fafc;
             --card-bg: #ffffff;
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
             --brand-green: #16a34a;
             --brand-green-hover: #15803d;
             --border-light: #e2e8f0;
@@ -28,24 +28,40 @@
         .token-wrapper {
             background-color: var(--card-bg);
             border: 1px solid var(--border-light);
-            border-radius: 8px;
+            border-radius: 16px;
             padding: 45px 40px;
             width: 100%;
-            max-width: 440px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
             text-align: center;
             box-sizing: border-box;
         }
-        .brand-header img.logo { max-height: 55px; margin-bottom: 15px; }
-        h2 { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; color: var(--text-primary); }
+        .brand-header img.logo { 
+            max-height: 85px; 
+            margin-bottom: 16px; 
+        }
+        h2 { font-size: 20px; font-weight: 600; margin: 0 0 10px 0; color: var(--text-primary); }
         p.description { color: var(--text-secondary); font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
-        .input-code-group input { width: 100%; padding: 12px; background-color: #fff; border: 1px solid var(--border-light); border-radius: 6px; color: var(--text-primary); font-size: 22px; font-weight: 700; letter-spacing: 8px; text-align: center; box-sizing: border-box; transition: all 0.2s; }
+        .input-code-group input { 
+            width: 100%; 
+            padding: 14px; 
+            background-color: #fff; 
+            border: 1px solid var(--border-light); 
+            border-radius: 10px; 
+            color: var(--text-primary); 
+            font-size: 24px; 
+            font-weight: 700; 
+            letter-spacing: 8px; 
+            text-align: center; 
+            box-sizing: border-box; 
+            transition: all 0.2s; 
+        }
         .input-code-group input:focus { outline: none; border-color: var(--brand-green); box-shadow: 0 0 0 3px var(--input-focus); }
-        .btn-verify { width: 100%; padding: 14px; background-color: var(--brand-green); border: none; border-radius: 6px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; margin-top: 20px; }
+        .btn-verify { width: 100%; padding: 14px; background-color: var(--brand-green); border: none; border-radius: 10px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; margin-top: 25px; }
         .btn-verify:hover { background-color: var(--brand-green-hover); }
         .back-to-login { display: inline-block; margin-top: 25px; color: var(--text-secondary); text-decoration: none; font-size: 13px; }
         .back-to-login:hover { color: var(--brand-green); text-decoration: underline; }
-        .alert-box { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; text-align: left; }
+        .alert-box { margin-top: 15px; padding: 12px; border-radius: 10px; font-size: 13px; display: none; text-align: left; }
         .alert-error { background-color: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; }
         .alert-success { background-color: #f0fdf4; border: 1px solid #dcfce7; color: #166534; }
     </style>
