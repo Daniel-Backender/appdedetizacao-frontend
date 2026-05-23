@@ -5,26 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verificação - PestControlX</title>
     <link rel="stylesheet" href="css/token.css">
+    <style>
+        :root {
+            --bg-cyber: #0d1117;
+            --card-cyber: #161b22;
+            --neon-cyan: #00f0ff;
+            --cyan-glow: rgba(0, 240, 255, 0.25);
+            --border-color: #30363d;
+            --text-main: #c9d1d9;
+        }
+        body {
+            background-color: var(--bg-cyber);
+            color: var(--text-main);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .token-container {
+            width: 100%;
+            max-width: 420px;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        .token-box {
+            background-color: var(--card-cyber);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 40px 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px var(--cyan-glow);
+            text-align: center;
+        }
+        .header-app img.logo-img { max-height: 65px; margin-bottom: 10px; filter: drop-shadow(0 0 8px var(--neon-cyan)); }
+        .header-app .app-name-img { max-height: 22px; display: block; margin: 0 auto; }
+        .status-label { color: var(--neon-cyan); font-size: 11px; font-weight: 900; letter-spacing: 2px; margin-top: 25px; margin-bottom: 5px; text-transform: uppercase; }
+        .subtitle { color: #8b949e; font-size: 13px; margin-bottom: 30px; }
+        .input-group { margin-bottom: 25px; }
+        .input-group input { width: 100%; padding: 15px; background-color: #0d1117; border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 24px; font-weight: bold; letter-spacing: 8px; text-align: center; box-sizing: border-box; transition: all 0.3s; }
+        .input-group input:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 15px var(--cyan-glow); }
+        .btn-validate { width: 100%; padding: 14px; background: linear-gradient(90deg, #0099ff, var(--neon-cyan)); border: none; border-radius: 6px; color: #0d1117; font-size: 15px; font-weight: bold; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all 0.3s; }
+        .btn-validate:hover { transform: translateY(-2px); box-shadow: 0 0 20px var(--neon-cyan); }
+        .back-link { display: inline-block; margin-top: 25px; color: #8b949e; text-decoration: none; font-size: 12px; font-weight: 600; transition: color 0.2s; }
+        .back-link:hover { color: var(--neon-cyan); text-decoration: underline; }
+    </style>
 </head>
 <body>
     <div class="token-container">
         <div class="token-box">
             <div class="header-app">
-                <img src="img/logo2 copy.png" alt="Logo" class="logo-img">
-                <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img">
+                <img src="img/logo2 copy.png" alt="Logo" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/6295/6295417.png'">
+                <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img" onerror="this.style.display='none'">
             </div>
 
-            <p class="status-label">VERIFICAÇÃO DE SEGURANÇA</p>
-            <p class="subtitle">Insira o código enviado ao seu e-mail corporativo.</p>
+            <p class="status-label">Verificação de Segundo Fator</p>
+            <p class="subtitle">Insira a chave criptografada de 6 dígitos enviada ao e-mail operacional cadastrado.</p>
 
             <form id="form-token">
                 <div class="input-group">
-                    <input type="text" id="codigo" placeholder="000000" maxlength="6" required>
+                    <input type="text" id="codigo" placeholder="000000" maxlength="6" autocomplete="off" required>
                 </div>
 
-                <button type="submit" class="btn-validate">VALIDAR ACESSO</button>
+                <button type="submit" class="btn-validate">Validar Acesso na Rede</button>
 
-                <a href="index.html" class="back-link">← VOLTAR AO LOGIN</a>
+                <a href="index.html" class="back-link">← RETORNAR AO TERMINAL DE LOGIN</a>
             </form>
         </div>
     </div>
