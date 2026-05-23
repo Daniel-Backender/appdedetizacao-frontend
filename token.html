@@ -3,87 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificação - PestControlX</title>
+    <title>PestControlX - Verificação de Identidade</title>
     <style>
         :root {
-            --bg-cyber: #0d1117;
-            --card-cyber: #161b22;
-            --neon-cyan: #00f0ff;
-            --cyan-glow: rgba(0, 240, 255, 0.2);
-            --border-color: #30363d;
-            --text-main: #c9d1d9;
+            --bg-global: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --brand-green: #16a34a;
+            --brand-green-hover: #15803d;
+            --border-light: #e2e8f0;
+            --input-focus: #bbf7d0;
         }
         body {
-            background-color: var(--bg-cyber);
-            color: var(--text-main);
-            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-global);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
-        .token-box {
-            background-color: var(--card-cyber);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 40px 30px;
+        .token-wrapper {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 45px 40px;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 20px var(--cyan-glow);
+            max-width: 440px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             text-align: center;
             box-sizing: border-box;
         }
-        .header-app img.logo-img { max-height: 65px; margin-bottom: 10px; filter: drop-shadow(0 0 8px var(--neon-cyan)); }
-        .header-app .app-name-img { max-height: 22px; display: block; margin: 0 auto; }
-        .status-label { color: var(--neon-cyan); font-size: 11px; font-weight: 900; letter-spacing: 2px; margin-top: 25px; margin-bottom: 5px; text-transform: uppercase; }
-        .subtitle { color: #8b949e; font-size: 13px; margin-bottom: 30px; }
-        .input-group input { width: 100%; padding: 15px; background-color: #0d1117; border: 1px solid var(--border-color); border-radius: 8px; color: #fff; font-size: 24px; font-weight: bold; letter-spacing: 6px; text-align: center; box-sizing: border-box; transition: all 0.3s; }
-        .input-group input:focus { outline: none; border-color: var(--neon-cyan); box-shadow: 0 0 15px var(--cyan-glow); }
-        .btn-validate { width: 100%; padding: 14px; background: linear-gradient(90deg, #0099ff, var(--neon-cyan)); border: none; border-radius: 6px; color: #0d1117; font-size: 15px; font-weight: bold; cursor: pointer; letter-spacing: 1px; text-transform: uppercase; transition: all 0.3s; margin-top: 15px; }
-        .btn-validate:hover { transform: translateY(-2px); box-shadow: 0 0 25px var(--neon-cyan); }
-        .back-link { display: inline-block; margin-top: 25px; color: #8b949e; text-decoration: none; font-size: 13px; }
-        .back-link:hover { color: var(--neon-cyan); text-decoration: underline; }
-        .message-box { margin-top: 15px; padding: 10px; border-radius: 6px; font-size: 13px; display: none; }
-        .message-error { background-color: rgba(248, 81, 73, 0.15); border: 1px solid #f85149; color: #ff7b72; }
-        .message-success { background-color: rgba(46, 160, 67, 0.15); border: 1px solid #2ea043; color: #56d364; }
+        .brand-header img.logo { max-height: 55px; margin-bottom: 15px; }
+        h2 { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; color: var(--text-primary); }
+        p.description { color: var(--text-secondary); font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+        .input-code-group input { width: 100%; padding: 12px; background-color: #fff; border: 1px solid var(--border-light); border-radius: 6px; color: var(--text-primary); font-size: 22px; font-weight: 700; letter-spacing: 8px; text-align: center; box-sizing: border-box; transition: all 0.2s; }
+        .input-code-group input:focus { outline: none; border-color: var(--brand-green); box-shadow: 0 0 0 3px var(--input-focus); }
+        .btn-verify { width: 100%; padding: 14px; background-color: var(--brand-green); border: none; border-radius: 6px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; margin-top: 20px; }
+        .btn-verify:hover { background-color: var(--brand-green-hover); }
+        .back-to-login { display: inline-block; margin-top: 25px; color: var(--text-secondary); text-decoration: none; font-size: 13px; }
+        .back-to-login:hover { color: var(--brand-green); text-decoration: underline; }
+        .alert-box { margin-top: 15px; padding: 12px; border-radius: 6px; font-size: 13px; display: none; text-align: left; }
+        .alert-error { background-color: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; }
+        .alert-success { background-color: #f0fdf4; border: 1px solid #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
-    <div class="token-box">
-        <div class="header-app">
-            <img src="img/logo2 copy.png" alt="Logo" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/6295/6295417.png'">
-            <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img" onerror="this.style.display='none'">
+    <div class="token-wrapper">
+        <div class="brand-header">
+            <img src="img/logo2 copy.png" alt="Logo" class="logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2942/2942780.png'">
         </div>
 
-        <p class="status-label">Verificação de Segurança</p>
-        <p class="subtitle">Introduza o código numérico de 6 dígitos enviado para o e-mail.</p>
+        <h2>Verificação de Segurança</h2>
+        <p class="description">Introduza o código de validação de 6 dígitos enviado para a sua caixa de correio eletrónico corporativa.</p>
 
-        <form id="form-token">
-            <div class="input-group">
+        <form id="tokenForm">
+            <div class="input-code-group">
                 <input type="text" id="codigo" placeholder="000000" maxlength="6" autocomplete="off" required>
             </div>
 
-            <button type="submit" class="btn-validate">Validar Acesso</button>
-            <div id="messageBox" class="message-box"></div>
+            <button type="submit" class="btn-verify">Confirmar Identidade</button>
+            <div id="alertBox" class="alert-box"></div>
 
-            <a href="index.html" class="back-link">← Voltar para o Login</a>
+            <a href="index.html" class="back-to-login">← Voltar para o Login</a>
         </form>
     </div>
 
     <script>
         const API_BASE_URL = 'http://localhost:8080';
 
-        document.getElementById('form-token').addEventListener('submit', async (e) => {
+        document.getElementById('tokenForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const codigo = document.getElementById('codigo').value;
             const email = localStorage.getItem('logging_email');
-            const msgBox = document.getElementById('messageBox');
+            const alertBox = document.getElementById('alertBox');
 
             if (!email) {
-                msgBox.className = 'message-box message-error';
-                msgBox.textContent = 'Sessão não inicializada. Volte ao login.';
-                msgBox.style.display = 'block';
+                alertBox.className = 'alert-box alert-error';
+                alertBox.textContent = 'Sessão expirada. Por favor, reinicie o processo de login.';
+                alertBox.style.display = 'block';
                 return;
             }
 
@@ -93,31 +93,29 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, codigo })
                 });
-
                 const data = await response.json();
 
                 if (response.ok) {
-                    msgBox.className = 'message-box message-success';
-                    msgBox.textContent = 'Acesso autorizado! A entrar...';
-                    msgBox.style.display = 'block';
+                    alertBox.className = 'alert-box alert-success';
+                    alertBox.textContent = 'Identidade validada com sucesso! A redirecionar...';
+                    alertBox.style.display = 'block';
 
-                    // Salva as credenciais finais de acesso na App
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('usuario_nome', data.nome);
                     localStorage.setItem('usuario_tipo', data.tipo);
                     localStorage.setItem('usuario_id', data.id);
                     localStorage.removeItem('logging_email');
 
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
                 } else {
-                    msgBox.className = 'message-box message-error';
-                    msgBox.textContent = data.message || 'Código inválido ou expirado.';
-                    msgBox.style.display = 'block';
+                    alertBox.className = 'alert-box alert-error';
+                    alertBox.textContent = data.message || 'Código incorreto ou expirado.';
+                    alertBox.style.display = 'block';
                 }
             } catch (err) {
-                msgBox.className = 'message-box message-error';
-                msgBox.textContent = 'Falha ao ligar ao servidor de segurança.';
-                msgBox.style.display = 'block';
+                alertBox.className = 'alert-box alert-error';
+                alertBox.textContent = 'Erro ao contactar o servidor de autenticação.';
+                alertBox.style.display = 'block';
             }
         });
     </script>
