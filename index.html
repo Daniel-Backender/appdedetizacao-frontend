@@ -169,7 +169,8 @@
     </div>
 
     <script>
-        const API_BASE_URL = 'http://localhost:8080';
+        // 🔴 CORREÇÃO CRÍTICA: APONTAR PARA O SERVIDOR NO RENDER EM VEZ DO LOCALHOST 🔴
+        const API_BASE_URL = 'https://appdedetizacao.onrender.com';
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
