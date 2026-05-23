@@ -3,128 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - PestControlX</title>
-    <style>
-        :root {
-            --bg-cyber: #0d1117;
-            --card-cyber: #161b22;
-            --neon-green: #00ff88;
-            --neon-glow: rgba(0, 255, 136, 0.25);
-            --border-color: #30363d;
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
-        }
-        body {
-            background-color: var(--bg-cyber);
-            color: var(--text-main);
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background-color: var(--card-cyber);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 40px;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 20px var(--neon-glow);
-            text-align: center;
-            box-sizing: border-box;
-        }
-        .header-app { margin-bottom: 30px; }
-        .logo-img { max-height: 70px; margin-bottom: 12px; filter: drop-shadow(0 0 8px var(--neon-green)); }
-        .app-name-img { max-height: 25px; display: block; margin: 0 auto; filter: brightness(1.2); }
-        .subtitle { color: var(--text-muted); font-size: 14px; margin-top: 10px; }
-        .input-group { text-align: left; margin-bottom: 20px; }
-        .input-group label { display: block; color: var(--neon-green); font-size: 11px; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
-        .input-group input { width: 100%; padding: 12px; background-color: #0d1117; border: 1px solid var(--border-color); border-radius: 6px; color: #fff; font-size: 14px; box-sizing: border-box; transition: all 0.3s ease; }
-        .input-group input:focus { outline: none; border-color: var(--neon-green); box-shadow: 0 0 10px var(--neon-glow); }
-        .forgot-password { text-align: right; margin-bottom: 25px; }
-        .forgot-password a { color: #58a6ff; text-decoration: none; font-size: 13px; }
-        .forgot-password a:hover { text-decoration: underline; }
-        .btn-main { width: 100%; padding: 14px; background: linear-gradient(90deg, #00c853, var(--neon-green)); border: none; border-radius: 6px; color: #0d1117; font-size: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s ease; }
-        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 0 25px var(--neon-green); }
-        .register-link { margin-top: 25px; font-size: 13px; color: var(--text-muted); }
-        .register-link a { color: var(--neon-green); text-decoration: none; font-weight: bold; }
-        .register-link a:hover { text-decoration: underline; }
-        .message-box { margin-top: 15px; padding: 10px; border-radius: 6px; font-size: 13px; display: none; }
-        .message-error { background-color: rgba(248, 81, 73, 0.15); border: 1px solid #f85149; color: #ff7b72; }
-        .message-success { background-color: rgba(46, 160, 67, 0.15); border: 1px solid #2ea043; color: #56d364; }
-    </style>
+    <title>Login - DedetiApp</title>
+    <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
 
-    <div class="login-container">
-        <div class="header-app">
-            <img src="img/logo2 copy.png" alt="Logo" class="logo-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/6295/6295417.png'">
-            <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img" onerror="this.style.display='none'">
-            <p class="subtitle">Autenticação no Centro de Controlo</p>
+   <div class="header-app">
+    <div class="logo-wrapper">
+         <img src="img/logo2 copy.png" alt="Logo PestControlX" class="logo-img">
+    </div>
+    <img src="img/nomeapp copy.png" alt="PestControlX" class="app-name-img">
+    <p class="subtitle">Bem-vindo de volta!</p>
+</div>
+
+    <form id="loginForm">
+        <div class="input-group">
+            <label>E-mail</label>
+            <input type="email" id="email" placeholder="seu@email.com" required>
         </div>
 
-        <form id="loginForm">
-            <div class="input-group">
-                <label>E-mail Corporativo</label>
-                <input type="email" id="email" placeholder="operador@pestcontrolx.com" required>
-            </div>
+        <div class="input-group">
+            <label>Senha</label>
+            <input type="password" id="senha" placeholder="••••••••" required>
+        </div>
 
-            <div class="input-group">
-                <label>Senha Criptografada</label>
-                <input type="password" id="senha" placeholder="••••••••" required>
-            </div>
+        <!-- Procure a div 'forgot-password' e substitua por esta -->
+<div class="forgot-password">
+    <a href="forgot-password.html">Esqueceu sua senha?</a>
+</div>
 
-            <div class="forgot-password">
-                <a href="forgot-password.html">Recuperação de Acesso?</a>
-            </div>
+        <button type="submit" class="btn-main">Entrar</button>
 
-            <button type="submit" class="btn-main">Autenticar Terminal</button>
-            <div id="messageBox" class="message-box"></div>
+        <div class="register-link">
+            <p>Não tem uma conta? <a href="register.html">Cadastre-se aqui</a></p>
+        </div>
+    </form>
+    <script src="js/login.js"></script>
 
-            <div class="register-link">
-                <p>Novo operador? <a href="register.html">Registar Terminal</a></p>
-            </div>
-        </form>
-    </div>
-
-    <script>
-        const API_BASE_URL = 'http://localhost:8080'; // Altera para a tua URL do Render se necessário
-
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const senha = document.getElementById('senha').value;
-            const msgBox = document.getElementById('messageBox');
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    msgBox.className = 'message-box message-success';
-                    msgBox.textContent = data.message || 'Código enviado! Redirecionando...';
-                    msgBox.style.display = 'block';
-                    
-                    localStorage.setItem('logging_email', email);
-                    setTimeout(() => { window.location.href = 'token.html'; }, 1500);
-                } else {
-                    msgBox.className = 'message-box message-error';
-                    msgBox.textContent = data.message || 'Erro ao autenticar.';
-                    msgBox.style.display = 'block';
-                }
-            } catch (err) {
-                msgBox.className = 'message-box message-error';
-                msgBox.textContent = 'Erro de ligação com o servidor.';
-                msgBox.style.display = 'block';
-            }
-        });
-    </script>
 </body>
 </html>
