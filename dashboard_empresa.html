@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle Corporativo - PestControlX</title>
+    <title>Painel de Controle Corporativo</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
@@ -11,12 +11,12 @@
     
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="light-theme">
+<body class="dark-theme">
 
     <header class="topbar">
         <div class="topbar-left">
             <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1 class="topbar-company-name" id="topbar-brand-title">Sistema de Gestão Empresarial</h1>
+            <h1 class="topbar-company-name" id="topbar-brand-title">Sistema de Gestão</h1>
         </div>
         <div class="topbar-right">
             <div class="profile-upload-container">
@@ -25,7 +25,7 @@
                         <i class="fa-solid fa-building"></i>
                     </div>
                 </label>
-                <input type="file" id="company-avatar-input" accept="image/*" style="display: none;">
+                <input type="file" id="company-avatar-input" accept="image/*" onchange="uploadCompanyAvatar(event)" style="display: none;">
             </div>
         </div>
     </header>
@@ -35,99 +35,220 @@
             <div class="logo-wrapper">
                 <img id="app-logo-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233DDC84'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/></svg>" alt="Logo" class="company-logo-img">
             </div>
-            <h2 id="sidebar-brand-name">PestControlX</h2>
+            <h2 id="sidebar-brand-name">Empresa</h2>
         </div>
 
         <div class="profile-area">
             <div class="profile-pic-sidebar" id="sidebar-avatar-preview">
-                <i class="fa-solid fa-building-shield"></i>
+                <i class="fa-solid fa-building"></i>
             </div>
             <div class="profile-name" id="userName">Carregando Usuário...</div>
         </div>
 
         <div class="nav-buttons">
-            <button class="nav-btn active" id="btn-section-clientes" onclick="showSection('clientes', this)"><i class="fa-solid fa-users"></i> <span>Clientes Cadastrados</span></button>
-            <button class="nav-btn" id="btn-section-sobre" onclick="showSection('sobre', this)"><i class="fa-solid fa-id-card"></i> <span>Perfil da Empresa</span></button>
+            <button class="nav-btn active" id="btn-section-clientes" onclick="showSection('clientes', this)"><i class="fa-solid fa-users"></i> <span>Clientes</span></button>
+            <button class="nav-btn" id="btn-section-sobre" onclick="showSection('sobre', this)"><i class="fa-solid fa-id-card"></i> <span>Sobre a Empresa</span></button>
             <button class="nav-btn" id="btn-section-chat" onclick="showSection('chat', this)"><i class="fa-regular fa-comments"></i> <span>Central de Chat</span></button>
             <button class="nav-btn" id="btn-section-configuracoes" onclick="showSection('configuracoes', this)"><i class="fa-solid fa-gear"></i> <span>Configurações</span></button>
         </div>
 
-        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>ENCERRAR SESSÃO</span></button>
+        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR</span></button>
     </nav>
 
     <main class="main-content">
         
         <section id="clientes" class="section-view active">
-            <div class="section-header-block">
-                <h1>Clientes Registrados</h1>
-                <button class="btn-salvar" onclick="alert('Funcionalidade de cadastro direto em desenvolvimento na API.')">
-                    <i class="fa-solid fa-plus"></i> Novo Cliente
-                </button>
+            <div id="view-lista-clientes">
+                <div class="section-header-block">
+                    <h1>Clientes Registrados</h1>
+                    <button class="btn-salvar btn-icon-addition" onclick="alert('Funcionalidade de cadastro em desenvolvimento para a API backend.')">
+                        <i class="fa-solid fa-plus"></i> Novo Cliente
+                    </button>
+                </div>
+
+                <div class="card search-filter-box">
+                    <div class="search-bar">
+                        <input type="text" id="inputBusca" placeholder="Buscar por nome, CPF ou e-mail..." oninput="filtrarClientes()">
+                        <button onclick="filtrarClientes()"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar</button>
+                    </div>
+                    <div class="filtros-abas">
+                        <button id="btnFiltroTodos" class="active" onclick="mudarFiltro('todos')">Todos</button>
+                        <button id="btnFiltroAtivos" onclick="mudarFiltro('ativos')">Ativos</button>
+                        <button id="btnFiltroInativos" onclick="mudarFiltro('inativos')">Inativos</button>
+                    </div>
+                </div>
+
+                <div class="card table-responsive">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Nome Completo</th>
+                                <th>CPF / Identificador</th>
+                                <th>Contato / Status</th>
+                                <th>Ações de Monitoramento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaClientes">
+                            </tbody>
+                    </table>
+                </div>
             </div>
 
-            <div class="card table-responsive">
-                <table class="custom-table">
-                    <thead>
-                        <tr>
-                            <th>Nome Completo</th>
-                            <th>Identificador</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaClientes">
-                        </tbody>
-                </table>
+            <div id="view-detalhes-cliente" style="display: none;">
+                <div class="section-header-block">
+                    <h1>Ficha Cadastral do Cliente</h1>
+                    <button class="btn-danger-outline" onclick="fecharFichaCliente()"><i class="fa-solid fa-arrow-left"></i> Voltar à Lista</button>
+                </div>
+                
+                <div class="profile-detail-grid">
+                    <div class="card card-perfil-detalhe">
+                        <div class="avatar-ficha-container">
+                            <div class="avatar-ficha"><i class="fa-solid fa-user"></i></div>
+                            <div id="detalheBadgeStatus" class="badge-avatar-status">Ativo</div>
+                        </div>
+                        <div class="info-perfil-dados" id="detalheGeral">
+                            </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="secao-titulo-interna"><i class="fa-solid fa-location-dot"></i> Localização Residencial</div>
+                        <div class="secao-conteudo-interna" id="detalheEndereco">
+                            </div>
+                    </div>
+                </div>
+
+                <div class="card grid-split-records">
+                    <div>
+                        <div class="secao-titulo-interna"><i class="fa-solid fa-clock-history"></i> Histórico Operacional de Serviços</div>
+                        <div class="secao-conteudo-interna" id="detalheHistorico">
+                            </div>
+                    </div>
+                    <div>
+                        <div class="secao-titulo-interna"><i class="fa-solid fa-notes-medical"></i> Restrições e Observações Técnicas</div>
+                        <div class="secao-conteudo-interna">
+                            <ul class="obs-styled-list" id="detalheObs">
+                                </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section id="sobre" class="section-view">
             <h1>Configuração do Perfil Corporativo</h1>
-            <div class="card form-container-spec">
-                <div class="secao-titulo-interna"><i class="fa-solid fa-building-shield"></i> Credenciais Administrativas</div>
-                <div class="form-group">
-                    <label>Razão Social / Nome Fantasia</label>
-                    <input type="text" id="input-nome-empresa" value="PestControlX Soluções">
+            <div class="card grid-split-records">
+                <div class="form-container-spec">
+                    <div class="secao-titulo-interna"><i class="fa-solid fa-building-shield"></i> Credenciais Administrativas</div>
+                    <div class="form-group">
+                        <label for="input-nome-empresa">Razão Social / Nome Fantasia</label>
+                        <input type="text" id="input-nome-empresa" value="PestControlX Soluções Industriais">
+                    </div>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label for="input-cnpj-empresa">CNPJ Corporativo</label>
+                            <input type="text" id="input-cnpj-empresa" placeholder="00.000.000/0001-00" value="34.892.112/0001-89">
+                        </div>
+                        <div class="form-group">
+                            <label for="input-anvisa-empresa">Licença Sanitária / ANVISA</label>
+                            <input type="text" id="input-anvisa-empresa" placeholder="Nº de Registro Governamental" value="CEVS 355030801-81">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-escopo-empresa">Área Exclusiva de Atuação Territorial</label>
+                        <input type="text" id="input-escopo-empresa" value="São Paulo, Grande ABC e Interior Paulista">
+                    </div>
+                    <div class="form-group">
+                        <label for="input-missao-empresa">Apresentação Institucional (App Mobile)</label>
+                        <textarea id="input-missao-empresa" rows="3">Líder nacional em controle microbiológico, manejo integrado de pragas urbanas e sanitização de ambientes industriais de alta complexidade técnica.</textarea>
+                    </div>
+                    <button class="btn-salvar" onclick="salvarConfiguracoesEmpresa()"><i class="fa-solid fa-floppy-disk"></i> Atualizar Dados do App</button>
                 </div>
-                <button class="btn-salvar"><i class="fa-solid fa-floppy-disk"></i> Atualizar Dados</button>
+
+                <div class="panel-preview-branding">
+                    <div class="secao-titulo-interna"><i class="fa-solid fa-wand-magic-sparkles"></i> Identidade de Marca</div>
+                    <p class="branding-instructions">Faça upload da logomarca oficial da empresa para substituir os elementos visuais de toda a plataforma administrativa e do app móvel.</p>
+                    <div class="logo-upload-dropzone">
+                        <label for="logo-file-uploader" class="dropzone-trigger">
+                            <i class="fa-solid fa-cloud-arrow-up text-glow-neon"></i>
+                            <span>Carregar Nova Logomarca</span>
+                        </label>
+                        <input type="file" id="logo-file-uploader" accept="image/*" onchange="uploadBrandLogo(event)" style="display: none;">
+                    </div>
+                    <div class="services-catalog-manager">
+                        <div class="secao-titulo-interna"><i class="fa-solid fa-list-check"></i> Catálogo Base de Serviços</div>
+                        <ul class="catalog-list-items">
+                            <li><i class="fa-solid fa-shield-virus text-glow-neon"></i> Desinfecção Química Avançada</li>
+                            <li><i class="fa-solid fa-spider text-glow-neon"></i> Manejo Integrado de Vetores</li>
+                            <li><i class="fa-solid fa-droplet text-glow-neon"></i> Higienização de Reservatórios Industriais</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </section>
 
         <section id="chat" class="section-view">
             <div class="section-header-block">
-                <h1 id="chat-header-title">Painel de Comunicação em Tempo Real</h1>
+                <h1>Painel de Comunicação em Tempo Real</h1>
                 <div id="status-chat"><i class="fa-solid fa-circle-nodes"></i> Inicializando barramento de rede...</div>
             </div>
             
-            <div class="chat-layout-grid">
-                <div class="chat-sidebar-contacts">
-                    <div class="chat-sidebar-header">Suas Conexões</div>
-                    <div id="lista-contatos-chat">
-                        <div style="padding: 15px; text-align: center; color: #666; font-size: 0.9em;">Carregando clientes...</div>
-                    </div>
-                </div>
-
+            <div class="card no-padding overflow-hidden">
                 <div class="chat-terminal-container">
-                    <div class="chat-messages terminal-window" id="chat-box">
-                        <p class="status-log-terminal">-> Selecione um cliente na lista à esquerda para iniciar o atendimento.</p>
+                    <div class="chat-messages" id="chat-box-display">
+                        <p class="status-log-terminal">-> Sistema operacional aguardando conexões STOMP...</p>
                     </div>
                     <div class="chat-input-area">
-                        <input type="text" id="msg-input" placeholder="Escreva sua mensagem..." onkeypress="if(event.key==='Enter') enviarMsgStomp()">
-                        <button onclick="enviarMsgStomp()"><i class="fa-solid fa-paper-plane"></i> ENVIAR</button>
+                        <input type="text" id="msg-input" placeholder="Digite uma instrução ou mensagem de suporte..." onkeypress="if(event.key==='Enter') enviarMensagemChat()">
+                        <button onclick="enviarMensagemChat()"><i class="fa-solid fa-paper-plane"></i> ENVIAR</button>
                     </div>
                 </div>
             </div>
         </section>
 
         <section id="configuracoes" class="section-view">
-            <h1>Configurações Globais</h1>
-            <div class="card">
-                <div class="secao-titulo-interna"><i class="fa-solid fa-network-wired"></i> Segurança Integrada</div>
-                <div class="form-group">
-                    <label>Token JWT Ativo</label>
-                    <input type="text" id="generated-token-field" readonly>
+            <h1>Configurações Globais do Sistema</h1>
+            
+            <div class="card flex-config-grid">
+                <div class="config-item-box">
+                    <div class="secao-titulo-interna"><i class="fa-solid fa-palette"></i> Interface e Customização Visual</div>
+                    
+                    <div class="theme-switch-container">
+                        <div>
+                            <span class="config-label-title">Modo Cyber Neon / Dark</span>
+                            <p class="config-desc">Alterna a folha de estilo entre o layout industrial escuro e cinza corporativo leve.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="theme-toggle-checkbox" checked onchange="toggleVisualTheme()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="theme-switch-container">
+                        <div>
+                            <span class="config-label-title">Alertas Sonoros Críticos</span>
+                            <p class="config-desc">Emitir alertas sonoros contínuos em caso de novas mensagens recebidas de técnicos.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" checked id="sound-alerts">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
                 </div>
-                <button class="btn-danger-action" onclick="logout()"><i class="fa-solid fa-trash-can"></i> Limpar Armazenamento Local</button>
+
+                <div class="config-item-box">
+                    <div class="secao-titulo-interna"><i class="fa-solid fa-network-wired"></i> Segurança de Dados e API Integrada</div>
+                    <div class="form-group">
+                        <label>Token JWT de Conexão com Gateway Externo</label>
+                        <div class="input-action-wrapper">
+                            <input type="text" id="generated-token-field" readonly value="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                            <button class="btn-salvar" onclick="gerarNovoToken()"><i class="fa-solid fa-rotate"></i> Regerar</button>
+                        </div>
+                    </div>
+                    <div class="form-group-row button-action-row">
+                        <button class="btn-secondary-action" onclick="alert('Backup comprimido gerado e enviado para download.')"><i class="fa-solid fa-database"></i> Exportar DB SQL</button>
+                        <button class="btn-danger-action" onclick="limparSessaoLocal()"><i class="fa-solid fa-trash-can"></i> Limpar Armazenamento Local</button>
+                    </div>
+                </div>
             </div>
         </section>
 

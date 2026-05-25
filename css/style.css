@@ -1,282 +1,73 @@
-/* =========================================
-   VARIÁVEIS GLOBAIS (BRANCO & VERDE)
-   ========================================= */
-:root {
-    --bg-main: #f4f7f6;        /* Fundo geral da página (Cinza muito claro) */
-    --bg-surface: #ffffff;     /* Fundo dos cards (Branco puro) */
-    --bg-surface-hover: #f0f4f2;
-    --border-color: #e0e4e8;   /* Bordas suaves */
-    
-    --text-primary: #1C1C1C;   /* Texto preto/grafite principal */
-    --text-secondary: #6e7a8a; /* Texto de apoio */
-    
-    --primary-green: #3DDC84;  /* O VERDE OFICIAL PESTCONTROLX */
-    --primary-green-dark: #2cb36b;
-    --danger: #ff4a4a;
-    
-    --sidebar-width: 280px;
-    --topbar-height: 70px;
+/* --- TEMA CLARO (PADRÃO VERCEL) --- */
+body {
+    background-color: #f8f9fa;
+    color: #212529;
+    transition: background-color 0.3s, color 0.3s;
+}
+.sidebar, .topbar, .card {
+    background-color: #ffffff;
+    border: 1px solid #eaeaea;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-body.light-theme {
-    background-color: var(--bg-main);
-    color: var(--text-primary);
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
+/* --- TEMA ESCURO (DARK CYBER) --- */
+body.dark-theme {
+    background-color: #0F0F12;
+    color: #e9ecef;
+}
+body.dark-theme .sidebar, 
+body.dark-theme .topbar, 
+body.dark-theme .card {
+    background-color: #161B26;
+    border-color: #2d3748;
+}
+body.dark-theme .nav-btn {
+    color: #a0aec0;
+}
+body.dark-theme .nav-btn.active {
+    background-color: rgba(61, 220, 132, 0.1);
+    color: #3DDC84;
+    border-right: 3px solid #3DDC84;
+}
+body.dark-theme input, 
+body.dark-theme textarea {
+    background-color: #0F0F12;
+    color: #ffffff;
+    border-color: #4a5568;
 }
 
-/* Scrollbar Customizada Discreta */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: var(--bg-main); }
-::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--primary-green); }
-
-/* =========================================
-   LAYOUT (TOPBAR E SIDEBAR)
-   ========================================= */
-.topbar {
-    position: fixed;
-    top: 0; left: var(--sidebar-width); right: 0;
-    height: var(--topbar-height);
-    background-color: var(--bg-surface);
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 24px;
-    z-index: 100;
-}
-
-.topbar-company-name { font-size: 1.3rem; color: var(--text-primary); font-weight: 700; }
-
+/* --- MENU LATERAL RETRÁTIL --- */
 .sidebar {
-    position: fixed;
-    top: 0; left: 0; bottom: 0;
-    width: var(--sidebar-width);
-    background-color: var(--bg-surface);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    z-index: 101;
+    width: 250px;
+    transition: width 0.3s ease;
 }
-
-.logo-area {
-    padding: 24px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border-bottom: 1px solid var(--border-color);
+.sidebar.collapsed {
+    width: 80px;
 }
-.logo-wrapper img { width: 40px; height: 40px; }
-.logo-area h2 { font-size: 1.2rem; color: var(--text-primary); letter-spacing: 0.5px; }
-
-.profile-area { padding: 24px; text-align: center; border-bottom: 1px solid var(--border-color); }
-.profile-pic-sidebar {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: var(--bg-main);
-    border: 2px solid var(--primary-green);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    margin: 0 auto 12px auto;
-    color: var(--primary-green);
+.sidebar.collapsed .logo-wrapper img {
+    width: 40px;
 }
-.profile-name { font-weight: bold; color: var(--text-primary); }
-
-.nav-buttons { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.nav-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    padding: 14px 20px;
-    text-align: left;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: 0.2s;
+.sidebar.collapsed #sidebar-brand-name,
+.sidebar.collapsed .profile-name,
+.sidebar.collapsed .nav-btn span {
+    display: none; /* Esconde os textos quando o menu encolhe */
 }
-.nav-btn:hover { background: var(--bg-surface-hover); color: var(--primary-green); }
-.nav-btn.active {
-    background: rgba(61, 220, 132, 0.1);
-    color: var(--primary-green);
-    border-left: 4px solid var(--primary-green);
-}
-
-.logout-btn {
-    margin: 16px; padding: 14px;
-    background: transparent;
-    border: 1px solid var(--danger);
-    color: var(--danger);
-    font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s;
-}
-.logout-btn:hover { background: var(--danger); color: #fff; }
-
-/* =========================================
-   CONTEÚDO PRINCIPAL E CARDS
-   ========================================= */
 .main-content {
-    margin-top: var(--topbar-height);
-    margin-left: var(--sidebar-width);
-    padding: 32px;
-    width: calc(100% - var(--sidebar-width));
-    height: calc(100vh - var(--topbar-height));
-    overflow-y: auto;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+}
+.main-content.expanded {
+    margin-left: 80px; /* Expande o conteúdo quando o menu encolhe */
 }
 
-.section-view { display: none; animation: fadeIn 0.3s ease; }
-.section-view.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-.section-header-block {
-    display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
+/* --- UTILITÁRIOS --- */
+.section-view {
+    display: none; /* Esconde todas as seções por padrão */
 }
-
-.card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 24px; margin-bottom: 24px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+.section-view.active {
+    display: block; /* Mostra apenas a seção ativa */
+    animation: fadeIn 0.4s ease;
 }
-
-/* =========================================
-   TABELAS E FORMS
-   ========================================= */
-.custom-table { width: 100%; border-collapse: collapse; }
-.custom-table th { text-align: left; padding: 16px; color: var(--text-secondary); border-bottom: 2px solid var(--border-color); }
-.custom-table td { padding: 16px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); }
-.custom-table tbody tr:hover { background: var(--bg-main); }
-
-.badge-ativo { background: rgba(61, 220, 132, 0.15); color: #1a8f4c; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.8rem;}
-
-.form-group { margin-bottom: 20px; display: flex; flex-direction: column; }
-.form-group label { color: var(--text-secondary); margin-bottom: 8px; font-weight: bold; font-size: 0.9rem; }
-.form-group input {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 12px; border-radius: 4px; font-family: inherit;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-.form-group input:focus { outline: none; border-color: var(--primary-green); }
-
-.btn-salvar {
-    background: var(--primary-green);
-    border: none; color: #fff;
-    padding: 12px 24px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s;
-}
-.btn-salvar:hover { background: var(--primary-green-dark); }
-.btn-danger-action { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 12px; border-radius: 4px; cursor: pointer;}
-
-/* =========================================
-   LAYOUT DO CHAT TELEGRAM
-   ========================================= */
-.chat-layout-grid {
-    display: flex;
-    gap: 20px;
-    height: 550px;
-}
-
-.chat-sidebar-contacts {
-    width: 300px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-}
-
-.chat-sidebar-header {
-    background: var(--bg-main);
-    padding: 15px;
-    font-weight: bold;
-    border-bottom: 1px solid var(--border-color);
-    text-align: center;
-}
-
-.contato-chat-item {
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--text-primary);
-    transition: 0.2s;
-}
-.contato-chat-item:hover { background: var(--bg-main); color: var(--primary-green); }
-.contato-chat-item.active-chat { background: rgba(61, 220, 132, 0.1); border-left: 4px solid var(--primary-green); }
-
-.chat-terminal-container {
-    flex: 1;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.chat-messages {
-    flex: 1;
-    padding: 24px;
-    overflow-y: auto;
-    background: #fafafa;
-}
-
-.msg {
-    margin: 8px 0; padding: 12px 16px; border-radius: 8px;
-    max-width: 75%;
-    font-size: 0.95rem;
-    line-height: 1.4;
-    word-wrap: break-word;
-}
-.msg.sent { 
-    background: var(--primary-green); 
-    color: #fff; 
-    align-self: flex-end; 
-    margin-left: auto;
-    border-bottom-right-radius: 0;
-}
-.msg.received { 
-    background: #e9ecef; 
-    color: var(--text-primary); 
-    align-self: flex-start;
-    margin-right: auto;
-    border-bottom-left-radius: 0;
-}
-.msg.system { color: var(--text-secondary); text-align: center; font-style: italic; font-size: 0.85rem; }
-
-.chat-input-area {
-    display: flex;
-    padding: 16px;
-    background: var(--bg-surface);
-    border-top: 1px solid var(--border-color);
-}
-.chat-input-area input {
-    flex: 1;
-    background: var(--bg-main);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 12px 16px;
-    border-radius: 4px 0 0 4px;
-}
-.chat-input-area input:focus { outline: none; border-color: var(--primary-green); }
-.chat-input-area button {
-    background: var(--primary-green);
-    color: #fff;
-    border: none;
-    padding: 0 24px;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 0 4px 4px 0;
-}
-.chat-input-area button:hover { background: var(--primary-green-dark); }

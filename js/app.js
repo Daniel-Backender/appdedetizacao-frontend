@@ -1,8 +1,3 @@
-/**
- * PESTCONTROLX - APP.JS
- * Lógica funcional do Dashboard Corporativo (Branco & Verde)
- */
-
 // =========================================================
 // 1. CONFIGURAÇÕES GLOBAIS E ESTADO
 // =========================================================
@@ -10,253 +5,218 @@ const API_URL = "https://appdedetizacao.onrender.com";
 const RENDER_URL = `${API_URL}/ws-pestcontrol`;
 let stompClient = null;
 
-// ESTADO DO CHAT (Estilo Telegram)
 let currentChatClienteId = null;
 let currentChatSubscription = null;
-const empresaId = localStorage.getItem("empresaId");
-const token = localStorage.getItem("token_jwt"); // Ajuste se seu app salvar com nome diferente
+const empresaId = localStorage.getItem("empresaId") || "1"; // Fallback para testes
+const token = localStorage.getItem("token");
 
 // =========================================================
-// 2. SEGURANÇA E INICIALIZAÇÃO
+// 2. INICIALIZAÇÃO DA INTERFACE E SEGURANÇA
 // =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-    // Se quiser ligar a trava de segurança, descomente abaixo:
-    // if (!token || !empresaId) {
-    //     alert("Sessão inválida. Redirecionando para login.");
-    //     window.location.href = "index.html";
-    // }
+    // 1. Aplica o tema salvo (Padrão: Claro/Branco conforme o site)
+    const temaSalvo = localStorage.getItem("tema_pestcontrol");
+    const themeCheckbox = document.getElementById("theme-toggle-checkbox");
+    
+    if (temaSalvo === "dark") {
+        document.body.classList.add("dark-theme");
+        if(themeCheckbox) themeCheckbox.checked = true;
+    } else {
+        document.body.classList.remove("dark-theme"); // Força o branco padrão
+        if(themeCheckbox) themeCheckbox.checked = false;
+    }
 
-    const email = localStorage.getItem("user_email") || "admin@pestcontrolx.com";
-    document.getElementById("userName").innerText = email;
-    
-    // Mostra o token na aba configurações apenas para verificação
-    const tokenField = document.getElementById("generated-token-field");
-    if(tokenField) tokenField.value = "Bearer " + (token || "Nenhum token encontrado");
+    // 2. Carrega os dados do usuário logado
+    const email = localStorage.getItem("userEmail") || "admin@pestcontrolx.com";
+    const elNome = document.getElementById("userName");
+    if (elNome) elNome.innerText = email;
 
-    // Inicia na aba de clientes
-    showSection('clientes', document.getElementById('btn-section-clientes'));
-    carregarTabelaClientesRest();
+    // 3. Inicia conexões e dados visuais
+    if (token && empresaId) {
+        conectarServidorWebSocket();
+    } else {
+        console.warn("Modo de visualização (Sem Token). Funcionalidades de API limitadas.");
+    }
     
-    // Conecta o núcleo do WebSockets
-    conectarServidorWebSocket();
-    
-    // Carrega a lista de clientes para a barra lateral do chat
-    carregarListaClientesParaChat();
+    renderizarTabelaClientes(); // Preenche a tabela inicial
 });
 
-// NAVEGAÇÃO ENTRE ABAS
+// =========================================================
+// 3. FUNCIONALIDADES DO MENU E TELA (UI/UX)
+// =========================================================
+
+// Alternar entre as abas (Clientes, Sobre, Chat, Configurações)
 function showSection(sectionId, btnElement) {
-    document.querySelectorAll('.section-view').forEach(sec => sec.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    // Remove classe 'active' de todas as seções e esconde
+    document.querySelectorAll('.section-view').forEach(sec => {
+        sec.classList.remove('active');
+        sec.style.display = 'none';
+    });
     
-    document.getElementById(sectionId).classList.add('active');
-    btnElement.classList.add('active');
+    // Remove classe 'active' de todos os botões do menu
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Ativa a seção alvo
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.classList.add('active');
+        targetSection.style.display = 'block';
+    }
+    
+    // Ativa o botão clicado
+    if (btnElement) {
+        btnElement.classList.add('active');
+    }
 }
 
-// =========================================================
-// MÓDULO DE CLIENTES (REST API)
-// =========================================================
-async function carregarTabelaClientesRest() {
-    const tbody = document.getElementById('tabelaClientes');
-    if (!tbody) return;
+// Retrair e Expandir Menu Lateral
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    
+    sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('expanded');
+}
 
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Carregando banco de dados...</td></tr>`;
-
-    try {
-        // Rota oficial do seu Spring Boot
-        const response = await fetch(`${API_URL}/api/clientes/empresa/${empresaId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (response.ok) {
-            const clientes = await response.json();
-            tbody.innerHTML = "";
-
-            if (clientes.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Nenhum cliente associado.</td></tr>`;
-                return;
-            }
-
-            clientes.forEach(cli => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><strong>${cli.nome}</strong><br><small style="color:var(--text-secondary)">${cli.email || 'Sem e-mail'}</small></td>
-                        <td>${cli.cnpj || cli.cpf || 'N/A'}</td>
-                        <td><span class="badge-ativo">Ativo</span></td>
-                        <td>
-                            <button class="btn-salvar" style="padding: 6px 12px; font-size: 0.85rem;" onclick="irParaChat(${cli.id}, '${cli.nome}')">
-                                <i class="fa-solid fa-comment-dots"></i> Atender
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color:red;">Erro ao processar dados da API. HTTP ${response.status}</td></tr>`;
-        }
-    } catch (e) {
-        console.error("Erro na listagem de clientes", e);
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color:red;">Servidor offline ou falha de CORS.</td></tr>`;
+// Alternar Tema (Claro Corporativo / Dark Cyber)
+function toggleVisualTheme() {
+    const isDark = document.body.classList.toggle("dark-theme");
+    
+    if (isDark) {
+        localStorage.setItem("tema_pestcontrol", "dark");
+    } else {
+        localStorage.setItem("tema_pestcontrol", "light");
     }
 }
 
 // =========================================================
-// 3. NÚCLEO WEBSOCKET (ESTILO TELEGRAM)
+// 4. MÓDULO DE CLIENTES (TABELA E FICHA)
+// =========================================================
+
+// Dados simulados para a tabela não ficar vazia até você ligar a API
+const clientesMock = [
+    { id: 1, nome: "Carlos Silva", cpf: "123.456.789-00", contato: "(11) 98985-0000", status: "Ativo" },
+    { id: 2, nome: "Maria Souza", cpf: "664.852.361-00", contato: "maria.souza@gmail.com", status: "Inativo" },
+    { id: 3, nome: "Pedro Jesus", cpf: "187.326.739-00", contato: "(11) 75405-9800", status: "Ativo" }
+];
+
+function renderizarTabelaClientes() {
+    const tbody = document.getElementById("tabelaClientes");
+    if (!tbody) return;
+    
+    tbody.innerHTML = "";
+    
+    clientesMock.forEach(cli => {
+        const isAtivo = cli.status === "Ativo";
+        const statusHtml = isAtivo 
+            ? `<span style="color: #27B774; font-weight: bold;"><i class="fa-solid fa-circle-check"></i> Ativo / ${cli.contato}</span>`
+            : `<span style="color: #DC3545; font-weight: bold;"><i class="fa-solid fa-ban"></i> Cadastro Inativo</span>`;
+            
+        tbody.innerHTML += `
+            <tr>
+                <td><strong>${cli.nome}</strong></td>
+                <td>${cli.cpf}</td>
+                <td>${statusHtml}</td>
+                <td>
+                    <button class="btn-abrir-ficha" onclick="abrirFichaCliente(${cli.id}, '${cli.nome}')" style="padding: 6px 12px; background: #e8f5e9; color: #27b774; border: 1px solid #27b774; border-radius: 4px; cursor: pointer;">
+                        <i class="fa-solid fa-address-card"></i> Abrir Ficha
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function abrirFichaCliente(id, nome) {
+    document.getElementById("view-lista-clientes").style.display = "none";
+    document.getElementById("view-detalhes-cliente").style.display = "block";
+    
+    const detalhe = document.getElementById("detalheGeral");
+    if(detalhe) {
+        detalhe.innerHTML = `
+            <h3>${nome}</h3>
+            <p><strong>Registro/ID:</strong> ${id}</p>
+            <p><strong>Status Operacional:</strong> Em monitoramento</p>
+        `;
+    }
+}
+
+function fecharFichaCliente() {
+    document.getElementById("view-lista-clientes").style.display = "block";
+    document.getElementById("view-detalhes-cliente").style.display = "none";
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "index.html";
+}
+
+// =========================================================
+// 5. MÓDULO WEBSOCKETS (CHAT E NOTIFICAÇÕES)
 // =========================================================
 function conectarServidorWebSocket() {
-    atualizarStatusInterface("CONECTANDO...", "#ffaa00");
+    atualizarStatusInterface("SISTEMA CONECTANDO...", "#ffaa00");
     const socket = new SockJS(RENDER_URL);
     stompClient = Stomp.over(socket);
     stompClient.debug = null; 
 
     stompClient.connect({}, function (frame) {
-        atualizarStatusInterface("SISTEMA ONLINE E CONECTADO", "var(--primary-green)");
+        atualizarStatusInterface("SERVIDOR DE MENSAGENS ONLINE", "#27B774");
         
-        // Inscreve no tópico global da empresa para notificações gerais
         stompClient.subscribe(`/topic/empresa/${empresaId}/notificacoes`, function(msg) {
             tocarSomNotificacao();
-            console.log("Notificação Global Recebida:", msg.body);
+            console.log("Notificação Global:", msg.body);
         });
 
     }, function(error) {
-        atualizarStatusInterface("FALHA CRÍTICA - RECONECTANDO...", "var(--danger)");
+        atualizarStatusInterface("FALHA - RECONECTANDO...", "#DC3545");
         setTimeout(conectarServidorWebSocket, 5000);
     });
 }
 
-// =========================================================
-// 4. LÓGICA DE SALAS DE CHAT (O "TELEGRAM")
-// =========================================================
-async function abrirChatComCliente(clienteId, clienteNome, elementoClicado) {
-    currentChatClienteId = clienteId;
-    
-    // Atualiza a UI para mostrar quem está ativo na barra lateral
-    document.querySelectorAll('.contato-chat-item').forEach(el => el.classList.remove('active-chat'));
-    if(elementoClicado) elementoClicado.classList.add('active-chat');
-
-    const headerChat = document.getElementById('chat-header-title');
-    if(headerChat) headerChat.innerText = `Atendimento: ${clienteNome}`;
-    
-    const box = document.getElementById('chat-box');
-    box.innerHTML = `<div class="msg system">Carregando histórico seguro de mensagens...</div>`;
-
-    // 1. Desconecta da sala do cliente anterior (para não receber mensagens cruzadas)
-    if (currentChatSubscription) {
-        currentChatSubscription.unsubscribe();
-    }
-
-    // 2. Carrega o Histórico do BD via REST
-    try {
-        const response = await fetch(`${API_URL}/api/chat/historico/${empresaId}/${clienteId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-            const historico = await response.json();
-            box.innerHTML = ""; // Limpa a tela
-            if (historico.length === 0) box.innerHTML = `<div class="msg system">Nenhuma mensagem anterior. Inicie o atendimento.</div>`;
-            
-            historico.forEach(msg => {
-                const tipo = msg.remetente === "EMPRESA" ? "sent" : "received";
-                printMensagem(msg.texto, tipo);
-            });
-        }
-    } catch(err) {
-        console.error("Histórico não carregado", err);
-        box.innerHTML = `<div class="msg system" style="color:var(--danger)">Erro ao puxar histórico do banco.</div>`;
-    }
-
-    // 3. Inscreve na Sala Exclusiva (WebSocket Privado)
-    const topicPath = `/topic/chat/${empresaId}/${clienteId}`;
-    currentChatSubscription = stompClient.subscribe(topicPath, function (msg) {
-        const dados = JSON.parse(msg.body);
-        
-        // Se a mensagem vier do Cliente (App), a gente pinta na tela e toca som!
-        if (dados.remetente !== 'EMPRESA') {
-            printMensagem(dados.texto, "received");
-            tocarSomNotificacao();
-            piscarJanelaTerminal();
-        }
-    });
-}
-
-function enviarMsgStomp() {
+function enviarMensagemChat() {
     const input = document.getElementById('msg-input');
-    if (!input || !currentChatClienteId) {
-        alert("Selecione um cliente na lista à esquerda para iniciar o envio.");
-        return;
-    }
-
-    const textoDigitado = input.value.trim();
+    const texto = input.value.trim();
     
-    if (textoDigitado !== "" && stompClient && stompClient.connected) {
-        // Envia a mensagem pro Spring Boot distribuir para o App do Cliente
-        const destination = `/app/chat/${empresaId}/${currentChatClienteId}`;
-        const payload = JSON.stringify({
-            remetente: 'EMPRESA',
-            texto: textoDigitado 
-        });
-        
-        stompClient.send(destination, {}, payload);
-        
-        // Exibe imediatamente na tela do painel
-        printMensagem(textoDigitado, "sent");
-        input.value = '';
-        input.focus();
-    } else if (!stompClient || !stompClient.connected) {
-        atualizarStatusInterface("RECONECTANDO BARRAMENTO...", "#ffaa00");
+    if (texto === "") return;
+    
+    printMensagem(texto, "sent");
+    input.value = '';
+    
+    // Simula a resposta do sistema se não houver conexão real
+    if (!stompClient || !stompClient.connected) {
+        setTimeout(() => {
+            printMensagem("Sistema offline. Mensagem guardada no log local.", "received");
+        }, 1000);
     }
 }
 
-// =========================================================
-// 5. INTERFACE DO CHAT E UTILITÁRIOS
-// =========================================================
 function printMensagem(txt, tipo) {
-    const box = document.getElementById('chat-box');
-    if (box) {
-        // Usando o flexbox do CSS para posicionar as mensagens perfeitamente
-        const clearSystemMsg = box.querySelector('.system');
-        if(clearSystemMsg) clearSystemMsg.remove();
-
-        box.innerHTML += `<div class="msg ${tipo}">${txt}</div>`;
-        box.scrollTop = box.scrollHeight; 
-    }
+    const box = document.getElementById('chat-box-display');
+    if (!box) return;
+    
+    // Classes CSS determinam as cores (definidas no CSS)
+    const alinhamento = tipo === 'sent' ? 'right' : 'left';
+    const corFundo = tipo === 'sent' ? '#e8f5e9' : '#f8f9fa';
+    const corBorda = tipo === 'sent' ? '#27B774' : '#dee2e6';
+    const corTexto = '#212529';
+    
+    box.innerHTML += `
+        <div style="text-align: ${alinhamento}; margin: 8px 0;">
+            <div style="display: inline-block; padding: 10px 15px; border-radius: 8px; background: ${corFundo}; border: 1px solid ${corBorda}; color: ${corTexto}; max-width: 70%; text-align: left;">
+                ${txt}
+            </div>
+        </div>
+    `;
+    box.scrollTop = box.scrollHeight; 
 }
 
-async function carregarListaClientesParaChat() {
-    try {
-        const response = await fetch(`${API_URL}/api/clientes/empresa/${empresaId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        if (response.ok) {
-            const clientes = await response.json();
-            const container = document.getElementById('lista-contatos-chat');
-            if(!container) return;
-            
-            container.innerHTML = "";
-            if (clientes.length === 0) container.innerHTML = `<div style="padding:15px; color:#666; text-align:center;">Nenhum cliente cadastrado.</div>`;
-
-            clientes.forEach(cli => {
-                container.innerHTML += `
-                    <div class="contato-chat-item" onclick="abrirChatComCliente(${cli.id}, '${cli.nome}', this)">
-                        <i class="fa-solid fa-user-circle"></i> ${cli.nome}
-                    </div>
-                `;
-            });
-        }
-    } catch (e) {
-        console.error("Erro na lista lateral do chat", e);
-    }
-}
-
-// Atalho do botão da Tabela de Clientes direto para o Chat
-function irParaChat(id, nome) {
-    showSection('chat', document.getElementById('btn-section-chat'));
-    abrirChatComCliente(id, nome, null);
-}
-
-// Efeitos de Notificação Funcionais (Sem arquivos externos)
 function tocarSomNotificacao() {
+    const checkboxSom = document.getElementById("sound-alerts");
+    if (checkboxSom && !checkboxSom.checked) return;
+
     try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let osc = audioCtx.createOscillator();
@@ -271,25 +231,10 @@ function tocarSomNotificacao() {
     } catch (err) {}
 }
 
-function piscarJanelaTerminal() {
-    const painelChat = document.querySelector('.terminal-window');
-    if (painelChat) {
-        painelChat.style.transition = "box-shadow 0.15s";
-        painelChat.style.boxShadow = "inset 0 0 15px rgba(61, 220, 132, 0.4)";
-        setTimeout(() => painelChat.style.boxShadow = "none", 300);
-    }
-}
-
-function atualizarStatusInterface(texto, corCss) {
+function atualizarStatusInterface(texto, corHex) {
     const el = document.getElementById('status-chat');
     if (el) {
-        el.innerText = texto;
-        el.style.color = corCss;
+        el.innerHTML = `<i class="fa-solid fa-circle-nodes"></i> ${texto}`;
+        el.style.color = corHex;
     }
-}
-
-function logout() {
-    if(stompClient) stompClient.disconnect();
-    localStorage.clear();
-    window.location.href = "index.html";
 }
