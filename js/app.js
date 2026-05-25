@@ -1,296 +1,295 @@
 /**
  * PESTCONTROLX - APP.JS
- * Lógica funcional do Dashboard Corporativo
+ * Lógica funcional do Dashboard Corporativo (Branco & Verde)
  */
 
-const API_BASE_URL = "https://appdedetizacao.onrender.com";
+// =========================================================
+// 1. CONFIGURAÇÕES GLOBAIS E ESTADO
+// =========================================================
+const API_URL = "https://appdedetizacao.onrender.com";
+const RENDER_URL = `${API_URL}/ws-pestcontrol`;
 let stompClient = null;
-let clientesCache = []; // Cache local para evitar requests desnecessários ao filtrar
 
-// ==========================================
-// INICIALIZAÇÃO
-// ==========================================
+// ESTADO DO CHAT (Estilo Telegram)
+let currentChatClienteId = null;
+let currentChatSubscription = null;
+const empresaId = localStorage.getItem("empresaId");
+const token = localStorage.getItem("token_jwt"); // Ajuste se seu app salvar com nome diferente
+
+// =========================================================
+// 2. SEGURANÇA E INICIALIZAÇÃO
+// =========================================================
 document.addEventListener("DOMContentLoaded", () => {
-    verificarAutenticacao();
+    // Se quiser ligar a trava de segurança, descomente abaixo:
+    // if (!token || !empresaId) {
+    //     alert("Sessão inválida. Redirecionando para login.");
+    //     window.location.href = "index.html";
+    // }
+
+    const email = localStorage.getItem("user_email") || "admin@pestcontrolx.com";
+    document.getElementById("userName").innerText = email;
+    
+    // Mostra o token na aba configurações apenas para verificação
+    const tokenField = document.getElementById("generated-token-field");
+    if(tokenField) tokenField.value = "Bearer " + (token || "Nenhum token encontrado");
+
+    // Inicia na aba de clientes
     showSection('clientes', document.getElementById('btn-section-clientes'));
-    carregarDadosUsuario();
+    carregarTabelaClientesRest();
+    
+    // Conecta o núcleo do WebSockets
+    conectarServidorWebSocket();
+    
+    // Carrega a lista de clientes para a barra lateral do chat
+    carregarListaClientesParaChat();
 });
 
-function verificarAutenticacao() {
-    const token = localStorage.getItem('token_jwt'); // Ajuste a chave conforme seu login salvou
-    if (!token) {
-        alert("Sessão inválida! Redirecionando para login.");
-        // window.location.href = 'login.html'; // Descomente em produção
-    }
-}
-
-function carregarDadosUsuario() {
-    // Simula a carga do JWT ou localStorage
-    const nome = localStorage.getItem('user_nome') || "Administrador Sistema";
-    document.getElementById('userName').innerText = nome;
-    document.getElementById('generated-token-field').value = "Bearer " + (localStorage.getItem('token_jwt') || "Token_Ausente...");
-}
-
-// ==========================================
-// NAVEGAÇÃO DE ABAS
-// ==========================================
+// NAVEGAÇÃO ENTRE ABAS
 function showSection(sectionId, btnElement) {
-    // Esconde todas as seções
     document.querySelectorAll('.section-view').forEach(sec => sec.classList.remove('active'));
-    // Remove classe ativa de todos os botões
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     
-    // Mostra a seção desejada e ativa o botão
     document.getElementById(sectionId).classList.add('active');
     btnElement.classList.add('active');
-
-    // Gatilhos de carregamento preguiçoso (Lazy Load)
-    if (sectionId === 'clientes' && clientesCache.length === 0) fetchClientes();
-    if (sectionId === 'chat' && stompClient === null) iniciarConexaoChat();
 }
 
-// ==========================================
-// MÓDULO: CLIENTES (REST API)
-// ==========================================
-async function fetchClientes() {
+// =========================================================
+// MÓDULO DE CLIENTES (REST API)
+// =========================================================
+async function carregarTabelaClientesRest() {
     const tbody = document.getElementById('tabelaClientes');
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Buscando dados no servidor...</td></tr>`;
+    if (!tbody) return;
+
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Carregando banco de dados...</td></tr>`;
 
     try {
-        const token = localStorage.getItem('token_jwt');
-        // REQUISITO BACKEND: Certifique-se de que o ClienteController.java tem a rota GET /api/clientes
-        const response = await fetch(`${API_BASE_URL}/api/clientes`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+        // Rota oficial do seu Spring Boot
+        const response = await fetch(`${API_URL}/api/clientes/empresa/${empresaId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (response.ok) {
-            clientesCache = await response.json();
-            renderizarTabelaClientes(clientesCache);
+            const clientes = await response.json();
+            tbody.innerHTML = "";
+
+            if (clientes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Nenhum cliente associado.</td></tr>`;
+                return;
+            }
+
+            clientes.forEach(cli => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${cli.nome}</strong><br><small style="color:var(--text-secondary)">${cli.email || 'Sem e-mail'}</small></td>
+                        <td>${cli.cnpj || cli.cpf || 'N/A'}</td>
+                        <td><span class="badge-ativo">Ativo</span></td>
+                        <td>
+                            <button class="btn-salvar" style="padding: 6px 12px; font-size: 0.85rem;" onclick="irParaChat(${cli.id}, '${cli.nome}')">
+                                <i class="fa-solid fa-comment-dots"></i> Atender
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
         } else {
-            // Fallback de demonstração caso a API não esteja pronta
-            console.warn("API de clientes retornou erro. Carregando dados de fallback.");
-            mockClientesFallback();
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color:red;">Erro ao processar dados da API. HTTP ${response.status}</td></tr>`;
         }
-    } catch (error) {
-        console.error("Erro de rede:", error);
-        mockClientesFallback();
+    } catch (e) {
+        console.error("Erro na listagem de clientes", e);
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color:red;">Servidor offline ou falha de CORS.</td></tr>`;
     }
 }
 
-function renderizarTabelaClientes(lista) {
-    const tbody = document.getElementById('tabelaClientes');
-    tbody.innerHTML = "";
+// =========================================================
+// 3. NÚCLEO WEBSOCKET (ESTILO TELEGRAM)
+// =========================================================
+function conectarServidorWebSocket() {
+    atualizarStatusInterface("CONECTANDO...", "#ffaa00");
+    const socket = new SockJS(RENDER_URL);
+    stompClient = Stomp.over(socket);
+    stompClient.debug = null; 
 
-    if (lista.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Nenhum cliente encontrado.</td></tr>`;
+    stompClient.connect({}, function (frame) {
+        atualizarStatusInterface("SISTEMA ONLINE E CONECTADO", "var(--primary-green)");
+        
+        // Inscreve no tópico global da empresa para notificações gerais
+        stompClient.subscribe(`/topic/empresa/${empresaId}/notificacoes`, function(msg) {
+            tocarSomNotificacao();
+            console.log("Notificação Global Recebida:", msg.body);
+        });
+
+    }, function(error) {
+        atualizarStatusInterface("FALHA CRÍTICA - RECONECTANDO...", "var(--danger)");
+        setTimeout(conectarServidorWebSocket, 5000);
+    });
+}
+
+// =========================================================
+// 4. LÓGICA DE SALAS DE CHAT (O "TELEGRAM")
+// =========================================================
+async function abrirChatComCliente(clienteId, clienteNome, elementoClicado) {
+    currentChatClienteId = clienteId;
+    
+    // Atualiza a UI para mostrar quem está ativo na barra lateral
+    document.querySelectorAll('.contato-chat-item').forEach(el => el.classList.remove('active-chat'));
+    if(elementoClicado) elementoClicado.classList.add('active-chat');
+
+    const headerChat = document.getElementById('chat-header-title');
+    if(headerChat) headerChat.innerText = `Atendimento: ${clienteNome}`;
+    
+    const box = document.getElementById('chat-box');
+    box.innerHTML = `<div class="msg system">Carregando histórico seguro de mensagens...</div>`;
+
+    // 1. Desconecta da sala do cliente anterior (para não receber mensagens cruzadas)
+    if (currentChatSubscription) {
+        currentChatSubscription.unsubscribe();
+    }
+
+    // 2. Carrega o Histórico do BD via REST
+    try {
+        const response = await fetch(`${API_URL}/api/chat/historico/${empresaId}/${clienteId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const historico = await response.json();
+            box.innerHTML = ""; // Limpa a tela
+            if (historico.length === 0) box.innerHTML = `<div class="msg system">Nenhuma mensagem anterior. Inicie o atendimento.</div>`;
+            
+            historico.forEach(msg => {
+                const tipo = msg.remetente === "EMPRESA" ? "sent" : "received";
+                printMensagem(msg.texto, tipo);
+            });
+        }
+    } catch(err) {
+        console.error("Histórico não carregado", err);
+        box.innerHTML = `<div class="msg system" style="color:var(--danger)">Erro ao puxar histórico do banco.</div>`;
+    }
+
+    // 3. Inscreve na Sala Exclusiva (WebSocket Privado)
+    const topicPath = `/topic/chat/${empresaId}/${clienteId}`;
+    currentChatSubscription = stompClient.subscribe(topicPath, function (msg) {
+        const dados = JSON.parse(msg.body);
+        
+        // Se a mensagem vier do Cliente (App), a gente pinta na tela e toca som!
+        if (dados.remetente !== 'EMPRESA') {
+            printMensagem(dados.texto, "received");
+            tocarSomNotificacao();
+            piscarJanelaTerminal();
+        }
+    });
+}
+
+function enviarMsgStomp() {
+    const input = document.getElementById('msg-input');
+    if (!input || !currentChatClienteId) {
+        alert("Selecione um cliente na lista à esquerda para iniciar o envio.");
         return;
     }
 
-    lista.forEach(cliente => {
-        const statusClass = cliente.ativo !== false ? 'badge-ativo' : 'badge-inativo';
-        const statusTexto = cliente.ativo !== false ? 'Ativo' : 'Inativo';
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td><strong>${cliente.nome}</strong><br><small style="color: var(--text-secondary)">${cliente.email || 'Sem e-mail'}</small></td>
-            <td>${cliente.cnpj || cliente.cpf || 'Não informado'}</td>
-            <td><span class="badge ${statusClass}">${statusTexto}</span><br><small>${cliente.telefone || ''}</small></td>
-            <td>
-                <button class="btn-salvar" style="padding: 6px 12px; font-size: 0.85rem;" onclick="abrirFichaCliente(${cliente.id})">
-                    <i class="fa-solid fa-eye"></i> Analisar
-                </button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function filtrarClientes() {
-    const termo = document.getElementById('inputBusca').value.toLowerCase();
+    const textoDigitado = input.value.trim();
     
-    // Pega qual aba está ativa (Todos, Ativos, Inativos)
-    const filtroAtivoBtn = document.querySelector('.filtros-abas button.active').id;
-    
-    let filtrados = clientesCache.filter(cli => {
-        const matchBusca = cli.nome.toLowerCase().includes(termo) || 
-                           (cli.cnpj && cli.cnpj.includes(termo)) || 
-                           (cli.email && cli.email.toLowerCase().includes(termo));
-                           
-        if (!matchBusca) return false;
-
-        if (filtroAtivoBtn === 'btnFiltroAtivos') return cli.ativo !== false;
-        if (filtroAtivoBtn === 'btnFiltroInativos') return cli.ativo === false;
-        return true; // Todos
-    });
-
-    renderizarTabelaClientes(filtrados);
-}
-
-function mudarFiltro(tipo) {
-    document.querySelectorAll('.filtros-abas button').forEach(b => b.classList.remove('active'));
-    
-    if (tipo === 'todos') document.getElementById('btnFiltroTodos').classList.add('active');
-    if (tipo === 'ativos') document.getElementById('btnFiltroAtivos').classList.add('active');
-    if (tipo === 'inativos') document.getElementById('btnFiltroInativos').classList.add('active');
-    
-    filtrarClientes();
-}
-
-// Lógica de Visão de Detalhes
-function abrirFichaCliente(id) {
-    const cliente = clientesCache.find(c => c.id === id);
-    if (!cliente) return;
-
-    document.getElementById('view-lista-clientes').style.display = 'none';
-    document.getElementById('view-detalhes-cliente').style.display = 'block';
-    
-    document.getElementById('detalheGeral').innerHTML = `
-        <h2>${cliente.nome}</h2>
-        <p>ID Sistema: #${cliente.id} | Documento: ${cliente.cnpj || cliente.cpf}</p>
-        <p><i class="fa-solid fa-envelope"></i> ${cliente.email || 'N/A'}</p>
-        <p><i class="fa-solid fa-phone"></i> ${cliente.telefone || 'N/A'}</p>
-    `;
-
-    document.getElementById('detalheEndereco').innerHTML = `
-        <p><strong>CEP:</strong> ${cliente.cep || 'N/A'}</p>
-        <p><strong>Rua:</strong> ${cliente.rua || 'N/A'}, Nº ${cliente.numero || 'N/A'}</p>
-        <p><strong>Bairro:</strong> ${cliente.bairro || 'N/A'}</p>
-    `;
-}
-
-function fecharFichaCliente() {
-    document.getElementById('view-lista-clientes').style.display = 'block';
-    document.getElementById('view-detalhes-cliente').style.display = 'none';
-}
-
-// ==========================================
-// MÓDULO: CHAT TEMPO REAL (STOMP / WEBSOCKET)
-// ==========================================
-function iniciarConexaoChat() {
-    const chatBox = document.getElementById('chat-box-display');
-    const statusHeader = document.getElementById('status-chat');
-    
-    // O SockJS se encarrega de achar o melhor protocolo disponível (WebSocket, XHR Streaming, etc)
-    const socket = new SockJS(`${API_BASE_URL}/ws-pestcontrol`);
-    stompClient = Stomp.over(socket);
-    
-    // Desativar logs excessivos do STOMP no console do navegador
-    stompClient.debug = null; 
-
-    const token = localStorage.getItem('token_jwt');
-
-    stompClient.connect({'Authorization': `Bearer ${token}`}, function(frame) {
-        statusHeader.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--neon-green)"></i> Link STOMP Estabelecido`;
-        registrarMensagemTerminal(`Conexão segura estabelecida com ${API_BASE_URL}. Aguardando tráfego...`, 'sys');
-        
-        // REQUISITO BACKEND: Certifique-se de que o MessageBroker do Spring está enviando para /topic/mensagens
-        stompClient.subscribe('/topic/mensagens', function(messageOutput) {
-            const mensagem = JSON.parse(messageOutput.body);
-            // Verifica se a mensagem não foi enviada por mim mesmo
-            if(mensagem.remetente !== localStorage.getItem('user_nome')) {
-                registrarMensagemTerminal(`${mensagem.remetente}: ${mensagem.conteudo}`, 'in');
-                tocarAlertaSonoro();
-            }
+    if (textoDigitado !== "" && stompClient && stompClient.connected) {
+        // Envia a mensagem pro Spring Boot distribuir para o App do Cliente
+        const destination = `/app/chat/${empresaId}/${currentChatClienteId}`;
+        const payload = JSON.stringify({
+            remetente: 'EMPRESA',
+            texto: textoDigitado 
         });
-    }, function(error) {
-        statusHeader.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: var(--danger)"></i> Falha de Conexão STOMP`;
-        registrarMensagemTerminal(`Erro catastrófico no barramento: ${error}`, 'sys');
-    });
-}
-
-function enviarMensagemChat() {
-    const input = document.getElementById('msg-input');
-    const texto = input.value.trim();
-    
-    if (texto && stompClient && stompClient.connected) {
-        const nomeUsuario = localStorage.getItem('user_nome') || "Central Admin";
         
-        const payload = {
-            remetente: nomeUsuario,
-            conteudo: texto,
-            tipo: 'CHAT'
-        };
-
-        // REQUISITO BACKEND: O @MessageMapping no ChatController deve ser /app/chat.enviar
-        stompClient.send("/app/chat.enviar", {}, JSON.stringify(payload));
+        stompClient.send(destination, {}, payload);
         
-        registrarMensagemTerminal(texto, 'out');
+        // Exibe imediatamente na tela do painel
+        printMensagem(textoDigitado, "sent");
         input.value = '';
+        input.focus();
     } else if (!stompClient || !stompClient.connected) {
-        alert("Sistema offline. Aguarde a conexão com o servidor WebSocket.");
+        atualizarStatusInterface("RECONECTANDO BARRAMENTO...", "#ffaa00");
     }
 }
 
-function registrarMensagemTerminal(texto, tipo) {
-    const chatBox = document.getElementById('chat-box-display');
-    const wrapper = document.createElement('div');
-    wrapper.className = `msg-wrapper ${tipo}`;
-    
-    if (tipo === 'sys') {
-        wrapper.innerHTML = `<p class="status-log-terminal">-> ${texto}</p>`;
-    } else {
-        wrapper.innerHTML = `<div class="msg-bubble">${texto}</div>`;
+// =========================================================
+// 5. INTERFACE DO CHAT E UTILITÁRIOS
+// =========================================================
+function printMensagem(txt, tipo) {
+    const box = document.getElementById('chat-box');
+    if (box) {
+        // Usando o flexbox do CSS para posicionar as mensagens perfeitamente
+        const clearSystemMsg = box.querySelector('.system');
+        if(clearSystemMsg) clearSystemMsg.remove();
+
+        box.innerHTML += `<div class="msg ${tipo}">${txt}</div>`;
+        box.scrollTop = box.scrollHeight; 
     }
-    
-    chatBox.appendChild(wrapper);
-    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll para baixo
 }
 
-function tocarAlertaSonoro() {
-    if (document.getElementById('sound-alerts').checked) {
-        // Usa um bip nativo simples em Base64 para não precisar de arquivos externos
+async function carregarListaClientesParaChat() {
+    try {
+        const response = await fetch(`${API_URL}/api/clientes/empresa/${empresaId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (response.ok) {
+            const clientes = await response.json();
+            const container = document.getElementById('lista-contatos-chat');
+            if(!container) return;
+            
+            container.innerHTML = "";
+            if (clientes.length === 0) container.innerHTML = `<div style="padding:15px; color:#666; text-align:center;">Nenhum cliente cadastrado.</div>`;
+
+            clientes.forEach(cli => {
+                container.innerHTML += `
+                    <div class="contato-chat-item" onclick="abrirChatComCliente(${cli.id}, '${cli.nome}', this)">
+                        <i class="fa-solid fa-user-circle"></i> ${cli.nome}
+                    </div>
+                `;
+            });
+        }
+    } catch (e) {
+        console.error("Erro na lista lateral do chat", e);
+    }
+}
+
+// Atalho do botão da Tabela de Clientes direto para o Chat
+function irParaChat(id, nome) {
+    showSection('chat', document.getElementById('btn-section-chat'));
+    abrirChatComCliente(id, nome, null);
+}
+
+// Efeitos de Notificação Funcionais (Sem arquivos externos)
+function tocarSomNotificacao() {
+    try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Frequência A5
-        oscillator.connect(audioCtx.destination);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.1);
+        let osc = audioCtx.createOscillator();
+        let gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    } catch (err) {}
+}
+
+function piscarJanelaTerminal() {
+    const painelChat = document.querySelector('.terminal-window');
+    if (painelChat) {
+        painelChat.style.transition = "box-shadow 0.15s";
+        painelChat.style.boxShadow = "inset 0 0 15px rgba(61, 220, 132, 0.4)";
+        setTimeout(() => painelChat.style.boxShadow = "none", 300);
     }
 }
 
-// ==========================================
-// UTILITÁRIOS E CONFIGURAÇÕES
-// ==========================================
+function atualizarStatusInterface(texto, corCss) {
+    const el = document.getElementById('status-chat');
+    if (el) {
+        el.innerText = texto;
+        el.style.color = corCss;
+    }
+}
+
 function logout() {
     if(stompClient) stompClient.disconnect();
     localStorage.clear();
-    window.location.reload();
-}
-
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    const main = document.querySelector('.main-content');
-    const topbar = document.querySelector('.topbar');
-    
-    if (sidebar.style.transform === 'translateX(-100%)') {
-        sidebar.style.transform = 'translateX(0)';
-        main.style.marginLeft = 'var(--sidebar-width)';
-        main.style.width = 'calc(100% - var(--sidebar-width))';
-        topbar.style.left = 'var(--sidebar-width)';
-    } else {
-        sidebar.style.transform = 'translateX(-100%)';
-        main.style.marginLeft = '0';
-        main.style.width = '100%';
-        topbar.style.left = '0';
-    }
-}
-
-function gerarNovoToken() {
-    alert("Para gerar um novo token JWT, você precisará re-autenticar por medidas de segurança da API.");
-    logout();
-}
-
-// Mock apenas para não deixar a tela vazia caso a API do backend demore a responder
-function mockClientesFallback() {
-    clientesCache = [
-        { id: 1, nome: "Indústria de Alimentos Alpha", cnpj: "12.345.678/0001-90", email: "contato@alpha.com", telefone: "(11) 9999-8888", ativo: true, cep: "01000-000", rua: "Av. Paulista", numero: "1000", bairro: "Bela Vista" },
-        { id: 2, nome: "Condomínio Residencial Ômega", cnpj: "98.765.432/0001-10", email: "sindico@omega.com", telefone: "(11) 5555-4444", ativo: false, cep: "02000-000", rua: "Rua das Flores", numero: "50", bairro: "Jardins" },
-        { id: 3, nome: "Carlos Eduardo Silva", cpf: "123.456.789-00", email: "carlos@gmail.com", telefone: "(11) 97777-6666", ativo: true, cep: "03000-000", rua: "Rua do Comércio", numero: "15", bairro: "Centro" }
-    ];
-    renderizarTabelaClientes(clientesCache);
+    window.location.href = "index.html";
 }
