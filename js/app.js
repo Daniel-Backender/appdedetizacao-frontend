@@ -193,3 +193,60 @@ function enviarMensagemChat() {
         alert("WebSocket desconectado. Falha ao enviar.");
     }
 }
+
+// =========================================================
+// CORREÇÃO: LÓGICA DE CARREGAMENTO DE OS (SUBSTITUINDO MOCKS)
+// =========================================================
+
+async function carregarSolicitacoes() {
+    const errorMsg = document.getElementById("os-error-msg");
+    errorMsg.style.display = "none"; // Esconde o erro se ele existir
+
+    try {
+        const response = await fetch(`${API_URL}/api/servicos/empresa/${empresaId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) throw new Error("Falha na API");
+        
+        const servicos = await response.json();
+        atualizarTabelaOS(servicos); // Agora esta função EXISTE
+
+    } catch (err) {
+        console.error("Erro ao carregar OS:", err);
+        errorMsg.innerText = "Erro ao conectar com servidor. Verifique a API.";
+        errorMsg.style.display = "block";
+    }
+}
+
+function atualizarTabelaOS(servicos) {
+    // Limpa as colunas antes de popular
+    document.getElementById("coluna-pendentes").innerHTML = "";
+    document.getElementById("coluna-andamento").innerHTML = "";
+    document.getElementById("coluna-concluidos").innerHTML = "";
+
+    servicos.forEach(s => {
+        // Mapeia o status do banco para a coluna correta
+        // Ajuste 's.status' conforme o campo real que vem do seu Java
+        let container;
+        if (s.status === "PENDENTE") container = document.getElementById("coluna-pendentes");
+        else if (s.status === "EM_ANDAMENTO") container = document.getElementById("coluna-andamento");
+        else container = document.getElementById("coluna-concluidos");
+
+        if (container) {
+            container.innerHTML += `
+                <div class="card-os" style="background: white; padding: 10px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <strong>${s.titulo || 'Serviço'}</strong><br>
+                    <small>Cliente: ${s.clienteNome || 'Desconhecido'}</small><br>
+                    <small>Data: ${s.data || '---'}</small>
+                </div>
+            `;
+        }
+    });
+}
+
+// Chamar ao carregar a página
+document.addEventListener("DOMContentLoaded", () => {
+    // ... seu código existente ...
+    carregarSolicitacoes(); 
+});
