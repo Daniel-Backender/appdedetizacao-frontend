@@ -238,3 +238,100 @@ function atualizarStatusInterface(texto, corHex) {
         el.style.color = corHex;
     }
 }
+
+// =========================================================
+// 6. GESTÃO DE SOLICITAÇÕES E ORDENS DE SERVIÇO
+// =========================================================
+
+// Chama as OS automaticamente assim que o painel abrir
+document.addEventListener("DOMContentLoaded", () => {
+    carregarSolicitacoes();
+});
+
+async function carregarSolicitacoes() {
+    try {
+        // Altere a rota de acordo com o mapeamento exato do seu Spring Boot
+        const response = await fetch(`${API_URL}/api/solicitacoes`, {
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const ordens = await response.json();
+            renderizarKanban(ordens);
+        } else {
+            console.warn("Erro ao buscar solicitações. Código:", response.status);
+        }
+    } catch (e) {
+        console.error("Falha de rede ao tentar carregar ordens de serviço:", e);
+    }
+}
+
+function renderizarKanban(ordens) {
+    const colPendentes = document.getElementById("coluna-pendentes");
+    const colAndamento = document.getElementById("coluna-andamento");
+    const colConcluidos = document.getElementById("coluna-concluidos");
+
+    // Limpa as colunas para evitar duplicação
+    if(colPendentes) colPendentes.innerHTML = "";
+    if(colAndamento) colAndamento.innerHTML = "";
+    if(colConcluidos) colConcluidos.innerHTML = "";
+
+    ordens.forEach(os => {
+        // Define a cor lateral do card baseado no status
+        let corBorda = "#DC3545"; // Pendente
+        if (os.status === "EM_ANDAMENTO") corBorda = "#ffaa00";
+        if (os.status === "CONCLUIDO") corBorda = "#27B774";
+
+        const cardHtml = `
+            <div class="os-card" style="border-left-color: ${corBorda}">
+                <h4>${os.cliente || os.nomeCliente || 'Cliente Não Informado'}</h4>
+                <p><i class="fa-solid fa-align-left"></i> ${os.descricao}</p>
+                <button class="btn-acao" onclick="avancarStatusOS(${os.id}, '${os.status}')">
+                    Atualizar Status <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        `;
+
+        // Distribui nas colunas do Kanban
+        if (os.status === "PENDENTE" || !os.status) {
+            if(colPendentes) colPendentes.innerHTML += cardHtml;
+        } else if (os.status === "EM_ANDAMENTO") {
+            if(colAndamento) colAndamento.innerHTML += cardHtml;
+        } else {
+            if(colConcluidos) colConcluidos.innerHTML += cardHtml;
+        }
+    });
+}
+
+// Função interativa para mover os cards quando o gestor clicar
+async function avancarStatusOS(id, statusAtual) {
+    let novoStatus = "EM_ANDAMENTO";
+    if (statusAtual === "EM_ANDAMENTO") novoStatus = "CONCLUIDO";
+    if (statusAtual === "CONCLUIDO") {
+        alert("Esta OS já foi finalizada.");
+        return;
+    }
+
+    try {
+        // Envia a atualização para o Backend (ajuste a rota se necessário)
+        const response = await fetch(`${API_URL}/api/solicitacoes/${id}/status`, {
+            method: 'PUT',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: novoStatus })
+        });
+
+        if (response.ok) {
+            carregarSolicitacoes(); // Recarrega os quadros para mostrar a mudança
+        } else {
+            alert("Erro ao atualizar o status no servidor.");
+        }
+    } catch (e) {
+        console.error("Erro ao tentar atualizar OS:", e);
+    }
+}
