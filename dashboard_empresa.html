@@ -3,236 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel BugTecho - PestControlX</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <link rel="stylesheet" href="css/style.css">
+    <title>PestControlX - Painel Corporativo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0d0e12;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navegação Principal */
+        header {
+            background-color: #151821;
+            border-bottom: 2px solid #00ff87;
+            padding: 10px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 70px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Correção do tamanho da Logo */
+        .logo-container img {
+            height: 45px;
+            width: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #ffffff;
+        }
+
+        .brand span {
+            color: #00ff87;
+        }
+
+        /* Container Principal */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+        }
+
+        /* Painel de Conteúdo */
+        .content-container {
+            flex: 1;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Seções/Cards */
+        .card {
+            background: #151821;
+            border: 1px solid #2d313f;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #2d313f;
+            padding-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            color: #ffffff;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Botões */
+        .btn {
+            background-color: #00ff87;
+            color: #0b0c10;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #00e074;
+            box-shadow: 0 0 12px rgba(0, 255, 135, 0.3);
+        }
+
+        /* Tabelas */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background-color: #1e2230;
+            color: #94a3b8;
+            padding: 14px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #2d313f;
+            font-size: 15px;
+        }
+
+        tr:hover td {
+            background-color: #1a1d29;
+        }
+
+        /* Seção Sobre a Empresa */
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        textarea {
+            background-color: #1e2230;
+            border: 1px solid #2d313f;
+            border-radius: 6px;
+            color: #ffffff;
+            padding: 12px;
+            font-size: 15px;
+            resize: vertical;
+            min-height: 120px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #00ff87;
+        }
+
+        /* Correção do Rodapé */
+        footer {
+            background-color: #151821;
+            border-top: 1px solid #2d313f;
+            padding: 12px 24px;
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            margin-top: auto;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 
-    <header class="topbar">
-        <div class="topbar-left">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1 class="topbar-company-name" id="topbar-brand-title">BugTecho Admin</h1>
-        </div>
-        <div class="topbar-right">
-            <div class="profile-upload-container">
-                <label for="company-avatar-input" class="avatar-change-label" title="Alterar Logomarca da Empresa">
-                    <div class="profile-pic-top" id="header-avatar-preview">
-                        <i class="fa-solid fa-building"></i>
-                    </div>
-                </label>
-                <input type="file" id="company-avatar-input" accept="image/*" onchange="uploadCompanyAvatar(event)" style="display: none;">
+    <header>
+        <div class="brand">
+            <div class="logo-container">
+                <img src="logo2.png" alt="PestControlX" onerror="this.src='https://via.placeholder.com/150x45/151821/00ff87?text=PestControlX'">
             </div>
+            <h1>PestControlX <span>Painel</span></h1>
         </div>
     </header>
 
-    <nav class="sidebar">
-        <div class="logo-area">
-            <div class="logo-wrapper">
-                <img id="app-logo-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233DDC84'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/></svg>" alt="Logo" class="company-logo-img">
-            </div>
-            <h2 id="sidebar-brand-name">BugTecho</h2>
-        </div>
-
-        <div class="profile-area">
-            <div class="profile-name" id="userName">admin@pestcontrolx.com</div>
-            <p class="profile-role">Diretor Administrativo</p>
-        </div>
-
-        <div class="nav-buttons">
-            <button class="nav-btn active" id="btn-section-solicitacoes" onclick="showSection('solicitacoes', this)"><i class="fa-solid fa-clipboard-list"></i> <span>Solicitações (OS)</span></button>
-            <button class="nav-btn" id="btn-section-clientes" onclick="showSection('clientes', this)"><i class="fa-solid fa-users"></i> <span>Clientes</span></button>
-            <button class="nav-btn" id="btn-section-funcionarios" onclick="showSection('funcionarios', this)"><i class="fa-solid fa-user-shield"></i> <span>Equipe / Técnicos</span></button>
-            <button class="nav-btn" id="btn-section-sobre" onclick="showSection('sobre', this)"><i class="fa-solid fa-id-card"></i> <span>Sobre a Empresa</span></button>
-            <button class="nav-btn" id="btn-section-chat" onclick="showSection('chat', this)"><i class="fa-regular fa-comments"></i> <span>Central de Chat</span></button>
-            <button class="nav-btn" id="btn-section-configuracoes" onclick="showSection('configuracoes', this)"><i class="fa-solid fa-gear"></i> <span>Configurações</span></button>
-        </div>
-
-        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR</span></button>
-    </nav>
-
-    <main class="main-content">
-        
-        <section id="solicitacoes" class="section-view active">
-            <div class="section-header-block">
-                <h2>Gestão de Ordens de Serviço</h2>
-                <button class="btn-salvar" onclick="carregarSolicitacoes()"><i class="fa-solid fa-rotate"></i> Sincronizar App</button>
-            </div>
-
-            <div class="kanban-board">
-                <div class="kanban-col">
-                    <div class="kanban-header badge-danger">Novas Chamadas</div>
-                    <div class="kanban-cards" id="coluna-pendentes"></div>
+    <div class="main-wrapper">
+        <div class="content-container">
+            
+            <section class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Chamadas e Solicitações de Serviço</h2>
+                    <button class="btn" id="btnAtualizarOS" onclick="carregarSolicitacoes()">Atualizar Tabela</button>
                 </div>
-                <div class="kanban-col">
-                    <div class="kanban-header badge-warning">Em Atendimento</div>
-                    <div class="kanban-cards" id="coluna-andamento"></div>
-                </div>
-                <div class="kanban-col">
-                    <div class="kanban-header badge-success">Serviços Concluídos</div>
-                    <div class="kanban-cards" id="coluna-concluidos"></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="clientes" class="section-view">
-            <div class="section-header-block">
-                <h2>Clientes Registrados</h2>
-                <button class="btn-salvar"><i class="fa-solid fa-plus"></i> Novo Cliente</button>
-            </div>
-            <div class="card table-responsive">
-                <table class="custom-table">
-                    <thead>
-                        <tr>
-                            <th>Nome Completo</th>
-                            <th>CNPJ / CPF</th>
-                            <th>Status Operacional</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaClientes"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="funcionarios" class="section-view">
-            <div class="section-header-block">
-                <h2>Gestão de Equipe e Técnicos</h2>
-                <button class="btn-salvar"><i class="fa-solid fa-user-plus"></i> Adicionar Técnico</button>
-            </div>
-            <div class="card table-responsive">
-                <table class="custom-table">
-                    <thead>
-                        <tr>
-                            <th>Técnico</th>
-                            <th>E-mail Corporativo</th>
-                            <th>Chave de Acesso</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaFuncionarios">
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Serviço</th>
+                                <th>Data/Hora</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaOSBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #64748b;">Clique em Atualizar para carregar dados...</td>
+                            </tr>
                         </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="sobre" class="section-view">
-            <h2>Configurações do Perfil</h2>
-            <div class="card form-container-spec">
-                <div class="form-group">
-                    <label>Razão Social</label>
-                    <input type="text" value="BugTecho Soluções Ambientais">
+                    </table>
                 </div>
-                <div class="form-group">
-                    <label>CNPJ Corporativo</label>
-                    <input type="text" value="34.123.456/0001-99">
+            </section>
+
+            <section class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Perfil Corporativo</h2>
                 </div>
-                <button class="btn-salvar"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
-            </div>
-        </section>
-
-        <section id="chat" class="section-view">
-            <div class="section-header-block">
-                <h2>Painel de Comunicação em Tempo Real</h2>
-                <div id="status-chat"><i class="fa-solid fa-circle-nodes"></i> Inicializando barramento de rede...</div>
-            </div>
-            
-            <div class="card no-padding overflow-hidden">
-                <div class="chat-terminal-container">
-                    <div class="chat-messages" id="chat-box-display">
-                        <p class="status-log-terminal">-> Aguardando conexão STOMP...</p>
-                    </div>
-                    <div class="chat-input-area">
-                        <input type="text" id="msg-input" placeholder="Digite sua mensagem de suporte ou instrução..." onkeypress="if(event.key==='Enter') enviarMensagemChat()">
-                        <button onclick="enviarMensagemChat()"><i class="fa-solid fa-paper-plane"></i> ENVIAR</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="configuracoes" class="section-view">
-            <h2>Configurações Globais do Painel</h2>
-            
-            <div class="card flex-config-grid">
-                <div class="config-item-box">
-                    <div class="secao-titulo-interna"><i class="fa-solid fa-palette"></i> Interface Visual</div>
-                    
-                    <div class="theme-switch-container">
-                        <div>
-                            <span class="config-label-title">Modo Cyber Neon / Dark</span>
-                            <p class="config-desc">Alterna o layout entre branco corporativo e o industrial escuro.</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="theme-toggle-checkbox" checked onchange="toggleVisualTheme()">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="config-item-box">
-                    <div class="secao-titulo-interna"><i class="fa-solid fa-bell"></i> Alertas e Notificações</div>
-                    
-                    <div class="theme-switch-container">
-                        <div>
-                            <span class="config-label-title">Notificar Novas OS no Celular</span>
-                            <p class="config-desc">Envia push para a equipe de campo ao receber um chamado do app.</p>
-                        </div>
-                        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-                    </div>
-
-                    <div class="theme-switch-container">
-                        <div>
-                            <span class="config-label-title">Alerta de Inatividade de Técnico</span>
-                            <p class="config-desc">Notifica a gestão se um técnico ficar 2h sem atualizar status.</p>
-                        </div>
-                        <label class="switch"><input type="checkbox"><span class="slider"></span></label>
-                    </div>
-                </div>
-
-                <div class="config-item-box">
-                    <div class="secao-titulo-interna"><i class="fa-solid fa-brain"></i> Inteligência e Análise</div>
-                    
-                    <div class="theme-switch-container">
-                        <div>
-                            <span class="config-label-title">Gráficos de IA Predictiva</span>
-                            <p class="config-desc">Usa o app móvel para prever focos de infestação baseados em OS.</p>
-                        </div>
-                        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-                    </div>
-
-                    <div class="theme-switch-container">
-                        <div>
-                            <span class="config-label-title">Relatório Mensal Automático</span>
-                            <p class="config-desc">Gera PDF de OS concluídas e envia para o e-mail da empresa.</p>
-                        </div>
-                        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-                    </div>
-                </div>
-
-                <div class="config-item-box">
-                    <div class="secao-titulo-interna"><i class="fa-solid fa-robot"></i> Segurança e Chatbot</div>
-                    
-                    <div class="theme-switch-container">
-                        <div>
-                            <span class="config-label-title">Auto-Resposta de Suporte (Bot)</span>
-                            <p class="config-desc">Chatbot responde dúvidas básicas de técnicos antes de passar à gestão.</p>
-                        </div>
-                        <label class="switch"><input type="checkbox"><span class="slider"></span></label>
-                    </div>
-                    
+                <div class="profile-section">
                     <div class="form-group">
-                        <label>Token JWT de Gateway Externo</label>
-                        <input type="text" readonly value="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                        <label for="txtSobreEmpresa">Sobre a Empresa (Visível no Aplicativo do Cliente):</label>
+                        <textarea id="txtSobreEmpresa" placeholder="Descreva os serviços, especialidades e informações da sua empresa que aparecerão para os clientes..."></textarea>
+                    </div>
+                    <div>
+                        <button class="btn" onclick="salvarSobreEmpresa()">Salvar Alterações</button>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-    </main>
+        </div>
+    </div>
 
-    <script src="js/app.js"></script>
+    <footer>
+        PestControlX &copy; 2026 - Todos os direitos reservados.
+    </footer>
+
+    <script src="app.js"></script>
 </body>
 </html>
