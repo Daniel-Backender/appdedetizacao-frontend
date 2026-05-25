@@ -122,7 +122,7 @@
                     localStorage.setItem('usuario_id', data.id);
                     localStorage.removeItem('logging_email');
 
-                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+                    setTimeout(() => { window.location.href = 'dashboard_empresa.html'; }, 1200);
                 } else {
                     alertBox.className = 'alert-box alert-error';
                     alertBox.textContent = data.message || 'Código incorreto ou expirado.';
