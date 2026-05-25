@@ -1,342 +1,296 @@
-// SOFTWARE ENGINE - SISTEMA CENTRALIZADO DE FLUXO DE DADOS & COMUNICAÇÃO DE REDE
+/**
+ * PESTCONTROLX - APP.JS
+ * Lógica funcional do Dashboard Corporativo
+ */
 
-// Base de Dados Local de Clientes Reais (Substituindo Mocks Imaginários por Estrutura Completa)
-const bancoClientes = [
-    {
-        id: 1, nome: "Carlos Silva", cpf: "123.456.789-00", email: "carlos.silva@outlook.com", ativo: true, telefone: "(11) 98985-0000", nascimento: "10/05/1985",
-        rua: "Rua das Flores", numero: "123", bairro: "Centro", cidade: "São Paulo", cep: "01234-567",
-        historico: [
-            { servico: "Dedetização Quatrinária", data: "12/03/2026", status: "Concluído", badge: "badge-ativo" },
-            { servico: "Controle de Roedores", data: "05/02/2026", status: "Pendente", badge: "badge-inativo" }
-        ],
-        obs: ["Cliente solicita ligar com 30 minutos de antecedência.", "Imóvel possui animais domésticos (caninos).", "Área crítica de infiltração nos fundos."]
-    },
-    {
-        id: 2, nome: "Maria Souza", cpf: "664.852.361-00", email: "maria.souza@gmail.com", ativo: false, telefone: "(11) 97120-4411", nascimento: "22/11/1990",
-        rua: "Avenida Paulista", numero: "1500", bairro: "Bela Vista", cidade: "São Paulo", cep: "01311-200",
-        historico: [
-            { servico: "Desratização Industrial", data: "15/01/2026", status: "Concluído", badge: "badge-ativo" }
-        ],
-        obs: ["Portaria exige identificação biométrica rigorosa.", "Área interna de subsolo com alta umidade."]
-    },
-    {
-        id: 3, nome: "Pedro Jesus", cpf: "187.326.739-00", email: "p.jesus@techcompany.br", ativo: true, telefone: "(11) 75405-9800", nascimento: "04/07/1978",
-        rua: "Rua Mato Grosso", numero: "45", bairro: "Jardins", cidade: "São Paulo", cep: "01412-010",
-        historico: [
-            { servico: "Sanitização de Caixas d'Água", data: "20/01/2026", status: "Concluído", badge: "badge-ativo" }
-        ],
-        obs: ["Reservatório elevado de difícil acesso (necessário escada extensiva de 6 metros)."]
-    }
-];
-
-let filtroStatusAtual = 'todos';
+const API_BASE_URL = "https://appdedetizacao.onrender.com";
 let stompClient = null;
-const SERVER_SOCKET_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
+let clientesCache = []; // Cache local para evitar requests desnecessários ao filtrar
 
-// LOOP DE INICIALIZAÇÃO SEGURA DO SISTEMA
-window.onload = function() {
+// ==========================================
+// INICIALIZAÇÃO
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
     verificarAutenticacao();
-    carregarPreferenciasLocais();
-    renderizarPainelClientes();
-    inicializarConexaoWebSocket();
-};
+    showSection('clientes', document.getElementById('btn-section-clientes'));
+    carregarDadosUsuario();
+});
 
 function verificarAutenticacao() {
-    const token = localStorage.getItem("token");
-    const nomeUsuario = localStorage.getItem("usuarioNome") || "Diretor Administrativo";
-    document.getElementById("userName").innerText = nomeUsuario;
-    
-    // Atualiza campos de marca salvos previamente
-    if(localStorage.getItem("companyBrandName")) {
-        atualizarNomesIdentidadeMarca(localStorage.getItem("companyBrandName"));
-        document.getElementById("input-nome-empresa").value = localStorage.getItem("companyBrandName");
-    }
-    if(localStorage.getItem("storedLogoBase64")) {
-        document.getElementById("app-logo-preview").src = localStorage.getItem("storedLogoBase64");
-    }
-    if(localStorage.getItem("storedAvatarBase64")) {
-        definirImagemAvatares(localStorage.getItem("storedAvatarBase64"));
+    const token = localStorage.getItem('token_jwt'); // Ajuste a chave conforme seu login salvou
+    if (!token) {
+        alert("Sessão inválida! Redirecionando para login.");
+        // window.location.href = 'login.html'; // Descomente em produção
     }
 }
 
-function carregarPreferenciasLocais() {
-    const darkThemeActive = localStorage.getItem("darkTheme") !== "false";
-    if (!darkThemeActive) {
-        document.body.classList.remove("dark-theme");
-        document.body.classList.add("light-theme");
-        document.getElementById("theme-toggle-checkbox").checked = false;
+function carregarDadosUsuario() {
+    // Simula a carga do JWT ou localStorage
+    const nome = localStorage.getItem('user_nome') || "Administrador Sistema";
+    document.getElementById('userName').innerText = nome;
+    document.getElementById('generated-token-field').value = "Bearer " + (localStorage.getItem('token_jwt') || "Token_Ausente...");
+}
+
+// ==========================================
+// NAVEGAÇÃO DE ABAS
+// ==========================================
+function showSection(sectionId, btnElement) {
+    // Esconde todas as seções
+    document.querySelectorAll('.section-view').forEach(sec => sec.classList.remove('active'));
+    // Remove classe ativa de todos os botões
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Mostra a seção desejada e ativa o botão
+    document.getElementById(sectionId).classList.add('active');
+    btnElement.classList.add('active');
+
+    // Gatilhos de carregamento preguiçoso (Lazy Load)
+    if (sectionId === 'clientes' && clientesCache.length === 0) fetchClientes();
+    if (sectionId === 'chat' && stompClient === null) iniciarConexaoChat();
+}
+
+// ==========================================
+// MÓDULO: CLIENTES (REST API)
+// ==========================================
+async function fetchClientes() {
+    const tbody = document.getElementById('tabelaClientes');
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">Buscando dados no servidor...</td></tr>`;
+
+    try {
+        const token = localStorage.getItem('token_jwt');
+        // REQUISITO BACKEND: Certifique-se de que o ClienteController.java tem a rota GET /api/clientes
+        const response = await fetch(`${API_BASE_URL}/api/clientes`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            clientesCache = await response.json();
+            renderizarTabelaClientes(clientesCache);
+        } else {
+            // Fallback de demonstração caso a API não esteja pronta
+            console.warn("API de clientes retornou erro. Carregando dados de fallback.");
+            mockClientesFallback();
+        }
+    } catch (error) {
+        console.error("Erro de rede:", error);
+        mockClientesFallback();
     }
 }
 
-// GESTÃO DO SIDEBAR RESPONSIVO
-function toggleSidebar() {
-    document.body.classList.toggle("sidebar-collapsed");
-}
-
-// ROTEAMENTO INTERNO ENTRE SEÇÕES DE TELA (SPA)
-function showSection(sectionId, elementButton) {
-    document.querySelectorAll(".section-view").forEach(section => {
-        section.classList.remove("active");
-    });
-    document.querySelectorAll(".nav-btn").forEach(btn => {
-        btn.classList.remove("active");
-    });
-    
-    document.getElementById(sectionId).classList.add("active");
-    if(elementButton) elementButton.classList.add("active");
-    
-    // Se o usuário alternar de aba, reseta visualizações internas da ficha do cliente
-    if(sectionId === 'clientes') {
-        fecharFichaCliente();
-    }
-}
-
-// MOTOR DE RENDERIZAÇÃO: ABA CLIENTES
-function renderizarPainelClientes() {
-    const tbody = document.getElementById("tabelaClientes");
-    if (!tbody) return;
-    
+function renderizarTabelaClientes(lista) {
+    const tbody = document.getElementById('tabelaClientes');
     tbody.innerHTML = "";
-    const stringBusca = document.getElementById("inputBusca").value.toLowerCase();
 
-    bancoClientes.forEach(cliente => {
-        // Filtro de Texto de Alta Abrangência
-        const matchTexto = cliente.nome.toLowerCase().includes(stringBusca) || 
-                           cliente.cpf.includes(stringBusca) || 
-                           cliente.email.toLowerCase().includes(stringBusca);
-        if (!matchTexto) return;
-        
-        // Filtro de Chaves de Status
-        if (filtroStatusAtual === 'ativos' && !cliente.ativo) return;
-        if (filtroStatusAtual === 'inativos' && cliente.ativo) return;
+    if (lista.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Nenhum cliente encontrado.</td></tr>`;
+        return;
+    }
 
-        const statusElement = cliente.ativo ? 
-            `<span class="badge-ativo"><i class="fa-solid fa-circle-check"></i> Ativo / ${cliente.telefone}</span>` : 
-            `<span class="badge-inativo"><i class="fa-solid fa-ban"></i> Cadastro Inativo</span>`;
+    lista.forEach(cliente => {
+        const statusClass = cliente.ativo !== false ? 'badge-ativo' : 'badge-inativo';
+        const statusTexto = cliente.ativo !== false ? 'Ativo' : 'Inativo';
 
-        tbody.innerHTML += `
-            <tr>
-                <td><strong>${cliente.nome}</strong><br><small style="color:var(--text-muted);">${cliente.email}</small></td>
-                <td><code>${cliente.cpf}</code></td>
-                <td>${statusElement}</td>
-                <td><button class="btn-detalhes" onclick="visualizarFichaCliente(${cliente.id})"><i class="fa-solid fa-address-card"></i> Abrir Ficha</button></td>
-            </tr>
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><strong>${cliente.nome}</strong><br><small style="color: var(--text-secondary)">${cliente.email || 'Sem e-mail'}</small></td>
+            <td>${cliente.cnpj || cliente.cpf || 'Não informado'}</td>
+            <td><span class="badge ${statusClass}">${statusTexto}</span><br><small>${cliente.telefone || ''}</small></td>
+            <td>
+                <button class="btn-salvar" style="padding: 6px 12px; font-size: 0.85rem;" onclick="abrirFichaCliente(${cliente.id})">
+                    <i class="fa-solid fa-eye"></i> Analisar
+                </button>
+            </td>
         `;
+        tbody.appendChild(tr);
     });
-}
-
-function mudarFiltro(tipoFiltro) {
-    filtroStatusAtual = tipoFiltro;
-    document.getElementById("btnFiltroTodos").classList.remove("active");
-    document.getElementById("btnFiltroAtivos").classList.remove("active");
-    document.getElementById("btnFiltroInativos").classList.remove("active");
-
-    if(tipoFiltro === 'todos') document.getElementById("btnFiltroTodos").classList.add("active");
-    if(tipoFiltro === 'ativos') document.getElementById("btnFiltroAtivos").classList.add("active");
-    if(tipoFiltro === 'inativos') document.getElementById("btnFiltroInativos").classList.add("active");
-
-    renderizarPainelClientes();
 }
 
 function filtrarClientes() {
-    renderizarPainelClientes();
+    const termo = document.getElementById('inputBusca').value.toLowerCase();
+    
+    // Pega qual aba está ativa (Todos, Ativos, Inativos)
+    const filtroAtivoBtn = document.querySelector('.filtros-abas button.active').id;
+    
+    let filtrados = clientesCache.filter(cli => {
+        const matchBusca = cli.nome.toLowerCase().includes(termo) || 
+                           (cli.cnpj && cli.cnpj.includes(termo)) || 
+                           (cli.email && cli.email.toLowerCase().includes(termo));
+                           
+        if (!matchBusca) return false;
+
+        if (filtroAtivoBtn === 'btnFiltroAtivos') return cli.ativo !== false;
+        if (filtroAtivoBtn === 'btnFiltroInativos') return cli.ativo === false;
+        return true; // Todos
+    });
+
+    renderizarTabelaClientes(filtrados);
 }
 
-// EXIBIÇÃO DA DETALHADA FICHA TÉCNICA DO CLIENTE
-function visualizarFichaCliente(idCliente) {
-    const cliente = bancoClientes.find(c => c.id === idCliente);
-    if(!cliente) return;
+function mudarFiltro(tipo) {
+    document.querySelectorAll('.filtros-abas button').forEach(b => b.classList.remove('active'));
+    
+    if (tipo === 'todos') document.getElementById('btnFiltroTodos').classList.add('active');
+    if (tipo === 'ativos') document.getElementById('btnFiltroAtivos').classList.add('active');
+    if (tipo === 'inativos') document.getElementById('btnFiltroInativos').classList.add('active');
+    
+    filtrarClientes();
+}
 
-    const badgeStatus = document.getElementById("detalheBadgeStatus");
-    badgeStatus.innerText = cliente.ativo ? "Ativo" : "Inativo";
-    badgeStatus.style.background = cliente.ativo ? "var(--pest-green)" : "var(--red-alert)";
+// Lógica de Visão de Detalhes
+function abrirFichaCliente(id) {
+    const cliente = clientesCache.find(c => c.id === id);
+    if (!cliente) return;
 
-    document.getElementById("detalheGeral").innerHTML = `
-        <p><strong>Nome Completo:</strong> ${cliente.nome}</p>
-        <p><strong>Registro CPF:</strong> ${cliente.cpf}</p>
-        <p><strong>Data de Nascimento:</strong> ${cliente.nascimento}</p>
-        <p><strong>Telefone Principal:</strong> ${cliente.telefone}</p>
-        <p><strong>E-mail de Contato:</strong> ${cliente.email}</p>
+    document.getElementById('view-lista-clientes').style.display = 'none';
+    document.getElementById('view-detalhes-cliente').style.display = 'block';
+    
+    document.getElementById('detalheGeral').innerHTML = `
+        <h2>${cliente.nome}</h2>
+        <p>ID Sistema: #${cliente.id} | Documento: ${cliente.cnpj || cliente.cpf}</p>
+        <p><i class="fa-solid fa-envelope"></i> ${cliente.email || 'N/A'}</p>
+        <p><i class="fa-solid fa-phone"></i> ${cliente.telefone || 'N/A'}</p>
     `;
 
-    document.getElementById("detalheEndereco").innerHTML = `
-        <p><strong>Logradouro:</strong> ${cliente.rua}, Nº ${cliente.numero}</p>
-        <p><strong>Bairro Cadastrado:</strong> ${cliente.bairro}</p>
-        <p><strong>Município / CEP:</strong> ${cliente.cidade} - CEP ${cliente.cep}</p>
+    document.getElementById('detalheEndereco').innerHTML = `
+        <p><strong>CEP:</strong> ${cliente.cep || 'N/A'}</p>
+        <p><strong>Rua:</strong> ${cliente.rua || 'N/A'}, Nº ${cliente.numero || 'N/A'}</p>
+        <p><strong>Bairro:</strong> ${cliente.bairro || 'N/A'}</p>
     `;
-
-    const divHist = document.getElementById("detalheHistorico");
-    divHist.innerHTML = "";
-    cliente.historico.forEach(h => {
-        divHist.innerHTML += `
-            <div class="historico-item-linha">
-                <span><i class="fa-solid fa-gears" style="color:var(--pest-green);"></i> ${h.servico} (<strong>${h.data}</strong>)</span>
-                <span class="${h.badge}" style="font-size:12px;">${h.status}</span>
-            </div>
-        `;
-    });
-
-    const ulObs = document.getElementById("detalheObs");
-    ulObs.innerHTML = "";
-    cliente.obs.forEach(o => {
-        ulObs.innerHTML += `<li>${o}</li>`;
-    });
-
-    document.getElementById("view-lista-clientes").style.display = "none";
-    document.getElementById("view-detalhes-cliente").style.display = "block";
 }
 
 function fecharFichaCliente() {
-    document.getElementById("view-detalhes-cliente").style.display = "none";
-    document.getElementById("view-lista-clientes").style.display = "block";
+    document.getElementById('view-lista-clientes').style.display = 'block';
+    document.getElementById('view-detalhes-cliente').style.display = 'none';
 }
 
-// MOTOR DE REDE: CENTRAL DE CHAT STOMP REALTIME
-function inicializarConexaoWebSocket() {
-    const statusLogger = document.getElementById("status-chat");
-    const chatDisplay = document.getElementById("chat-box-display");
+// ==========================================
+// MÓDULO: CHAT TEMPO REAL (STOMP / WEBSOCKET)
+// ==========================================
+function iniciarConexaoChat() {
+    const chatBox = document.getElementById('chat-box-display');
+    const statusHeader = document.getElementById('status-chat');
     
-    // Configuração segura do barramento SockJS
-    const socket = new SockJS(SERVER_SOCKET_URL);
+    // O SockJS se encarrega de achar o melhor protocolo disponível (WebSocket, XHR Streaming, etc)
+    const socket = new SockJS(`${API_BASE_URL}/ws-pestcontrol`);
     stompClient = Stomp.over(socket);
-    stompClient.debug = null; // Trava logs desnecessários para estabilizar a UI
+    
+    // Desativar logs excessivos do STOMP no console do navegador
+    stompClient.debug = null; 
 
-    stompClient.connect({}, function (frame) {
-        statusLogger.innerHTML = `<i class="fa-solid fa-circle" style="color:var(--pest-green)"></i> ONLINE / BARRAMENTO SINCRONIZADO`;
-        statusLogger.style.borderColor = "var(--pest-green)";
-        statusLogger.style.color = "var(--pest-green)";
+    const token = localStorage.getItem('token_jwt');
+
+    stompClient.connect({'Authorization': `Bearer ${token}`}, function(frame) {
+        statusHeader.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--neon-green)"></i> Link STOMP Estabelecido`;
+        registrarMensagemTerminal(`Conexão segura estabelecida com ${API_BASE_URL}. Aguardando tráfego...`, 'sys');
         
-        stompClient.subscribe('/topic/mensagens', function (mensagemRecebida) {
-            const dadosPayload = JSON.parse(mensagemRecebida.body);
-            const classeLayout = dadosPayload.remetente === 'EMPRESA' ? 'sent' : 'received';
-            
-            chatDisplay.innerHTML += `
-                <div class="msg-bubble ${classeLayout}">
-                    <strong>[${dadosPayload.remetente}]:</strong> ${dadosPayload.texto}
-                </div>
-            `;
-            chatDisplay.scrollTop = chatDisplay.scrollHeight;
-            
-            if(dadosPayload.remetente !== 'EMPRESA' && document.getElementById("sound-alerts").checked) {
-                executarAlertaSonoro();
+        // REQUISITO BACKEND: Certifique-se de que o MessageBroker do Spring está enviando para /topic/mensagens
+        stompClient.subscribe('/topic/mensagens', function(messageOutput) {
+            const mensagem = JSON.parse(messageOutput.body);
+            // Verifica se a mensagem não foi enviada por mim mesmo
+            if(mensagem.remetente !== localStorage.getItem('user_nome')) {
+                registrarMensagemTerminal(`${mensagem.remetente}: ${mensagem.conteudo}`, 'in');
+                tocarAlertaSonoro();
             }
         });
-    }, function(erroDeRede) {
-        statusLogger.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--red-alert)"></i> CONEXÃO CAÍDA - RECONECTANDO...`;
-        statusLogger.style.borderColor = "var(--red-alert)";
-        statusLogger.style.color = "var(--red-alert)";
-        setTimeout(inicializarConexaoWebSocket, 6000);
+    }, function(error) {
+        statusHeader.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: var(--danger)"></i> Falha de Conexão STOMP`;
+        registrarMensagemTerminal(`Erro catastrófico no barramento: ${error}`, 'sys');
     });
 }
 
 function enviarMensagemChat() {
-    const inputElement = document.getElementById("msg-input");
-    const textoMensagem = inputElement.value.trim();
+    const input = document.getElementById('msg-input');
+    const texto = input.value.trim();
     
-    if (textoMensagem && stompClient) {
-        const payloadSincrono = JSON.stringify({'remetente': 'EMPRESA', 'texto': textoMensagem});
-        stompClient.send("/app/enviar", {}, payloadSincrono);
-        inputElement.value = '';
+    if (texto && stompClient && stompClient.connected) {
+        const nomeUsuario = localStorage.getItem('user_nome') || "Central Admin";
+        
+        const payload = {
+            remetente: nomeUsuario,
+            conteudo: texto,
+            tipo: 'CHAT'
+        };
+
+        // REQUISITO BACKEND: O @MessageMapping no ChatController deve ser /app/chat.enviar
+        stompClient.send("/app/chat.enviar", {}, JSON.stringify(payload));
+        
+        registrarMensagemTerminal(texto, 'out');
+        input.value = '';
+    } else if (!stompClient || !stompClient.connected) {
+        alert("Sistema offline. Aguarde a conexão com o servidor WebSocket.");
     }
 }
 
-function executarAlertaSonoro() {
-    // API de áudio nativa do navegador sintetizando frequência industrial neon
-    const contextoAudio = new (window.AudioContext || window.webkitAudioContext)();
-    const oscilador = contextoAudio.createOscillator();
-    const ganho = contextoAudio.createGain();
+function registrarMensagemTerminal(texto, tipo) {
+    const chatBox = document.getElementById('chat-box-display');
+    const wrapper = document.createElement('div');
+    wrapper.className = `msg-wrapper ${tipo}`;
     
-    oscilador.type = 'sine';
-    oscilador.frequency.setValueAtTime(587.33, contextoAudio.currentTime); // Nota D5
-    ganho.gain.setValueAtTime(0.1, contextoAudio.currentTime);
-    
-    oscilador.connect(ganho);
-    ganho.connect(contextoAudio.destination);
-    oscilador.start();
-    oscilador.stop(contextoAudio.currentTime + 0.15);
-}
-
-// GESTÃO DE MARCA E IDENTIDADE VISUAL DINÂMICA (SUBSTITUINDO LOGO E ICON PESSOINHA)
-function uploadBrandLogo(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Image = e.target.result;
-        document.getElementById("app-logo-preview").src = base64Image;
-        localStorage.setItem("storedLogoBase64", base64Image);
-    };
-    reader.readAsDataURL(file);
-}
-
-function uploadCompanyAvatar(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64Image = e.target.result;
-        definirImagemAvatares(base64Image);
-        localStorage.setItem("storedAvatarBase64", base64Image);
-    };
-    reader.readAsDataURL(file);
-}
-
-function definirImagemAvatares(srcBase64) {
-    const topPreview = document.getElementById("header-avatar-preview");
-    const sidePreview = document.getElementById("sidebar-avatar-preview");
-    
-    topPreview.innerHTML = `<img src="${srcBase64}" alt="Avatar">`;
-    sidePreview.innerHTML = `<img src="${srcBase64}" alt="Avatar">`;
-}
-
-function salvarConfiguracoesEmpresa() {
-    const novoNomeFantasia = document.getElementById("input-nome-empresa").value.trim();
-    if(novoNomeFantasia) {
-        localStorage.setItem("companyBrandName", novoNomeFantasia);
-        atualizarNomesIdentidadeMarca(novoNomeFantasia);
-        alert("Configurações do perfil sincronizadas e propagadas para a malha móvel.");
-    }
-}
-
-function atualizarNomesIdentidadeMarca(nome) {
-    document.getElementById("sidebar-brand-name").innerText = nome;
-    document.getElementById("topbar-brand-title").innerText = nome;
-}
-
-// MOTOR DE CONFIGURAÇÕES INTERATIVAS
-function toggleVisualTheme() {
-    if (document.body.classList.contains("dark-theme")) {
-        document.body.classList.remove("dark-theme");
-        document.body.classList.add("light-theme");
-        localStorage.setItem("darkTheme", "false");
+    if (tipo === 'sys') {
+        wrapper.innerHTML = `<p class="status-log-terminal">-> ${texto}</p>`;
     } else {
-        document.body.classList.remove("light-theme");
-        document.body.classList.add("dark-theme");
-        localStorage.setItem("darkTheme", "true");
+        wrapper.innerHTML = `<div class="msg-bubble">${texto}</div>`;
+    }
+    
+    chatBox.appendChild(wrapper);
+    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll para baixo
+}
+
+function tocarAlertaSonoro() {
+    if (document.getElementById('sound-alerts').checked) {
+        // Usa um bip nativo simples em Base64 para não precisar de arquivos externos
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Frequência A5
+        oscillator.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.1);
+    }
+}
+
+// ==========================================
+// UTILITÁRIOS E CONFIGURAÇÕES
+// ==========================================
+function logout() {
+    if(stompClient) stompClient.disconnect();
+    localStorage.clear();
+    window.location.reload();
+}
+
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const main = document.querySelector('.main-content');
+    const topbar = document.querySelector('.topbar');
+    
+    if (sidebar.style.transform === 'translateX(-100%)') {
+        sidebar.style.transform = 'translateX(0)';
+        main.style.marginLeft = 'var(--sidebar-width)';
+        main.style.width = 'calc(100% - var(--sidebar-width))';
+        topbar.style.left = 'var(--sidebar-width)';
+    } else {
+        sidebar.style.transform = 'translateX(-100%)';
+        main.style.marginLeft = '0';
+        main.style.width = '100%';
+        topbar.style.left = '0';
     }
 }
 
 function gerarNovoToken() {
-    const caracteresValidos = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let stringTokenResult = 'Bearer eyJhbGciOiJIUzI1NiI';
-    for (let i = 0; i < 35; i++) {
-        stringTokenResult += caracteresValidos.charAt(Math.floor(Math.random() * caracteresValidos.length));
-    }
-    document.getElementById("generated-token-field").value = stringTokenResult + "...";
-    alert("Nova chave de túnel gerada com sucesso.");
+    alert("Para gerar um novo token JWT, você precisará re-autenticar por medidas de segurança da API.");
+    logout();
 }
 
-function limparSessaoLocal() {
-    if(confirm("Deseja expurgar todas as preferências, imagens e tokens salvos localmente?")) {
-        localStorage.clear();
-        window.location.reload();
-    }
-}
-
-function logout() {
-    localStorage.removeItem("token");
-    alert("Sessão finalizada com sucesso no terminal de controle.");
-    window.location.href = "login.html"; 
+// Mock apenas para não deixar a tela vazia caso a API do backend demore a responder
+function mockClientesFallback() {
+    clientesCache = [
+        { id: 1, nome: "Indústria de Alimentos Alpha", cnpj: "12.345.678/0001-90", email: "contato@alpha.com", telefone: "(11) 9999-8888", ativo: true, cep: "01000-000", rua: "Av. Paulista", numero: "1000", bairro: "Bela Vista" },
+        { id: 2, nome: "Condomínio Residencial Ômega", cnpj: "98.765.432/0001-10", email: "sindico@omega.com", telefone: "(11) 5555-4444", ativo: false, cep: "02000-000", rua: "Rua das Flores", numero: "50", bairro: "Jardins" },
+        { id: 3, nome: "Carlos Eduardo Silva", cpf: "123.456.789-00", email: "carlos@gmail.com", telefone: "(11) 97777-6666", ativo: true, cep: "03000-000", rua: "Rua do Comércio", numero: "15", bairro: "Centro" }
+    ];
+    renderizarTabelaClientes(clientesCache);
 }
