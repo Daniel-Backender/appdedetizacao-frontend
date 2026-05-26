@@ -3,65 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PestControlX - Painel de Controle Corporativo</title>
+    <title>PestControlX - Painel de Controle</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css"> 
 </head>
 <body class="dark-theme">
 
     <header class="topbar">
         <div class="topbar-left">
             <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1 class="topbar-company-name" id="topbar-brand-title">PestControlX Soluções Industriais</h1>
+            <h1 class="topbar-company-name">PestControlX Operations</h1>
         </div>
         <div class="topbar-right">
-            <div class="profile-upload-container">
-                <label for="company-avatar-input" class="avatar-change-label" title="Alterar Foto da Empresa">
-                    <div class="profile-pic-top" id="header-avatar-preview">
-                        <i class="fa-solid fa-building text-glow-neon"></i>
-                    </div>
-                </label>
-                <input type="file" id="company-avatar-input" accept="image/*" onchange="uploadCompanyAvatar(event)" style="display: none;">
-            </div>
+            <div class="profile-pic-top"><i class="fa-solid fa-building text-glow-neon"></i></div>
         </div>
     </header>
 
     <nav class="sidebar" id="app-sidebar">
-        <div class="logo-area">
-            <div class="logo-wrapper">
-                <img id="app-logo-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233DDC84'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z'/></svg>" alt="Logo" class="company-logo-img">
-            </div>
-            <h2 id="sidebar-brand-name">PestControlX</h2>
-        </div>
-
         <div class="profile-area">
-            <div class="profile-pic-sidebar" id="sidebar-avatar-preview">
-                <i class="fa-solid fa-building"></i>
-            </div>
-            <div class="profile-name" id="userName">Carregando Usuário...</div>
-            <div class="profile-role">Administrador de Campo</div>
+            <div class="profile-name" id="userName">Carregando...</div>
+            <div class="profile-role">Adminstrador</div>
         </div>
 
         <div class="nav-buttons">
-            <button class="nav-btn active" id="btn-section-clientes" onclick="showSection('clientes', this)">
-                <i class="fa-solid fa-users"></i> <span>Clientes</span>
-            </button>
-            <button class="nav-btn" id="btn-section-solicitacoes" onclick="showSection('solicitacoes', this)">
-                <i class="fa-solid fa-list-check"></i> <span>Solicitações (OS)</span>
-            </button>
-            <button class="nav-btn" id="btn-section-sobre" onclick="showSection('sobre', this)">
-                <i class="fa-solid fa-id-card"></i> <span>Sobre a Empresa</span>
-            </button>
-            <button class="nav-btn" id="btn-section-chat" onclick="showSection('chat', this)">
-                <i class="fa-regular fa-comments"></i> <span>Central de Chat</span>
-            </button>
-            <button class="nav-btn" id="btn-section-configuracoes" onclick="showSection('configuracoes', this)">
-                <i class="fa-solid fa-gear"></i> <span>Configurações</span>
-            </button>
+            <button class="nav-btn" onclick="navegarIframe('clientes.html', this)"><i class="fa-solid fa-users"></i> <span>Clientes</span></button>
+            <button class="nav-btn active" onclick="mostrarSecaoDashboard()"><i class="fa-solid fa-list-check"></i> <span>Solicitações (OS)</span></button>
+            <button class="nav-btn" onclick="navegarIframe('chat.html', this)"><i class="fa-regular fa-comments"></i> <span>Central de Chat</span></button>
         </div>
 
         <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR</span></button>
@@ -69,267 +40,116 @@
 
     <main class="main-content" id="app-main-content">
         
-        <section id="clientes" class="section-view active">
-            <div id="view-lista-clientes">
-                <div class="section-header-block">
-                    <h1>Clientes Registrados</h1>
-                    <button class="btn-salvar btn-icon-addition" onclick="alert('Funcionalidade de cadastro em desenvolvimento para a API backend.')">
-                        <i class="fa-solid fa-plus"></i> Novo Cliente
-                    </button>
-                </div>
-
-                <div class="card search-filter-box">
-                    <div class="search-bar">
-                        <input type="text" id="inputBusca" placeholder="Buscar por nome, CPF ou e-mail..." oninput="filtrarClientes()">
-                        <button onclick="filtrarClientes()"><i class="fa-solid fa-magnifying-glass"></i> Pesquisar</button>
-                    </div>
-                    <div class="filtros-abas">
-                        <button id="btnFiltroTodos" class="active" onclick="mudarFiltro('todos')">Todos</button>
-                        <button id="btnFiltroAtivos" onclick="mudarFiltro('ativos')">Ativos</button>
-                        <button id="btnFiltroInativos" onclick="mudarFiltro('inativos')">Inativos</button>
-                    </div>
-                </div>
-
-                <div class="card table-responsive">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Nome Completo</th>
-                                <th>CPF / Identificador</th>
-                                <th>Contato / Status</th>
-                                <th>Ações de Monitoramento</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaClientes">
-
-                        </tbody>
-                    </table>
-
-                    
-<div class="kanban-board">
-    <div class="kanban-col" id="col-pendentes">
-        <div class="kanban-header badge-danger">Novas Solicitações</div>
-        <div class="os-cards-container"></div>
-    </div>
-    <div class="kanban-col" id="col-campo">
-        <div class="kanban-header badge-warning">Técnicos em Campo</div>
-        <div class="os-cards-container"></div>
-    </div>
-    <div class="kanban-col" id="col-concluidas">
-        <div class="kanban-header badge-success">Ordens Concluídas</div>
-        <div class="os-cards-container"></div>
-    </div>
-</div>
-                </div>
-            </div>
-
-            <div id="view-detalhes-cliente" style="display: none;">
-                <div class="section-header-block">
-                    <h1>Ficha Cadastral do Cliente</h1>
-                    <button class="btn-danger-outline" onclick="fecharFichaCliente()"><i class="fa-solid fa-arrow-left"></i> Voltar à Lista</button>
-                </div>
-                
-                <div class="profile-detail-grid">
-                    <div class="card card-perfil-detalhe">
-                        <div class="avatar-ficha-container">
-                            <div class="avatar-ficha"><i class="fa-solid fa-user"></i></div>
-                            <div id="detalheBadgeStatus" class="badge-avatar-status">Ativo</div>
-                        </div>
-                        <div class="info-perfil-dados" id="detalheGeral">
-                            </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="secao-titulo-interna"><i class="fa-solid fa-location-dot text-glow-neon"></i> Localização Residencial / Industrial</div>
-                        <div class="secao-conteudo-interna" id="detalheEndereco">
-                            <p>Rua das Indústrias, 1020 - Distrito Industrial</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card grid-split-records">
-                    <div>
-                        <div class="secao-titulo-interna"><i class="fa-solid fa-clock-history"></i> Histórico Operacional de Serviços</div>
-                        <div class="secao-conteudo-interna" id="detalheHistorico">
-                            <p>Última dedetização realizada em: 14/04/2026 - Status: Concluído.</p>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="secao-titulo-interna"><i class="fa-solid fa-notes-medical"></i> Restrições e Observações Técnicas</div>
-                        <div class="secao-conteudo-interna">
-                            <ul class="obs-styled-list" id="detalheObs">
-                                <li>Área de armazenamento de grãos exige barreira química reforçada.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="solicitacoes" class="section-view">
+        <section id="solicitacoes" class="section-view active">
             <div class="section-header-block">
-                <h1>Monitoramento de Solicitações Operacionais</h1>
-                <span class="text-glow-neon"><i class="fa-solid fa-circle-nodes"></i> Modo de Triagem Ativo</span>
+                <h1>Monitoramento de Operações</h1>
+                <span class="text-glow-neon"><i class="fa-solid fa-circle-nodes"></i> Conexão DB Ativa</span>
             </div>
             
             <div class="kanban-board">
-                <div class="kanban-col">
+                <div class="kanban-col" id="col-pendentes">
                     <div class="kanban-header badge-danger">Novas Solicitações</div>
-                    <div class="os-card">
-                        <h4>#1024 - Dedetização Crítica</h4>
-                        <p>Cliente: Sinfonia Alimentos Ltda.<br>Foco: Controle de roedores em galpão principal.</p>
-                        <button onclick="alert('Vinculando técnico especializado via API...')">Aprovar e Atribuir</button>
-                    </div>
+                    <div class="os-cards-container"></div>
                 </div>
-                <div class="kanban-col">
-                    <div class="kanban-header badge-warning">Técnicos em Campo</div>
-                    <div class="os-card" style="border-left-color: #ffaa00;">
-                        <h4>#1022 - Sanitização Covid/Bactérias</h4>
-                        <p>Técnico: Carlos Silva<br>Local: Almoxarifado Central.</p>
-                        <button onclick="alert('Abrindo telemetria do app do técnico...')">Ver Trajeto</button>
-                    </div>
+                <div class="kanban-col" id="col-campo">
+                    <div class="kanban-header badge-warning">Em Andamento</div>
+                    <div class="os-cards-container"></div>
                 </div>
-                <div class="kanban-col">
-                    <div class="kanban-header badge-success">Ordens Concluídas</div>
-                    <div class="os-card" style="border-left-color: #27B774;">
-                        <h4>#1019 - Desinfecção de Caixas d'Água</h4>
-                        <p>Finalizado em: 25/05/2026.<br>Laudo Técnico assinado digitalmente.</p>
-                        <button style="background: rgba(39, 183, 116, 0.2); color:#3DDC84;">Ver Certificado</button>
-                    </div>
+                <div class="kanban-col" id="col-concluidas">
+                    <div class="kanban-header badge-success">Concluídas</div>
+                    <div class="os-cards-container"></div>
                 </div>
             </div>
         </section>
 
-        <section id="sobre" class="section-view">
-            <h1>Configuração do Perfil Corporativo</h1>
-            <div class="card grid-split-records">
-                <div class="form-container-spec">
-                    <div class="secao-titulo-interna"><i class="fa-solid fa-building-shield text-glow-neon"></i> Credenciais Administrativas</div>
-                    <div class="form-group">
-                        <label for="input-nome-empresa">Razão Social / Nome Fantasia</label>
-                        <input type="text" id="input-nome-empresa" value="PestControlX Soluções Industriais">
-                    </div>
-                    <div class="form-group-row">
-                        <div class="form-group">
-                            <label for="input-cnpj-empresa">CNPJ Corporativo</label>
-                            <input type="text" id="input-cnpj-empresa" placeholder="00.000.000/0001-00" value="34.892.112/0001-89">
-                        </div>
-                        <div class="form-group">
-                            <label for="input-anvisa-empresa">Licença Sanitária / ANVISA</label>
-                            <input type="text" id="input-anvisa-empresa" placeholder="Nº de Registro Governamental" value="CEVS 355030801-81">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="input-escopo-empresa">Área Exclusiva de Atuação Territorial</label>
-                        <input type="text" id="input-escopo-empresa" value="São Paulo, Grande ABC e Interior Paulista">
-                    </div>
-                    <div class="form-group">
-                        <label for="input-missao-empresa">Apresentação Institucional (App Mobile)</label>
-                        <textarea id="input-missao-empresa" rows="3">Líder nacional em controle microbiológico, manejo integrado de pragas urbanas e sanitização de ambientes industriais de alta complexidade técnica.</textarea>
-                    </div>
-                    <button class="btn-salvar" onclick="salvarConfiguracoesEmpresa()"><i class="fa-solid fa-floppy-disk"></i> Atualizar Dados do App</button>
-                </div>
-
-                <div class="panel-preview-branding">
-                    <div class="secao-titulo-interna"><i class="fa-solid fa-wand-magic-sparkles text-glow-neon"></i> Identidade de Marca</div>
-                    <p class="branding-instructions">Faça upload da logomarca oficial da empresa para substituir os elementos visuais de toda a plataforma administrativa e do app móvel.</p>
-                    <div class="logo-upload-dropzone">
-                        <label for="logo-file-uploader" class="dropzone-trigger">
-                            <i class="fa-solid fa-cloud-arrow-up text-glow-neon"></i>
-                            <span>Carregar Nova Logomarca</span>
-                        </label>
-                        <input type="file" id="logo-file-uploader" accept="image/*" onchange="uploadBrandLogo(event)" style="display: none;">
-                    </div>
-                    <div class="services-catalog-manager">
-                        <div class="secao-titulo-interna"><i class="fa-solid fa-list-check text-glow-neon"></i> Catálogo Base de Serviços</div>
-                        <ul class="catalog-list-items">
-                            <li><i class="fa-solid fa-shield-virus text-glow-neon"></i> Desinfecção Química Avançada</li>
-                            <li><i class="fa-solid fa-spider text-glow-neon"></i> Manejo Integrado de Vetores</li>
-                            <li><i class="fa-solid fa-droplet text-glow-neon"></i> Higienização de Reservatórios Industriais</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="chat" class="section-view">
-            <div class="section-header-block">
-                <h1>Painel de Comunicação em Tempo Real</h1>
-                <div id="status-chat"><i class="fa-solid fa-circle-nodes"></i> Inicializando barramento de rede...</div>
-            </div>
-            
-            <div class="card no-padding overflow-hidden unified-chat-layout" id="terminal-container">
-                <div class="chat-sidebar-contacts">
-                    <div class="chat-sidebar-header">Linhas de Transmissão</div>
-                    <div id="lista-contatos-chat" class="chat-contacts-scroll-area">
-                        <div class="chat-placeholder-loader">Carregando contatos de rádio...</div>
-                    </div>
-                </div>
-
-                <div class="chat-terminal-container">
-                    <div class="chat-terminal-header">
-                        <span id="chat-header-title">Selecione uma linha de transmissão segura</span>
-                    </div>
-                    <div class="chat-messages" id="chat-box">
-                        <p class="status-log-terminal">-> Sistema operacional aguardando conexões STOMP...</p>
-                    </div>
-                    <div class="chat-input-area">
-                        <input type="text" id="msg-input" placeholder="Digite uma instrução ou mensagem de suporte..." onkeypress="if(event.key==='Enter') enviarMsgStomp()">
-                        <button onclick="enviarMsgStomp()"><i class="fa-solid fa-paper-plane"></i> ENVIAR</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section id="configuracoes" class="section-view">
-            <h1>Configurações Globais do Sistema</h1>
-            
-            <div class="card flex-config-grid">
-                <div class="config-item-box">
-                    <div class="secao-titulo-interna"><i class="fa-solid fa-palette text-glow-neon"></i> Interface e Customização Visual</div>
-                    
-                    <div class="theme-switch-container">
-                        <div>
-                            <span class="config-label-title">Modo Cyber Neon / Dark</span>
-                            <p class="config-desc">Alterna a folha de estilo entre o layout industrial escuro e cinza corporativo leve.</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" id="theme-toggle-checkbox" checked onchange="toggleVisualTheme()">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-
-                    <div class="theme-switch-container">
-                        <div>
-                            <span class="config-label-title">Alertas Sonoros Críticos</span>
-                            <p class="config-desc">Emitir alertas sonoros contínuos em caso de novas mensagens recebidas de técnicos.</p>
-                        </div>
-                        <label class="switch">
-                            <input type="checkbox" checked id="sound-alerts">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="config-item-box">
-                    <div class="secao-titulo-interna"><i class="fa-solid fa-network-wired text-glow-neon"></i> Segurança de Dados e API Integrada</div>
-                    <div class="form-group">
-                        <label>Token JWT de Conexão com Gateway Externo</label>
-                        <div class="input-action-wrapper">
-                            <input type="text" id="generated-token-field" readonly value="Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-                            <button class="btn-salvar" onclick="gerarNovoToken()"><i class="fa-solid fa-rotate"></i> Regerar</button>
-                        </div>
-                    </div>
-                    <div class="form-group-row button-action-row">
-                        <button class="btn-secondary-action" onclick="alert('Backup comprimido gerado e enviado para download.')"><i class="fa-solid fa-database"></i> Exportar DB SQL</button>
-                        <button class="btn-danger-action" onclick="limparSessaoLocal()"><i class="fa-solid fa-trash-can"></i> Limpar Armazenamento Local</button>
-                    </div>
-                </div>
-            </div>
+        <section id="iframe-container" class="section-view" style="display: none; padding: 0;">
+            <iframe id="telaExterna" src="" style="width: 100%; height: calc(100vh - 80px); border: none;"></iframe>
         </section>
 
     </main>
 
-    <script src="js/app.js"></script>
+    <script>
+        const API_URL = "https://appdedetizacao.onrender.com";
+        const token = localStorage.getItem("tokenJWT") || localStorage.getItem("token");
+
+        if (!token) {
+            window.location.href = "index.html";
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const email = localStorage.getItem("userEmail") || "Admin";
+            document.getElementById("userName").innerText = email;
+            carregarOrdensDoServidor();
+            // Atualiza as ordens sozinho a cada 30 segundos
+            setInterval(carregarOrdensDoServidor, 30000); 
+        });
+
+        // Controle de Exibição (Alterna entre o Kanban e o iFrame com as outras telas)
+        function navegarIframe(url, btnElement) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            document.getElementById('solicitacoes').classList.remove('active');
+            document.getElementById('solicitacoes').style.display = 'none';
+            
+            const container = document.getElementById('iframe-container');
+            container.style.display = 'block';
+            container.classList.add('active');
+            
+            document.getElementById('telaExterna').src = url;
+        }
+
+        function mostrarSecaoDashboard() {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector('.nav-btn[onclick="mostrarSecaoDashboard()"]').classList.add('active');
+
+            document.getElementById('iframe-container').style.display = 'none';
+            
+            const secaoSol = document.getElementById('solicitacoes');
+            secaoSol.style.display = 'block';
+            secaoSol.classList.add('active');
+            
+            carregarOrdensDoServidor(); // Recarrega os dados ao abrir
+        }
+
+        // Requisição Real para a API de Ordens de Serviço
+        async function carregarOrdensDoServidor() {
+            try {
+                const response = await fetch(`${API_URL}/api/solicitacoes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) return;
+                const ordens = await response.json();
+                
+                document.querySelectorAll('.os-cards-container').forEach(el => el.innerHTML = '');
+
+                ordens.forEach(os => {
+                    const card = `
+                        <div class="os-card" style="border: 1px solid #333; background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+                            <h4 style="color: #3DDC84; margin-top:0;">#${os.id} - ${os.descricao}</h4>
+                            <p style="color: #ccc; font-size: 13px;">Cliente: ${os.clienteNome || 'Desconhecido'}</p>
+                            <p style="color: #888; font-size: 12px; margin-bottom: 0;">Data: ${os.dataAgendamento || 'Não agendado'}</p>
+                        </div>
+                    `;
+                    
+                    if (os.status === 'PENDENTE') {
+                        document.querySelector('#col-pendentes .os-cards-container').innerHTML += card;
+                    } else if (os.status === 'EM_ANDAMENTO') {
+                        document.querySelector('#col-campo .os-cards-container').innerHTML += card;
+                    } else {
+                        document.querySelector('#col-concluidas .os-cards-container').innerHTML += card;
+                    }
+                });
+            } catch (e) {
+                console.error("Falha ao sincronizar OS com o servidor:", e);
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+    </script>
 </body>
 </html>
