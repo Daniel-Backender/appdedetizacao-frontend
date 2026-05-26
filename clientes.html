@@ -8,17 +8,19 @@
         :root {
             --verde-pest: #4ade80; 
             --verde-escuro: #16a34a;
-            --cinza-fundo: #f3f4f6;
+            --cinza-fundo: #0a0a0a; /* Ajustado para Cyber-Industrial */
             --cinza-escuro: #4b5563;
-            --cinza-header: #374151;
-            --texto-escuro: #1f2937;
+            --cinza-header: #111;
+            --texto-escuro: #fff;
             --vermelho-inativo: #ef4444;
             --amarelo-pendente: #facc15;
+            --neon-glow: #3DDC84;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--cinza-fundo);
+            color: #fff;
             margin: 0;
             padding: 0;
             display: flex;
@@ -28,16 +30,19 @@
         .app-container {
             width: 100%;
             max-width: 480px;
-            background: white;
+            background: #161B26;
             min-height: 100vh;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-shadow: 0 0 15px rgba(61, 220, 132, 0.1);
             position: relative;
             overflow-x: hidden;
             padding-bottom: 80px;
+            border-left: 1px solid #2d3748;
+            border-right: 1px solid #2d3748;
         }
 
         .header {
-            background: linear-gradient(to right, var(--verde-pest), #86efac);
+            background: #111;
+            border-bottom: 2px solid var(--neon-glow);
             padding: 15px 20px;
             display: flex;
             align-items: center;
@@ -45,217 +50,71 @@
         }
 
         .btn-voltar {
-            background: white;
-            border: none;
+            background: transparent;
+            border: 1px solid var(--neon-glow);
             border-radius: 50%;
             width: 40px;
             height: 40px;
             font-size: 20px;
-            color: var(--verde-escuro);
+            color: var(--neon-glow);
             cursor: pointer;
             font-weight: bold;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: 0.3s;
         }
+        .btn-voltar:hover { background: var(--neon-glow); color: #000; box-shadow: 0 0 10px var(--neon-glow);}
 
-        .header-title {
-            font-size: 24px;
-            font-weight: 800;
-            color: black;
-            margin: 0;
-        }
-
-        .header-title span { color: red; } 
+        .header-title { font-size: 24px; font-weight: 800; color: #fff; margin: 0; }
+        .header-title span { color: var(--neon-glow); text-shadow: 0 0 8px var(--neon-glow); } 
 
         .sub-header {
             background: var(--cinza-header);
-            color: white;
+            color: #a0aec0;
             text-align: center;
             padding: 10px;
             font-weight: bold;
-            font-size: 18px;
-        }
-
-        #telaLista { padding: 15px; }
-
-        .search-bar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .search-bar input {
-            flex: 1;
-            padding: 10px 15px;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            outline: none;
-        }
-
-        .search-bar button {
-            background: var(--verde-escuro);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .filtros {
-            display: flex;
-            background: #d1d5db;
-            border-radius: 20px;
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-
-        .filtros button {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            color: var(--cinza-escuro);
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .filtros button.active { background: var(--verde-escuro); color: white; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            font-size: 12px;
-        }
-
-        th { background: #bbf7d0; padding: 10px; text-align: left; color: #166534; }
-        td { padding: 10px; border-bottom: 1px solid #eee; vertical-align: middle; }
-
-        .badge-ativo { color: var(--verde-escuro); font-weight: bold; }
-        .badge-inativo {
-            background: var(--vermelho-inativo);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        .btn-detalhes {
-            background: var(--verde-escuro);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .btn-detalhes-cinza { background: gray; }
-
-        .footer-actions {
-            position: absolute;
-            bottom: 20px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            padding: 0 15px;
-        }
-
-        .btn-acao {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            color: white;
-            cursor: pointer;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        .btn-novo { background: var(--verde-escuro); }
-        .btn-excluir { background: #6b7280; }
-
-        #telaDetalhes { display: none; padding: 15px; }
-
-        .card-perfil {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            display: flex;
-            gap: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-            border: 1px solid #eee;
-        }
-
-        .avatar-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .avatar {
-            width: 70px;
-            height: 70px;
-            background: #374151;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .badge-avatar-status {
-            color: white;
-            padding: 2px 10px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: bold;
-            margin-top: -10px;
-            z-index: 2;
-        }
-
-        .info-perfil p { margin: 4px 0; font-size: 13px; }
-        .info-perfil strong { color: var(--texto-escuro); }
-
-        .secao-titulo {
-            background: #bbf7d0;
-            color: var(--verde-escuro);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin-top: 15px;
-            margin-bottom: 10px;
-        }
-
-        .secao-conteudo {
-            padding: 0 10px;
             font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #2d3748;
         }
 
-        .secao-conteudo p { margin: 6px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+        #telaLista, #telaDetalhes { padding: 15px; }
 
-        .historico-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 13px;
+        .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+        .search-bar input {
+            flex: 1; padding: 10px 15px; background: #0F0F12; color: #fff;
+            border: 1px solid #4a5568; border-radius: 5px; outline: none;
+        }
+        .search-bar button {
+            background: var(--neon-glow); color: #000; border: none;
+            padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;
         }
 
-        .status-concluido { background: var(--verde-escuro); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;}
-        .status-pendente { background: var(--amarelo-pendente); color: black; padding: 2px 8px; border-radius: 10px; font-size: 11px;}
+        table { width: 100%; border-collapse: collapse; background: #1a202c; border-radius: 8px; overflow: hidden; font-size: 13px; }
+        th { background: rgba(61, 220, 132, 0.1); padding: 12px; text-align: left; color: var(--neon-glow); border-bottom: 1px solid #2d3748;}
+        td { padding: 12px; border-bottom: 1px solid #2d3748; vertical-align: middle; }
 
-        ul.obs-list { padding-left: 20px; margin: 0; color: var(--cinza-escuro); }
+        .badge-ativo { color: var(--neon-glow); font-weight: bold; }
+        .badge-inativo { background: var(--vermelho-inativo); color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 11px;}
+
+        .btn-detalhes { background: var(--neon-glow); color: #000; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        
+        .footer-actions { position: absolute; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; padding: 0 15px; }
+        .btn-acao { flex: 1; padding: 12px; border: none; border-radius: 5px; font-weight: bold; color: #000; cursor: pointer; text-align: center; font-size: 13px; }
+        .btn-novo { background: var(--neon-glow); box-shadow: 0 0 10px rgba(61,220,132,0.4);}
+        
+        #telaDetalhes { display: none; }
+        
+        /* Estilos da Ficha */
+        .card-perfil { background: #1a202c; border-radius: 8px; padding: 15px; display: flex; gap: 15px; margin-bottom: 15px; border: 1px solid #2d3748; }
+        .avatar { width: 60px; height: 60px; background: rgba(61,220,132,0.1); border: 1px solid var(--neon-glow); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .info-perfil p { margin: 4px 0; font-size: 13px; color: #a0aec0;}
+        .info-perfil strong { color: #fff; }
+        .secao-titulo { background: rgba(61, 220, 132, 0.1); color: var(--neon-glow); padding: 8px 15px; border-radius: 4px; font-weight: bold; margin-top: 15px; margin-bottom: 10px; font-size: 12px; text-transform: uppercase;}
+        .secao-conteudo p { margin: 6px 0; border-bottom: 1px dashed #2d3748; padding-bottom: 5px; font-size: 13px; color: #a0aec0;}
     </style>
 </head>
 <body>
@@ -264,36 +123,30 @@
     
     <div class="header">
         <button class="btn-voltar" onclick="voltarTela()">&#8617;</button>
-        <h1 class="header-title">PestControl<span>X</span></h1>
+        <h1 class="header-title">BugTecho<span>X</span></h1>
         <div style="width: 40px;"></div>
     </div>
 
     <div id="telaLista">
-        <div class="sub-header">Clientes Registrados</div>
+        <div class="sub-header">Base de Clientes (Sincronizado)</div>
         <br>
         
         <div class="search-bar">
-            <input type="text" id="inputBusca" placeholder="Buscar por nome..." oninput="filtrarClientes()">
-            <button onclick="filtrarClientes()">Pesquisar</button>
-        </div>
-
-        <div class="filtros">
-            <button id="btnFiltroTodos" class="active" onclick="mudarFiltro('todos')">Todos</button>
-            <button id="btnFiltroAtivos" onclick="mudarFiltro('ativos')">Ativos</button>
-            <button id="btnFiltroInativos" onclick="mudarFiltro('inativos')">Inativos</button>
+            <input type="text" id="inputBusca" placeholder="Buscar no banco de dados..." oninput="filtrarClientesLocal()">
+            <button onclick="carregarClientesDoServidor()">Recarregar API</button>
         </div>
 
         <table>
             <thead>
                 <tr>
                     <th>Nome</th>
-                    <th>CPF</th>
-                    <th>Status / Tel</th>
+                    <th>CPF/CNPJ</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody id="tabelaClientes">
-                </tbody>
+                <tr><td colspan="3" style="text-align: center;">Buscando dados no servidor...</td></tr>
+            </tbody>
         </table>
 
         <div class="footer-actions">
@@ -302,169 +155,125 @@
     </div>
 
     <div id="telaDetalhes">
-        <div class="sub-header">Ficha do Cliente</div>
+        <div class="sub-header">Ficha Corporativa do Cliente</div>
         <br>
         <div class="card-perfil">
             <div class="avatar-container">
                 <div class="avatar">
-                    <svg width="35" height="35" fill="#fff" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                    <svg width="30" height="30" fill="#3DDC84" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                 </div>
-                <div id="detalheBadgeStatus" class="badge-avatar-status">Ativo</div>
             </div>
             <div class="info-perfil" id="detalheGeral">
                 </div>
         </div>
 
-        <div class="secao-titulo">Endereço</div>
+        <div class="secao-titulo">Contato & Endereço</div>
         <div class="secao-conteudo" id="detalheEndereco">
-            </div>
-
-        <div class="secao-titulo">Histórico de Serviços</div>
-        <div class="secao-conteudo" id="detalheHistorico">
-            </div>
-
-        <div class="secao-titulo">Observações</div>
-        <div class="secao-conteudo">
-            <ul class="obs-list" id="detalheObs">
-                </ul>
-        </div>
+             </div>
 
         <div class="footer-actions">
-            <button class="btn-acao btn-excluir" onclick="voltarTela()">Voltar para Lista</button>
+            <button class="btn-acao" style="background: #4a5568; color: white;" onclick="voltarTela()">Voltar para Lista</button>
         </div>
     </div>
 
 </div>
 
 <script>
-    // Mock de Banco de Dados de Clientes para Simulação Completa
-    const dadosClientes = [
-        {
-            id: 1, nome: "Carlos Silva", cpf: "123.456.789-00", email: "carlos@gmail.com", ativo: true, telefone: "(11) 98985-0000", nascimento: "10/05/1985",
-            rua: "Rua das Flores", numero: "123", bairro: "Centro", cidade: "São Paulo", cep: "01234-567",
-            historico: [
-                { servico: "Dedetização", data: "12/03/2026", status: "Concluído", classe: "status-concluido" },
-                { servico: "Controle de Pragas", data: "05/02/2026", status: "Pendente", classe: "status-pendente" }
-            ],
-            obs: ["Cliente prefere atendimento pela manhã", "Local com infestação recorrente", "Possui animais de estimação"]
-        },
-        {
-            id: 2, nome: "Maria Souza", cpf: "664.852.361-00", email: "maria@gmail.com", ativo: false, telefone: "(11) 97120-4411", nascimento: "22/11/1990",
-            rua: "Av. Paulista", numero: "1500", bairro: "Bela Vista", cidade: "São Paulo", cep: "01311-200",
-            historico: [
-                { servico: "Desratização", data: "15/01/2026", status: "Concluído", classe: "status-concluido" }
-            ],
-            obs: ["Portão eletrônico quebrado", "Solicitou ligar antes de chegar"]
-        },
-        {
-            id: 3, nome: "Pedro Jesus", cpf: "187.326.739-00", email: "pedro@gmail.com", ativo: true, telefone: "(11) 75405-9800", nascimento: "04/07/1978",
-            rua: "Rua Mato Grosso", numero: "45", bairro: "Jardins", cidade: "São Paulo", cep: "01412-010",
-            historico: [
-                { servico: "Limpeza de Caixa d'Água", data: "20/01/2026", status: "Concluído", classe: "status-concluido" }
-            ],
-            obs: ["Caixa d'água de difícil acesso (necessita escada longa)"]
-        }
-    ];
+    // ==========================================
+    // 1. CONFIGURAÇÕES E VARIÁVEIS REAIS
+    // ==========================================
+    const API_URL = "https://appdedetizacao.onrender.com";
+    const token = localStorage.getItem("tokenJWT") || localStorage.getItem("token"); // Tenta as duas chaves comuns
+    const empresaId = localStorage.getItem("empresaId") || "1";
+    
+    let clientesGlobais = []; // Vai guardar a resposta real da API
 
-    let filtroAtual = 'todos';
-
-    // Inicialização segura com validação de token
-    const token = localStorage.getItem("token");
     if (!token) {
-        alert("Acesso negado! Faça o login primeiro.");
+        alert("Sessão expirada ou Token ausente. Retorne ao login.");
     }
 
-    function renderizarTabela() {
+    // ==========================================
+    // 2. BUSCA NO BANCO DE DADOS (API REST)
+    // ==========================================
+    async function carregarClientesDoServidor() {
+        const tbody = document.getElementById("tabelaClientes");
+        tbody.innerHTML = "<tr><td colspan='3' style='text-align: center; color: #3DDC84;'>Processando...</td></tr>";
+
+        try {
+            const response = await fetch(`${API_URL}/api/clientes/empresa/${empresaId}`, {
+                method: 'GET',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) throw new Error(`Erro API: ${response.status}`);
+
+            clientesGlobais = await response.json();
+            renderizarTabela(clientesGlobais);
+
+        } catch (error) {
+            console.error("Falha ao puxar clientes:", error);
+            tbody.innerHTML = `<tr><td colspan='3' style='text-align: center; color: #ef4444;'>Falha ao conectar com o banco de dados.</td></tr>`;
+        }
+    }
+
+    // ==========================================
+    // 3. RENDERIZAÇÃO E FILTROS
+    // ==========================================
+    function renderizarTabela(lista) {
         const tbody = document.getElementById("tabelaClientes");
         tbody.innerHTML = "";
-        const termo = document.getElementById("inputBusca").value.toLowerCase();
 
-        dadosClientes.forEach(c => {
-            // Filtro de Busca por Texto
-            if (!c.nome.toLowerCase().includes(termo) && !c.cpf.includes(termo) && !c.email.toLowerCase().includes(termo)) return;
+        if (lista.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='3' style='text-align: center;'>Nenhum cliente cadastrado nesta empresa.</td></tr>";
+            return;
+        }
+
+        lista.forEach(c => {
+            // Mapeando os nomes dos campos que o seu Spring Boot (Java) cospe no JSON
+            const nome = c.nome || c.nomeCompleto || 'Sem Nome';
+            const documento = c.cpf || c.cnpj || 'N/A';
             
-            // Filtro de Abas (Status)
-            if (filtroAtual === 'ativos' && !c.ativo) return;
-            if (filtroAtual === 'inativos' && c.ativo) return;
-
-            const statusTd = c.ativo ? `<span class="badge-ativo">${c.telefone}</span>` : `<span class="badge-inativo">Inativo</span>`;
-            const btnClasse = c.ativo ? "btn-detalhes" : "btn-detalhes btn-detalhes-cinza";
-
             tbody.innerHTML += `
                 <tr>
-                    <td><strong>${c.nome}</strong></td>
-                    <td>${c.cpf}</td>
-                    <td>${statusTd}</td>
-                    <td><button class="${btnClasse}" onclick="abrirDetalhes(${c.id})">👁 Ver</button></td>
+                    <td><strong>${nome}</strong></td>
+                    <td>${documento}</td>
+                    <td><button class="btn-detalhes" onclick="abrirDetalhes(${c.id})">VER FICHA</button></td>
                 </tr>
             `;
         });
     }
 
-    function mudarFiltro(tipo) {
-        filtroAtual = tipo;
-        document.getElementById("btnFiltroTodos").classList.remove("active");
-        document.getElementById("btnFiltroAtivos").classList.remove("active");
-        document.getElementById("btnFiltroInativos").classList.remove("active");
-
-        if(tipo === 'todos') document.getElementById("btnFiltroTodos").classList.add("active");
-        if(tipo === 'ativos') document.getElementById("btnFiltroAtivos").classList.add("active");
-        if(tipo === 'inativos') document.getElementById("btnFiltroInativos").classList.add("active");
-
-        renderizarTabela();
+    function filtrarClientesLocal() {
+        const termo = document.getElementById("inputBusca").value.toLowerCase();
+        const filtrados = clientesGlobais.filter(c => {
+            const nome = (c.nome || c.nomeCompleto || '').toLowerCase();
+            const doc = (c.cpf || c.cnpj || '').toLowerCase();
+            return nome.includes(termo) || doc.includes(termo);
+        });
+        renderizarTabela(filtrados);
     }
 
-    function filtrarClientes() {
-        renderizarTabela();
-    }
-
+    // ==========================================
+    // 4. FLUXO DE NAVEGAÇÃO INTERNA
+    // ==========================================
     function abrirDetalhes(id) {
-        const cliente = dadosClientes.find(c => c.id === id);
+        const cliente = clientesGlobais.find(c => c.id === id);
         if(!cliente) return;
 
-        // Configura Status Avatar Badge
-        const badgeStatus = document.getElementById("detalheBadgeStatus");
-        badgeStatus.innerText = cliente.ativo ? "Ativo" : "Inativo";
-        badgeStatus.style.background = cliente.ativo ? "var(--verde-escuro)" : "var(--vermelho-inativo)";
-
-        // Preenche dados gerais
         document.getElementById("detalheGeral").innerHTML = `
-            <p>Nome: <strong>${cliente.nome}</strong></p>
-            <p>CPF: <strong>${cliente.cpf}</strong></p>
-            <p>Nascimento: <strong>${cliente.nascimento}</strong></p>
-            <p>Telefone: <strong>${cliente.telefone}</strong></p>
-            <p>E-mail: <strong>${cliente.email}</strong></p>
+            <p>ID Sistema: <strong>#${cliente.id}</strong></p>
+            <p>Nome: <strong>${cliente.nome || cliente.nomeCompleto}</strong></p>
+            <p>Doc: <strong>${cliente.cpf || cliente.cnpj || 'Não informado'}</strong></p>
         `;
 
-        // Preenche Endereço
         document.getElementById("detalheEndereco").innerHTML = `
-            <p>Rua: <strong>${cliente.rua}</strong></p>
-            <p>Número: <strong>${cliente.numero}</strong></p>
-            <p>Bairro: <strong>${cliente.bairro}</strong></p>
-            <p style="display: flex; justify-content: space-between;">
-                <span>Cidade: <strong>${cliente.cidade}</strong></span>
-                <span>CEP: <strong>${cliente.cep}</strong></span>
-            </p>
+            <p>Telefone: <strong>${cliente.telefone || 'Sem registro'}</strong></p>
+            <p>E-mail: <strong>${cliente.email || 'Sem registro'}</strong></p>
+            <p>Endereço: <strong>${cliente.endereco || cliente.rua || 'Pendente de atualização via App'}</strong></p>
         `;
-
-        // Preenche Histórico
-        const divHist = document.getElementById("detalheHistorico");
-        divHist.innerHTML = "";
-        cliente.historico.forEach(h => {
-            divHist.innerHTML += `
-                <div class="historico-item">
-                    <span>⚙️ ${h.servico} - <strong>${h.data}</strong></span>
-                    <span class="${h.classe}">${h.status}</span>
-                </div>
-            `;
-        });
-
-        // Preenche observações
-        const ulObs = document.getElementById("detalheObs");
-        ulObs.innerHTML = "";
-        cliente.obs.forEach(o => {
-            ulObs.innerHTML += `<li>${o}</li>`;
-        });
 
         document.getElementById("telaLista").style.display = "none";
         document.getElementById("telaDetalhes").style.display = "block";
@@ -475,12 +284,13 @@
             document.getElementById("telaDetalhes").style.display = "none";
             document.getElementById("telaLista").style.display = "block";
         } else {
-            window.location.href = "dashboard.html";
+            // Volta pro Painel Central
+            window.location.href = "dashboard_empresa.html";
         }
     }
 
-    // Inicializar tabela
-    window.onload = renderizarTabela;
+    // Dispara a busca real ao abrir a tela
+    window.onload = carregarClientesDoServidor;
 </script>
 </body>
 </html>

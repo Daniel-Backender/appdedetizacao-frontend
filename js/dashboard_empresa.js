@@ -5,7 +5,6 @@ const API_URL = "https://appdedetizacao.onrender.com";
 const RENDER_URL = `${API_URL}/ws-pestcontrol`;
 let stompClient = null;
 
-// ESTADO DO CHAT (Estilo Telegram)
 let currentChatClienteId = null;
 let currentChatSubscription = null;
 const empresaId = localStorage.getItem("empresaId");
@@ -26,9 +25,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Conecta o núcleo do WebSockets
     conectarServidorWebSocket();
-    
     // Carrega a lista de clientes para a barra lateral do chat
     carregarListaClientesParaChat();
+
+    carregarOrdensDoServidor(); 
+
+    setInterval(() => {
+    carregarOrdensDoServidor();
+}, 30000);
 });
 
 // =========================================================
@@ -40,16 +44,27 @@ function conectarServidorWebSocket() {
     stompClient = Stomp.over(socket);
     stompClient.debug = null; 
 
-    stompClient.connect({}, function (frame) {
+    // 1. Recupere o token salvo no login
+    // Ajuste 'meu_token_chave' para o nome exato que você usa no localStorage
+    const token = localStorage.getItem('meu_token_chave'); 
+
+    // 2. Prepare o cabeçalho de autorização
+    const headers = {
+        'Authorization': 'Bearer ' + token
+    };
+
+    // 3. Passe o headers no connect
+    stompClient.connect(headers, function (frame) {
         atualizarStatusInterface("SERVIDOR ONLINE", "#3DDC84");
         
-        // Aqui você pode se inscrever em um tópico geral para notificações de sistema
         stompClient.subscribe(`/topic/empresa/${empresaId}/notificacoes`, function(msg) {
             tocarSomNotificacao();
             console.log("Notificação Global:", msg.body);
         });
 
     }, function(error) {
+        // Se a autenticação falhar, este erro será disparado
+        console.error("Erro na conexão STOMP:", error);
         atualizarStatusInterface("FALHA CRÍTICA - RECONECTANDO...", "#ff3333");
         setTimeout(conectarServidorWebSocket, 5000);
     });
@@ -200,6 +215,41 @@ async function carregarListaClientesParaChat() {
     } catch (e) {
         console.error("Erro ao carregar clientes para o chat", e);
     }
+}
+
+async function carregarOrdensDoServidor() {
+    try {
+        const response = await fetch(`${API_URL}/api/solicitacoes`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const ordens = await response.json();
+        
+        // Limpa os containers
+        document.querySelectorAll('.os-cards-container').forEach(el => el.innerHTML = '');
+
+        ordens.forEach(os => {
+            const card = `
+                <div class="os-card">
+                    <h4>#${os.id} - ${os.descricao}</h4>
+                    <p>Cliente: ${os.clienteNome || 'Cliente não identificado'}</p>
+                    <p>Status: ${os.status}</p>
+                </div>
+            `;
+            
+            // Distribuição real por status
+            if (os.status === 'PENDENTE') {
+                document.querySelector('#col-pendentes .os-cards-container').innerHTML += card;
+            } else if (os.status === 'EM_ANDAMENTO') {
+                document.querySelector('#col-campo .os-cards-container').innerHTML += card;
+            } else if (os.status === 'CONCLUIDO') {
+                document.querySelector('#col-concluidas .os-cards-container').innerHTML += card;
+            }
+        });
+    } catch (e) {
+        console.error("Falha ao sincronizar OS com o servidor:", e);
+    }
+
+    
 }
 
 function logout() {

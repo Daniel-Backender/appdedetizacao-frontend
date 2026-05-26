@@ -101,18 +101,25 @@
                             </tr>
                         </thead>
                         <tbody id="tabelaClientes">
-                            <tr>
-                                <td><span class="text-glow-neon">Sinfonia Alimentos Ltda</span></td>
-                                <td>12.345.678/0001-99</td>
-                                <td><span class="badge-success" style="padding:2px 8px; border-radius:4px;">Ativo</span></td>
-                                <td>
-                                    <button class="btn-salvar" style="padding: 5px 10px; font-size:12px;" onclick="verFichaClienteMock('Sinfonia Alimentos', '12.345.678/0001-99', 'Ativo')">
-                                        <i class="fa-solid fa-eye"></i> Abrir Ficha
-                                    </button>
-                                </td>
-                            </tr>
+
                         </tbody>
                     </table>
+
+                    
+<div class="kanban-board">
+    <div class="kanban-col" id="col-pendentes">
+        <div class="kanban-header badge-danger">Novas Solicitações</div>
+        <div class="os-cards-container"></div>
+    </div>
+    <div class="kanban-col" id="col-campo">
+        <div class="kanban-header badge-warning">Técnicos em Campo</div>
+        <div class="os-cards-container"></div>
+    </div>
+    <div class="kanban-col" id="col-concluidas">
+        <div class="kanban-header badge-success">Ordens Concluídas</div>
+        <div class="os-cards-container"></div>
+    </div>
+</div>
                 </div>
             </div>
 

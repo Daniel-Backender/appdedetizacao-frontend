@@ -2,63 +2,36 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>PestControlX - Chat Técnico</title>
+    <title>PestControlX - Terminal Chat</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
-        body { background: #0a0a0a; color: #3DDC84; font-family: 'Courier New', monospace; padding: 20px; }
-        #chat { height: 400px; border: 2px solid #3DDC84; overflow-y: auto; padding: 10px; margin-bottom: 10px; background: #000; box-shadow: 0 0 10px #3DDC84; }
-        input { width: 75%; padding: 12px; background: #111; border: 1px solid #3DDC84; color: #fff; outline: none; font-family: 'Courier New', monospace; }
-        button { padding: 12px 24px; background: #3DDC84; border: none; font-weight: bold; cursor: pointer; color: #000; font-family: 'Courier New', monospace; }
-        button:hover { background: #2cb36b; box-shadow: 0 0 8px #3DDC84; }
-        .msg-empresa { color: #3DDC84; margin: 6px 0; }
-        .msg-tecnico { color: #ffffff; margin: 6px 0; }
-        .status-log { color: #888; font-size: 12px; font-style: italic; }
+        body { background: #0F0F12; color: #3DDC84; font-family: 'Courier New', monospace; padding: 20px; display: flex; flex-direction: column; align-items: center;}
+        h1 { font-size: 18px; text-shadow: 0 0 10px #3DDC84; margin-bottom: 5px;}
+        .container { width: 100%; max-width: 600px; }
+        #chat { height: 400px; border: 1px solid #2d3748; border-radius: 4px; overflow-y: auto; padding: 15px; margin-bottom: 15px; background: #161B26; box-shadow: 0 0 15px rgba(61,220,132,0.1); }
+        .input-area { display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; background: #0F0F12; border: 1px solid #3DDC84; color: #fff; outline: none; font-family: 'Courier New', monospace; border-radius: 4px;}
+        button { padding: 12px 24px; background: #3DDC84; border: none; font-weight: bold; cursor: pointer; color: #000; font-family: 'Courier New', monospace; border-radius: 4px; transition: 0.2s;}
+        button:hover { box-shadow: 0 0 15px #3DDC84; }
+        .status-log { color: #a0aec0; font-size: 12px; font-style: italic; margin-bottom: 10px;}
     </style>
 </head>
 <body>
-    <h1>[ PESTCONTROL-X CHAT TERMINAL ]</h1>
-    <div id="chat">
-        <p class="status-log">Iniciando conexão com o servidor...</p>
+    <div class="container">
+        <h1>[ TERMINAL DE COMUNICAÇÃO ]</h1>
+        <p id="status-chat" class="status-log">Aguardando liberação de rede...</p>
+        
+        <div id="chat">
+            <p class="status-log">>> Sistema STOMP Inicializado...</p>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" id="msg" placeholder="Digite o comando ou mensagem...">
+            <button onclick="enviar()">TRANSMITIR</button>
+        </div>
     </div>
-    <input type="text" id="msg" placeholder="Resposta para o técnico..." onkeypress="if(event.key==='Enter') enviar()">
-    <button onclick="enviar()">ENVIAR</button>
 
-    <script>
-        var stompClient = null;
-        const SOCKET_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol';
-
-        function conectar() {
-            var chat = document.getElementById('chat');
-            var socket = new SockJS(SOCKET_URL);
-            stompClient = Stomp.over(socket);
-            stompClient.debug = null; // Remove logs poluídos no console do navegador
-
-            stompClient.connect({}, function (frame) {
-                chat.innerHTML += `<p class="status-log" style="color: #00ff00;">> Conectado com sucesso ao barramento da nuvem.</p>`;
-                stompClient.subscribe('/topic/mensagens', function (msg) {
-                    var dados = JSON.parse(msg.body);
-                    var classe = dados.remetente === 'EMPRESA' ? 'msg-empresa' : 'msg-tecnico';
-                    chat.innerHTML += `<p class="${classe}"><strong>[${dados.remetente}]:</strong> ${dados.texto}</p>`;
-                    chat.scrollTop = chat.scrollHeight;
-                });
-            }, function(error) {
-                chat.innerHTML += `<p class="status-log" style="color: red;">> Conexão perdida. Tentando reconectar em 5s...</p>`;
-                setTimeout(conectar, 5000);
-            });
-        }
-
-        function enviar() {
-            var input = document.getElementById('msg');
-            var texto = input.value.trim();
-            if (texto && stompClient) {
-                var payload = JSON.stringify({'remetente': 'EMPRESA', 'texto': texto});
-                stompClient.send("/app/enviar", {}, payload);
-                input.value = '';
-            }
-        }
-
-        window.onload = conectar;
-    </script>
+    <script src="js/chat.js"></script> 
 </body>
 </html>
