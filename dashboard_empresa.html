@@ -2,165 +2,35 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PestControlX - Painel de Controle</title>
+    <title>PestControlX - Painel</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css"> 
 </head>
 <body>
+    <script src="js/theme.js"></script>
 
     <header class="topbar">
-        <div class="topbar-left">
-            <h1 class="topbar-company-name"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> PestControlX Operations</h1>
-        </div>
-        <div class="topbar-right">
-            <div class="profile-pic-top"><i class="fa-solid fa-building" style="color: var(--primary);"></i></div>
-        </div>
+        <h1 style="color: var(--primary); font-size: 20px;"><i class="fa-solid fa-leaf"></i> PestControlX</h1>
+        <div class="profile-pic-top"><i class="fa-solid fa-building" style="color: var(--primary);"></i></div>
     </header>
 
-    <nav class="sidebar" id="app-sidebar">
-        <div class="profile-area">
-            <div class="profile-name" id="userName">Carregando...</div>
-            <div class="profile-role">Administrador do Painel</div>
+    <nav class="sidebar">
+        <div class="profile-area" style="padding: 15px; text-align: center; border-bottom: 1px solid var(--border-color);">
+            <div id="userName" style="font-weight: bold; color: var(--text-main);">Admin</div>
         </div>
-
         <div class="nav-buttons">
-            <button class="nav-btn active" onclick="mostrarSecaoDashboard()"><i class="fa-solid fa-list-check"></i> <span>Monitoramento (OS)</span></button>
-            <button class="nav-btn" onclick="navegarIframe('clientes.html', this)"><i class="fa-solid fa-users"></i> <span>Clientes</span></button>
-            <button class="nav-btn" onclick="navegarIframe('chat.html', this)"><i class="fa-regular fa-comments"></i> <span>Central de Chat</span></button>
-            <button class="nav-btn" onclick="navegarIframe('configuracoestela.html', this)"><i class="fa-solid fa-gear"></i> <span>Configurações</span></button>
+            <button class="nav-btn active" onclick="navegar(this, 'solicitacoes.html')"><i class="fa-solid fa-list-check"></i> Monitoramento</button>
+            <button class="nav-btn" onclick="navegar(this, 'clientes.html')"><i class="fa-solid fa-users"></i> Clientes</button>
+            <button class="nav-btn" onclick="navegar(this, 'chat.html')"><i class="fa-regular fa-comments"></i> Chat</button>
+            <button class="nav-btn" onclick="navegar(this, 'configuracoestela.html')"><i class="fa-solid fa-gear"></i> Configurações</button>
         </div>
-
-        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR DO SISTEMA</span></button>
+        <button class="logout-btn" onclick="logout()" style="margin-top: auto; color: #E53E3E; background: none; border: none; padding: 15px; cursor: pointer; text-align: left; font-weight: bold;"><i class="fa-solid fa-power-off"></i> SAIR</button>
     </nav>
 
-    <main class="main-content" id="app-main-content">
-        
-        <section id="solicitacoes" class="section-view active">
-            <div class="section-header-block">
-                <h1>Painel de Monitoramento de Campo</h1>
-                <span style="color: var(--primary); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Sincronizado com Render</span>
-            </div>
-            
-            <div class="kanban-board">
-                <div class="kanban-col" id="col-pendentes">
-                    <div class="kanban-header badge-danger">Novas Solicitações</div>
-                    <div class="os-cards-container"></div>
-                </div>
-                <div class="kanban-col" id="col-campo">
-                    <div class="kanban-header badge-warning">Em Andamento</div>
-                    <div class="os-cards-container"></div>
-                </div>
-                <div class="kanban-col" id="col-concluidas">
-                    <div class="kanban-header badge-success">Concluídas</div>
-                    <div class="os-cards-container"></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="iframe-container" class="section-view" style="display: none; padding: 0;">
-            <iframe id="telaExterna" src="" style="width: 100%; height: calc(100vh - 110px); border: none; border-radius: 8px;"></iframe>
-        </section>
-
+    <main class="main-content" style="padding: 0;">
+        <iframe id="telaExterna" src="solicitacoes.html" style="width: 100%; height: 100%; border: none;"></iframe>
     </main>
 
-    <script>
-        const API_URL = "https://appdedetizacao.onrender.com";
-        const token = localStorage.getItem("tokenJWT") || localStorage.getItem("token");
-
-        if (!token) { window.location.href = "index.html"; }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const email = localStorage.getItem("userEmail") || "Admin Corporativo";
-            document.getElementById("userName").innerText = email;
-            carregarOrdensDoServidor();
-            setInterval(carregarOrdensDoServidor, 15000); // Sincroniza mais rápido (15s)
-        });
-
-        function navegarIframe(url, btnElement) {
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
-            document.getElementById('solicitacoes').style.display = 'none';
-            const container = document.getElementById('iframe-container');
-            container.style.display = 'block';
-            document.getElementById('telaExterna').src = url;
-        }
-
-        function mostrarSecaoDashboard() {
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector('.nav-btn:first-child').classList.add('active');
-            document.getElementById('iframe-container').style.display = 'none';
-            document.getElementById('solicitacoes').style.display = 'block';
-            carregarOrdensDoServidor();
-        }
-
-        async function carregarOrdensDoServidor() {
-            try {
-                const response = await fetch(`${API_URL}/api/solicitacoes`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!response.ok) return;
-                const ordens = await response.json();
-                
-                document.querySelectorAll('.os-cards-container').forEach(el => el.innerHTML = '');
-
-                ordens.forEach(os => {
-                    let btnAcao = '';
-                    if (os.status === 'PENDENTE') {
-                        btnAcao = `<button class="os-action-btn" onclick="atualizarStatusOS(${os.id}, 'EM_ANDAMENTO')">Aceitar Chamado</button>`;
-                    } else if (os.status === 'EM_ANDAMENTO') {
-                        btnAcao = `<button class="os-action-btn" onclick="atualizarStatusOS(${os.id}, 'CONCLUIDA')">Finalizar Serviço</button>`;
-                    } else {
-                        btnAcao = `<span style="color:var(--primary); font-size:11px; font-weight:bold;"><i class="fa-solid fa-check-double"></i> OS Arquivada</span>`;
-                    }
-
-                    const card = `
-                        <div class="os-card">
-                            <h4>#${os.id} - ${os.descricao}</h4>
-                            <p><strong>Cliente:</strong> ${os.clienteNome || 'App Local User'}</p>
-                            <p><strong>Agendamento:</strong> ${os.dataAgendamento || 'Data Padrão'}</p>
-                            <div style="margin-top:10px;">${btnAcao}</div>
-                        </div>
-                    `;
-                    
-                    if (os.status === 'PENDENTE') {
-                        document.querySelector('#col-pendentes .os-cards-container').innerHTML += card;
-                    } else if (os.status === 'EM_ANDAMENTO') {
-                        document.querySelector('#col-campo .os-cards-container').innerHTML += card;
-                    } else {
-                        document.querySelector('#col-concluidas .os-cards-container').innerHTML += card;
-                    }
-                });
-            } catch (e) {
-                console.error("Erro na sincronização:", e);
-            }
-        }
-
-        // FUNÇÃO REAL PARA ALTERAR STATUS DIRETAMENTE NO BACKEND RENDER
-        async function atualizarStatusOS(id, novoStatus) {
-            try {
-                const response = await fetch(`${API_URL}/api/ordens/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ status: novoStatus })
-                });
-                if(response.ok) {
-                    carregarOrdensDoServidor();
-                } else {
-                    alert("Falha ao atualizar ordem de serviço no servidor.");
-                }
-            } catch(err) {
-                console.error("Erro ao atualizar OS:", err);
-            }
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.href = "index.html";
-        }
-    </script>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>

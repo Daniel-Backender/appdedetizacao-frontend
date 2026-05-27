@@ -252,7 +252,22 @@ async function carregarOrdensDoServidor() {
     
 }
 
+
+// Controle limpo de navegação do iFrame
+function navegar(btnElement, url) {
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+    document.getElementById('telaExterna').src = url;
+}
+
 function logout() {
     localStorage.clear();
     window.location.href = "index.html";
 }
+
+// Escuta eventos vindos do iframe (ex: quando as configurações mudam o tema)
+window.addEventListener('message', function(event) {
+    if (event.data === 'toggleTheme') {
+        document.body.classList.toggle('dark-theme');
+    }
+});

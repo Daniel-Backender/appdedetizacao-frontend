@@ -2,71 +2,33 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PestControlX - Painel de Configurações</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body style="padding: 20px; background: #F4F6F9;">
+<body style="padding: 20px;">
+    <script src="js/theme.js"></script>
 
-    <div class="section-header-block">
-        <h1>Centro de Controle e Parâmetros</h1>
-        <p style="color: var(--text-muted); font-size: 14px;">Gerencie as regras do seu painel e aplicativos móveis.</p>
-    </div>
+    <h1 style="margin-bottom: 20px; color: var(--text-main);">Configurações e Preferências</h1>
 
     <div class="card">
-        <h3 style="margin-bottom: 15px; color: var(--primary);"><i class="fa-solid fa-sliders"></i> Dados Corporativos da Empresa</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="form-group">
-                <label>Razão Social</label>
-                <input type="text" value="PestControlX Dedetizações Ltda">
+        <h3 style="color: var(--primary); margin-bottom: 15px;">Aparência do Sistema</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+            <div>
+                <div style="font-weight: bold; color: var(--text-main);">Modo Escuro (Cyber-Industrial)</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Altera o visual do painel para cores escuras e neon.</div>
             </div>
-            <div class="form-group">
-                <label>CNPJ Oficial</label>
-                <input type="text" value="12.345.678/0001-99" readonly style="background:#EDF2F7; cursor:not-allowed;">
-            </div>
-        </div>
-        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-top: 10px;">
-            <div class="form-group">
-                <label>Endereço de Operação Principal</label>
-                <input type="text" value="Av. Paulista, 1000 - São Paulo SP">
-            </div>
-            <div class="form-group">
-                <label>Telefone de Contato Urgente</label>
-                <input type="text" value="(11) 99999-8888">
-            </div>
+            <label class="switch">
+                <input type="checkbox" id="themeToggle">
+                <span class="slider"></span>
+            </label>
         </div>
     </div>
 
     <div class="card">
-        <h3 style="margin-bottom: 15px; color: var(--primary);"><i class="fa-solid fa-bell"></i> Regras de Notificação Automática (Push)</h3>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Defina quais canais serão alertados no momento em que os clientes enviarem novos chamados pelo aplicativo Android.</p>
-        
-        <div class="row-switch">
+        <h3 style="color: var(--primary); margin-bottom: 15px;">Notificações PUSH Automáticas</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
             <div>
-                <div class="config-label-title" style="color: var(--text-main); font-weight:600;">Disparar Alertas no Desktop</div>
-                <div class="config-desc">Emitir um sinal sonoro e pop-up visual no navegador quando uma nova OS entrar na coluna Pendente.</div>
-            </div>
-            <label class="switch">
-                <input type="checkbox" checked>
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="row-switch">
-            <div>
-                <div class="config-label-title" style="color: var(--text-main); font-weight:600;">Notificar os Operadores de Campo por SMS</div>
-                <div class="config-desc">Sempre que uma OS for movida para "Em Andamento", enviar dados da rota para o celular cadastrado do técnico.</div>
-            </div>
-            <label class="switch">
-                <input type="checkbox">
-                <span class="slider"></span>
-            </label>
-        </div>
-
-        <div class="row-switch">
-            <div>
-                <div class="config-label-title" style="color: var(--text-main); font-weight:600;">Confirmação de Conclusão por E-mail</div>
-                <div class="config-desc">Enviar relatório em formato PDF de inspeção técnica finalizado automaticamente para o e-mail do cliente cadastrado.</div>
+                <div style="font-weight: bold; color: var(--text-main);">Disparar Alerta para o Cliente (App)</div>
+                <div style="font-size: 12px; color: var(--text-muted);">Avisa o celular do cliente quando você mover o card para "Em Andamento".</div>
             </div>
             <label class="switch">
                 <input type="checkbox" checked>
@@ -75,33 +37,6 @@
         </div>
     </div>
 
-    <div class="card">
-        <h3 style="margin-bottom: 15px; color: var(--primary);"><i class="fa-solid fa-shield-halved"></i> Parâmetros Técnicos e Limitação</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div class="form-group">
-                <label>Raio de Atendimento Padrão (KM)</label>
-                <select>
-                    <option>Até 15 KM</option>
-                    <option selected>Até 30 KM</option>
-                    <option>Até 50 KM</option>
-                    <option>Sem limites regionais</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Capacidade de Atendimento Diário (Máx de OS simultâneas)</label>
-                <input type="number" value="25">
-            </div>
-        </div>
-    </div>
-
-    <div style="text-align: right; margin-bottom: 40px;">
-        <button class="btn-green" onclick="salvarConfiguracoes()"><i class="fa-solid fa-floppy-disk"></i> APLICAR CONFIGURAÇÕES</button>
-    </div>
-
-    <script>
-        function salvarConfiguracoes() {
-            alert("Parâmetros de Operação atualizados com sucesso no banco de dados corporativo!");
-        }
-    </script>
+    <script src="js/configuracoes.js"></script>
 </body>
 </html>
