@@ -2,32 +2,40 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>PestControlX - Painel</title>
+    <title>PestControlX - Painel Clean Tech</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css"> 
 </head>
 <body>
-    <script src="js/theme.js"></script>
+    <script>
+        // Tema carregado direto no topo para não piscar a tela
+        if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');
+    </script>
 
     <header class="topbar">
-        <h1 style="color: var(--primary); font-size: 20px;"><i class="fa-solid fa-leaf"></i> PestControlX</h1>
-        <div class="profile-pic-top"><i class="fa-solid fa-building" style="color: var(--primary);"></i></div>
+        <div class="topbar-left">
+            <button class="toggle-btn" onclick="toggleMenu()"><i class="fa-solid fa-bars"></i></button>
+            <h1 style="color: var(--primary); font-size: 20px;"><i class="fa-solid fa-leaf"></i> PestControlX</h1>
+        </div>
+        <div class="profile-pic-top" style="width: 35px; height: 35px; border-radius: 50%; border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-building" style="color: var(--primary);"></i></div>
     </header>
 
-    <nav class="sidebar">
+    <nav class="sidebar" id="sidebar">
         <div class="profile-area" style="padding: 15px; text-align: center; border-bottom: 1px solid var(--border-color);">
             <div id="userName" style="font-weight: bold; color: var(--text-main);">Admin</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Operacional</div>
         </div>
         <div class="nav-buttons">
-            <button class="nav-btn active" onclick="navegar(this, 'solicitacoes.html')"><i class="fa-solid fa-list-check"></i> Monitoramento</button>
-            <button class="nav-btn" onclick="navegar(this, 'clientes.html')"><i class="fa-solid fa-users"></i> Clientes</button>
-            <button class="nav-btn" onclick="navegar(this, 'chat.html')"><i class="fa-regular fa-comments"></i> Chat</button>
-            <button class="nav-btn" onclick="navegar(this, 'configuracoestela.html')"><i class="fa-solid fa-gear"></i> Configurações</button>
+            <button class="nav-btn active" onclick="navegar(this, 'solicitacoes.html')"><i class="fa-solid fa-list-check"></i> <span>Monitoramento</span></button>
+            <button class="nav-btn" onclick="navegar(this, 'clientes.html')"><i class="fa-solid fa-users"></i> <span>Clientes</span></button>
+            <button class="nav-btn" onclick="navegar(this, 'chat.html')"><i class="fa-regular fa-comments"></i> <span>Chat ao Vivo</span></button>
+            <button class="nav-btn" onclick="navegar(this, 'sobre.html')"><i class="fa-solid fa-id-card"></i> <span>Sobre a Empresa</span></button>
+            <button class="nav-btn" onclick="navegar(this, 'configuracoestela.html')"><i class="fa-solid fa-gear"></i> <span>Configurações</span></button>
         </div>
-        <button class="logout-btn" onclick="logout()" style="margin-top: auto; color: #E53E3E; background: none; border: none; padding: 15px; cursor: pointer; text-align: left; font-weight: bold;"><i class="fa-solid fa-power-off"></i> SAIR</button>
+        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR DO SISTEMA</span></button>
     </nav>
 
-    <main class="main-content" style="padding: 0;">
+    <main class="main-content" id="mainContent" style="padding: 0;">
         <iframe id="telaExterna" src="solicitacoes.html" style="width: 100%; height: 100%; border: none;"></iframe>
     </main>
 

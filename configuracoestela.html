@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body style="padding: 20px;">
-    <script src="js/theme.js"></script>
+<body style="padding: 25px; background: transparent;">
+    <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');</script>
 
-    <h1 style="margin-bottom: 20px; color: var(--text-main);">Configurações e Preferências</h1>
+    <h1 style="margin-bottom: 20px;">Configurações Avançadas</h1>
 
     <div class="card">
-        <h3 style="color: var(--primary); margin-bottom: 15px;">Aparência do Sistema</h3>
+        <h3 style="color: var(--primary); margin-bottom: 15px;"><i class="fa-solid fa-palette"></i> Aparência do Sistema</h3>
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
             <div>
-                <div style="font-weight: bold; color: var(--text-main);">Modo Escuro (Cyber-Industrial)</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Altera o visual do painel para cores escuras e neon.</div>
+                <div style="font-weight: bold; font-size: 15px;">Modo Escuro (Cyber Dark)</div>
+                <div style="font-size: 13px; color: var(--text-muted);">Altera todo o visual da plataforma para operação noturna.</div>
             </div>
             <label class="switch">
                 <input type="checkbox" id="themeToggle">
@@ -23,20 +24,24 @@
         </div>
     </div>
 
-    <div class="card">
-        <h3 style="color: var(--primary); margin-bottom: 15px;">Notificações PUSH Automáticas</h3>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
-            <div>
-                <div style="font-weight: bold; color: var(--text-main);">Disparar Alerta para o Cliente (App)</div>
-                <div style="font-size: 12px; color: var(--text-muted);">Avisa o celular do cliente quando você mover o card para "Em Andamento".</div>
-            </div>
-            <label class="switch">
-                <input type="checkbox" checked>
-                <span class="slider"></span>
-            </label>
-        </div>
-    </div>
+    <script>
+        const toggle = document.getElementById('themeToggle');
+        
+        if (localStorage.getItem('theme') === 'dark') {
+            toggle.checked = true;
+        }
 
-    <script src="js/configuracoes.js"></script>
+        toggle.addEventListener('change', function() {
+            const temaAtual = this.checked ? 'dark' : 'light';
+            localStorage.setItem('theme', temaAtual);
+            
+            // Muda o próprio iframe
+            if (this.checked) document.body.classList.add('dark-theme');
+            else document.body.classList.remove('dark-theme');
+            
+            // Avisa o dashboard_empresa.html (a casca pai) para mudar o menu também!
+            window.parent.postMessage('toggleTheme', '*');
+        });
+    </script>
 </body>
 </html>

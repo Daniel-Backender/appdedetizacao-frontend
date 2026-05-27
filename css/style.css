@@ -1,4 +1,4 @@
-/* RESET E VARIÁVEIS CLEAN (Padrão Branco) */
+/* RESET E VARIÁVEIS CLEAN TECH */
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
 
 :root {
@@ -10,9 +10,9 @@
     --text-muted: #718096;
     --border-color: #E2E8F0;
     --kanban-col: #EDF2F7;
+    --sidebar-width: 250px;
 }
 
-/* VARIÁVEIS MODO ESCURO (Cyber-Industrial) */
 body.dark-theme {
     --bg-system: #0F0F12;
     --bg-card: #161B26;
@@ -24,7 +24,7 @@ body.dark-theme {
     --kanban-col: #12161F;
 }
 
-body { background-color: var(--bg-system); color: var(--text-main); min-height: 100vh; transition: background-color 0.3s; }
+body { background-color: var(--bg-system); color: var(--text-main); min-height: 100vh; transition: background-color 0.3s, color 0.3s; overflow-x: hidden; }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -33,30 +33,43 @@ body { background-color: var(--bg-system); color: var(--text-main); min-height: 
 
 /* Botoes e Cards Genericos */
 .btn-green { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
-.btn-green:hover { background: var(--primary-hover); }
-.card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px; }
+.btn-green:hover { background: var(--primary-hover); box-shadow: 0 4px 10px rgba(39, 183, 116, 0.3); }
+.card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 20px; }
 
-/* Topbar & Sidebar */
-.topbar { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); }
-.sidebar { width: 250px; height: calc(100vh - 60px); position: fixed; top: 60px; left: 0; padding: 20px 0; background-color: var(--bg-card); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
-.nav-btn { background: none; border: none; padding: 14px 20px; text-align: left; font-size: 14px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; gap: 15px; transition: 0.2s; }
-.nav-btn:hover, .nav-btn.active { background-color: rgba(39, 183, 116, 0.1); color: var(--primary); border-right: 4px solid var(--primary); font-weight: 600; }
-.main-content { margin-left: 250px; margin-top: 60px; padding: 20px; height: calc(100vh - 60px); }
+/* Topbar */
+.topbar { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background-color: var(--bg-card); border-bottom: 1px solid var(--border-color); position: fixed; width: 100%; top: 0; z-index: 1000; }
+.toggle-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--primary); margin-right: 15px; transition: 0.2s; }
+.toggle-btn:hover { transform: scale(1.1); }
+.topbar-left { display: flex; align-items: center; }
+
+/* Sidebar (Menu Retrátil) */
+.sidebar { width: var(--sidebar-width); height: calc(100vh - 60px); position: fixed; top: 60px; left: 0; padding: 20px 0; background-color: var(--bg-card); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; transition: width 0.3s ease; overflow-x: hidden; z-index: 999; }
+.sidebar.collapsed { width: 70px; }
+.sidebar.collapsed .profile-area, .sidebar.collapsed .nav-btn span, .sidebar.collapsed .logout-btn span { display: none; }
+.sidebar.collapsed .nav-btn, .sidebar.collapsed .logout-btn { justify-content: center; padding: 15px 0; }
+
+.nav-buttons { display: flex; flex-direction: column; flex-grow: 1; margin-top: 10px; }
+.nav-btn { background: none; border: none; padding: 15px 20px; text-align: left; font-size: 14px; cursor: pointer; color: var(--text-main); display: flex; align-items: center; gap: 15px; transition: 0.2s; white-space: nowrap; }
+.nav-btn i { font-size: 18px; width: 20px; text-align: center; }
+.nav-btn:hover, .nav-btn.active { background-color: rgba(39, 183, 116, 0.1); color: var(--primary); border-right: 4px solid var(--primary); font-weight: bold; }
+
+.logout-btn { background: none; border: none; color: #E53E3E; padding: 15px 20px; cursor: pointer; text-align: left; font-weight: bold; transition: 0.2s; border-top: 1px solid var(--border-color); display: flex; align-items: center; gap: 15px; white-space: nowrap; }
+.logout-btn:hover { background-color: rgba(229, 62, 62, 0.1); }
+
+/* Main Content */
+.main-content { margin-left: var(--sidebar-width); margin-top: 60px; height: calc(100vh - 60px); transition: margin-left 0.3s ease; }
+.main-content.expanded { margin-left: 70px; }
 
 /* Kanban e OS Cards */
 .kanban-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .kanban-col { background: var(--kanban-col); border-radius: 8px; padding: 15px; min-height: 500px; border: 1px solid var(--border-color); }
 .kanban-header { font-weight: bold; text-align: center; padding: 10px; color: white; border-radius: 6px; margin-bottom: 15px; font-size: 12px; text-transform: uppercase; }
 .badge-danger { background: #E53E3E; } .badge-warning { background: #DD6B20; } .badge-success { background: #38A169; }
-.os-card { background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); margin-bottom: 12px; transition: 0.2s; }
-.os-action-btn { width: 100%; padding: 8px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 10px; transition: 0.2s;}
-.os-action-btn:hover { background: var(--primary); color: white; }
 
-/* Formulários */
-.form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
-label { font-size: 12px; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
-input, select { padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-system); color: var(--text-main); outline: none; }
-input:focus { border-color: var(--primary); }
+.os-card { background: var(--bg-card); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); border-left: 4px solid var(--primary); margin-bottom: 12px; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.os-card:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+.os-action-btn { width: 100%; padding: 8px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 10px; transition: 0.2s; font-size: 11px; text-transform: uppercase;}
+.os-action-btn:hover { background: var(--primary); color: white; }
 
 /* Switch Toggle (Botão ON/OFF) */
 .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
