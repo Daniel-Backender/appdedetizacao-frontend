@@ -4,41 +4,158 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3DDC84;
+            --primary-glow: rgba(61, 220, 132, 0.15);
+            --bg-dark: #0F0F12;
+            --surface: #161B26;
+            --border: #2D3748;
+            --text-main: #FFFFFF;
+            --text-muted: #A0AEC0;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--text-main);
+            margin: 0;
+            padding: 25px;
+            background: transparent;
+        }
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 30px;
+        }
+        .tech-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .tech-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+        .preview-box {
+            background: rgba(15, 15, 18, 0.6);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            min-height: 140px;
+            line-height: 1.6;
+            color: #E2E8F0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .tech-input, .tech-textarea {
+            width: 100%;
+            background: #0F0F12;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #fff;
+            padding: 12px;
+            box-sizing: border-box;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        .tech-input:focus, .tech-textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+        .btn-sync {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+        .btn-sync:hover {
+            box-shadow: 0 0 15px var(--primary);
+            transform: translateY(-1px);
+        }
+        .char-count {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 4px;
+        }
+    </style>
 </head>
-<body style="padding: 25px; background: transparent;">
+<body>
     <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');</script>
 
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
-        <h1 style="color: var(--text-main); font-size: 24px;"><i class="fa-solid fa-building-circle-gear" style="color:var(--primary)"></i> Perfil Institucional da Empresa</h1>
+    <div class="header-container">
+        <h1 style="font-size: 24px; margin: 0; display: flex; align-items: center; gap: 12px;">
+            <i class="fa-solid fa-building-circle-gear" style="color:var(--primary)"></i> Perfil Institucional da Empresa
+        </h1>
         <span id="statusSalvar" style="font-weight: 600; font-size: 14px;"></span>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
-        <div class="card" style="text-align: center; border-top: 4px solid var(--primary);">
-            <i class="fa-solid fa-shield-virus" style="font-size: 45px; color: var(--primary); margin-bottom: 15px;"></i>
-            <h2 id="viewNome" style="margin-bottom: 5px; font-size: 20px;">PestControlX</h2>
-            <div id="viewCnpj" style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">CNPJ: 00.000.000/0001-00</div>
+    <div class="main-grid">
+        <div class="tech-card" style="text-align: center;">
+            <i class="fa-solid fa-shield-virus" style="font-size: 50px; color: var(--primary); margin-bottom: 15px; filter: drop-shadow(0 0 8px var(--primary));"></i>
+            <h2 id="viewNome" style="margin: 0 0 5px 0; font-size: 22px; letter-spacing: 0.5px;">PestControlX</h2>
+            <div id="viewCnpj" style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">CNPJ: 00.000.000/0001-00</div>
             
-            <p id="viewSobre" style="color: var(--text-main); font-size: 14px; line-height: 1.6; background: var(--kanban-col); padding: 15px; border-radius: 8px; min-height: 120px; text-align: left;">
+            <div style="text-align: left; font-size: 12px; color: var(--primary); font-weight: bold; text-transform: uppercase;">Preview no Aplicativo:</div>
+            <div id="viewSobre" class="preview-box">
                 Carregando descrição oficial do banco de dados...
-            </p>
+            </div>
         </div>
 
-        <div class="card">
-            <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--primary);"><i class="fa-solid fa-pen-to-square"></i> Atualizar Informações da Central</h3>
+        <div class="tech-card">
+            <h3 style="margin: 0 0 20px 0; font-size: 16px; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-pen-to-square"></i> Atualizar Informações da Central
+            </h3>
             
             <form id="formSobre" onsubmit="salvarDadosEmpresa(event)">
                 <div class="form-group">
-                    <label>Descrição Institucional (Aparece no App)</label>
-                    <textarea id="inputSobre" rows="4" placeholder="Escreva o texto sobre as certificações e serviços da empresa..."></textarea>
+                    <label for="inputSobre">Descrição Institucional (Aparece no App)</label>
+                    <textarea id="inputSobre" class="tech-textarea" rows="4" maxlength="600" placeholder="Escreva o texto sobre as certificações e serviços da empresa..." oninput="atualizarContador()"></textarea>
+                    <div id="counter" class="char-count">0 / 600 caracteres</div>
                 </div>
 
                 <div class="form-group">
-                    <label><i class="fa-regular fa-comment-dots"></i> Mensagem Automática de Boas-Vindas</label>
-                    <input type="text" id="inputWelcome" placeholder="Ex: Olá! Recebemos sua solicitação. Um técnico entrará em contato em breve.">
+                    <label for="inputWelcome"><i class="fa-regular fa-comment-dots"></i> Mensagem Automática de Boas-Vindas</label>
+                    <input type="text" id="inputWelcome" class="tech-input" placeholder="Ex: Olá! Recebemos sua solicitação. Um técnico entrará em contato em breve.">
                 </div>
 
-                <button type="submit" class="btn-green" style="width: 100%; justify-content: center;">
+                <button type="submit" class="btn-sync">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar com o Aplicativo
                 </button>
             </form>
@@ -47,9 +164,13 @@
 
     <script>
         const API_URL = "https://appdedetizacao.onrender.com";
-        // CORREÇÃO CRÍTICA DO TOKEN: Puxa exatamente a chave padrão do seu sistema
         const token = localStorage.getItem("token") || localStorage.getItem("meu_token_chave");
         const empresaId = localStorage.getItem("empresaId") || "1";
+
+        function atualizarContador() {
+            const len = document.getElementById("inputSobre").value.length;
+            document.getElementById("counter").innerText = `${len} / 600 caracteres`;
+        }
 
         async function carregarDadosEmpresa() {
             try {
@@ -62,12 +183,12 @@
                     document.getElementById("viewCnpj").innerText = "CNPJ: " + (emp.cnpj || "Sem CNPJ cadastrado");
                     document.getElementById("viewSobre").innerText = emp.sobre || "Nenhuma descrição informada.";
                     document.getElementById("inputSobre").value = emp.sobre || "";
+                    atualizarContador();
                 }
             } catch (err) {
                 console.error("Erro ao conectar com a API", err);
             }
 
-            // Carrega mensagem de boas vindas local ou da configuração
             const welcomeSalva = localStorage.getItem(`welcomeMsg_${empresaId}`) || "Olá! Seu chamado de controle de pragas foi recebido e está na fila de atendimento.";
             document.getElementById("inputWelcome").value = welcomeSalva;
         }
@@ -82,22 +203,19 @@
             const welcomeMsg = document.getElementById("inputWelcome").value;
 
             try {
-                // Envia as atualizações via PUT para salvar na nuvem e atualizar o Android
                 const response = await fetch(`${API_URL}/api/empresas/${empresaId}`, {
                     method: 'PUT',
                     headers: { 
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ 
-                        sobre: textoSobre
-                    })
+                    body: JSON.stringify({ sobre: textoSobre })
                 });
 
                 if(response.ok) {
                     localStorage.setItem(`welcomeMsg_${empresaId}`, welcomeMsg);
                     statusLabel.innerText = "✓ Sincronizado com Sucesso!";
-                    statusLabel.style.color = "var(--primary)";
+                    statusLabel.style.color = "#3DDC84";
                     document.getElementById("viewSobre").innerText = textoSobre;
                 } else {
                     statusLabel.innerText = "Erro ao salvar (HTTP " + response.status + ")";
@@ -109,7 +227,6 @@
             }
         }
 
-        // Inicializa ao abrir a tela
         carregarDadosEmpresa();
     </script>
 </body>
