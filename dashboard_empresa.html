@@ -4,46 +4,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PestControlX - Painel de Controle</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="css/style.css"> 
 </head>
-<body class="dark-theme">
+<body>
 
     <header class="topbar">
         <div class="topbar-left">
-            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
-            <h1 class="topbar-company-name">PestControlX Operations</h1>
+            <h1 class="topbar-company-name"><i class="fa-solid fa-leaf" style="color: var(--primary);"></i> PestControlX Operations</h1>
         </div>
         <div class="topbar-right">
-            <div class="profile-pic-top"><i class="fa-solid fa-building text-glow-neon"></i></div>
+            <div class="profile-pic-top"><i class="fa-solid fa-building" style="color: var(--primary);"></i></div>
         </div>
     </header>
 
     <nav class="sidebar" id="app-sidebar">
         <div class="profile-area">
             <div class="profile-name" id="userName">Carregando...</div>
-            <div class="profile-role">Adminstrador</div>
+            <div class="profile-role">Administrador do Painel</div>
         </div>
 
         <div class="nav-buttons">
+            <button class="nav-btn active" onclick="mostrarSecaoDashboard()"><i class="fa-solid fa-list-check"></i> <span>Monitoramento (OS)</span></button>
             <button class="nav-btn" onclick="navegarIframe('clientes.html', this)"><i class="fa-solid fa-users"></i> <span>Clientes</span></button>
-            <button class="nav-btn active" onclick="mostrarSecaoDashboard()"><i class="fa-solid fa-list-check"></i> <span>Solicitações (OS)</span></button>
             <button class="nav-btn" onclick="navegarIframe('chat.html', this)"><i class="fa-regular fa-comments"></i> <span>Central de Chat</span></button>
+            <button class="nav-btn" onclick="navegarIframe('configuracoestela.html', this)"><i class="fa-solid fa-gear"></i> <span>Configurações</span></button>
         </div>
 
-        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR</span></button>
+        <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-power-off"></i> <span>SAIR DO SISTEMA</span></button>
     </nav>
 
     <main class="main-content" id="app-main-content">
         
         <section id="solicitacoes" class="section-view active">
             <div class="section-header-block">
-                <h1>Monitoramento de Operações</h1>
-                <span class="text-glow-neon"><i class="fa-solid fa-circle-nodes"></i> Conexão DB Ativa</span>
+                <h1>Painel de Monitoramento de Campo</h1>
+                <span style="color: var(--primary); font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Sincronizado com Render</span>
             </div>
             
             <div class="kanban-board">
@@ -63,7 +59,7 @@
         </section>
 
         <section id="iframe-container" class="section-view" style="display: none; padding: 0;">
-            <iframe id="telaExterna" src="" style="width: 100%; height: calc(100vh - 80px); border: none;"></iframe>
+            <iframe id="telaExterna" src="" style="width: 100%; height: calc(100vh - 110px); border: none; border-radius: 8px;"></iframe>
         </section>
 
     </main>
@@ -72,64 +68,58 @@
         const API_URL = "https://appdedetizacao.onrender.com";
         const token = localStorage.getItem("tokenJWT") || localStorage.getItem("token");
 
-        if (!token) {
-            window.location.href = "index.html";
-        }
+        if (!token) { window.location.href = "index.html"; }
 
         document.addEventListener("DOMContentLoaded", () => {
-            const email = localStorage.getItem("userEmail") || "Admin";
+            const email = localStorage.getItem("userEmail") || "Admin Corporativo";
             document.getElementById("userName").innerText = email;
             carregarOrdensDoServidor();
-            // Atualiza as ordens sozinho a cada 30 segundos
-            setInterval(carregarOrdensDoServidor, 30000); 
+            setInterval(carregarOrdensDoServidor, 15000); // Sincroniza mais rápido (15s)
         });
 
-        // Controle de Exibição (Alterna entre o Kanban e o iFrame com as outras telas)
         function navegarIframe(url, btnElement) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
-            
-            document.getElementById('solicitacoes').classList.remove('active');
             document.getElementById('solicitacoes').style.display = 'none';
-            
             const container = document.getElementById('iframe-container');
             container.style.display = 'block';
-            container.classList.add('active');
-            
             document.getElementById('telaExterna').src = url;
         }
 
         function mostrarSecaoDashboard() {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector('.nav-btn[onclick="mostrarSecaoDashboard()"]').classList.add('active');
-
+            document.querySelector('.nav-btn:first-child').classList.add('active');
             document.getElementById('iframe-container').style.display = 'none';
-            
-            const secaoSol = document.getElementById('solicitacoes');
-            secaoSol.style.display = 'block';
-            secaoSol.classList.add('active');
-            
-            carregarOrdensDoServidor(); // Recarrega os dados ao abrir
+            document.getElementById('solicitacoes').style.display = 'block';
+            carregarOrdensDoServidor();
         }
 
-        // Requisição Real para a API de Ordens de Serviço
         async function carregarOrdensDoServidor() {
             try {
                 const response = await fetch(`${API_URL}/api/solicitacoes`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 if (!response.ok) return;
                 const ordens = await response.json();
                 
                 document.querySelectorAll('.os-cards-container').forEach(el => el.innerHTML = '');
 
                 ordens.forEach(os => {
+                    let btnAcao = '';
+                    if (os.status === 'PENDENTE') {
+                        btnAcao = `<button class="os-action-btn" onclick="atualizarStatusOS(${os.id}, 'EM_ANDAMENTO')">Aceitar Chamado</button>`;
+                    } else if (os.status === 'EM_ANDAMENTO') {
+                        btnAcao = `<button class="os-action-btn" onclick="atualizarStatusOS(${os.id}, 'CONCLUIDA')">Finalizar Serviço</button>`;
+                    } else {
+                        btnAcao = `<span style="color:var(--primary); font-size:11px; font-weight:bold;"><i class="fa-solid fa-check-double"></i> OS Arquivada</span>`;
+                    }
+
                     const card = `
-                        <div class="os-card" style="border: 1px solid #333; background: #1a1a1a; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
-                            <h4 style="color: #3DDC84; margin-top:0;">#${os.id} - ${os.descricao}</h4>
-                            <p style="color: #ccc; font-size: 13px;">Cliente: ${os.clienteNome || 'Desconhecido'}</p>
-                            <p style="color: #888; font-size: 12px; margin-bottom: 0;">Data: ${os.dataAgendamento || 'Não agendado'}</p>
+                        <div class="os-card">
+                            <h4>#${os.id} - ${os.descricao}</h4>
+                            <p><strong>Cliente:</strong> ${os.clienteNome || 'App Local User'}</p>
+                            <p><strong>Agendamento:</strong> ${os.dataAgendamento || 'Data Padrão'}</p>
+                            <div style="margin-top:10px;">${btnAcao}</div>
                         </div>
                     `;
                     
@@ -142,7 +132,28 @@
                     }
                 });
             } catch (e) {
-                console.error("Falha ao sincronizar OS com o servidor:", e);
+                console.error("Erro na sincronização:", e);
+            }
+        }
+
+        // FUNÇÃO REAL PARA ALTERAR STATUS DIRETAMENTE NO BACKEND RENDER
+        async function atualizarStatusOS(id, novoStatus) {
+            try {
+                const response = await fetch(`${API_URL}/api/ordens/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+                if(response.ok) {
+                    carregarOrdensDoServidor();
+                } else {
+                    alert("Falha ao atualizar ordem de serviço no servidor.");
+                }
+            } catch(err) {
+                console.error("Erro ao atualizar OS:", err);
             }
         }
 
