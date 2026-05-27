@@ -29,8 +29,9 @@
     </div>
 
     <script>
-        const API_URL = "https://appdedetizacao.onrender.com/api/solicitacoes"; // Verifique se é /solicitacoes ou /ordens no seu Spring Boot
-        const token = localStorage.getItem("tokenJWT") || localStorage.getItem("token");
+        const API_URL = "https://appdedetizacao.onrender.com/api/solicitacoes";
+   
+        const token = localStorage.getItem("token") || localStorage.getItem("meu_token_chave");
 
         async function carregarOrdens() {
             try {

@@ -1,6 +1,17 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const email = localStorage.getItem("userEmail") || "Administrador";
-    document.getElementById("userName").innerText = email;
+    // Busca dados reais gravados na autenticação
+    const email = localStorage.getItem("userEmail") || "central@pestcontrolx.com";
+    const nome = localStorage.getItem("empresaNome") || "PestControlX Matriz";
+    
+    document.getElementById("userName").innerText = nome;
+    document.getElementById("userEmail").innerText = email;
+
+    // Carrega foto de perfil do cache se existir
+    const fotoSalva = localStorage.getItem("pfpBase64");
+    if(fotoSalva) {
+        document.getElementById("imgPfpSidebar").src = fotoSalva;
+        document.getElementById("imgPfpTopbar").src = fotoSalva;
+    }
 });
 
 function navegar(btnElement, url) {
@@ -9,10 +20,22 @@ function navegar(btnElement, url) {
     document.getElementById('telaExterna').src = url;
 }
 
-// A mágica do Menu Retrátil Clean Tech
 function toggleMenu() {
     document.getElementById('sidebar').classList.toggle('collapsed');
     document.getElementById('mainContent').classList.toggle('expanded');
+}
+
+function uploadFotoPerfil(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64 = e.target.result;
+            localStorage.setItem("pfpBase64", base64);
+            document.getElementById("imgPfpSidebar").src = base64;
+            document.getElementById("imgPfpTopbar").src = base64;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 
 function logout() {
@@ -20,7 +43,6 @@ function logout() {
     window.location.href = "index.html";
 }
 
-// Ouve quando a página de configurações muda o tema e aplica no painel pai
 window.addEventListener('message', function(event) {
     if (event.data === 'toggleTheme') {
         document.body.classList.toggle('dark-theme');

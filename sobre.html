@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body style="padding: 25px; background: transparent;">
+    <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');</script>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px;">
+        <h1 style="color: var(--text-main); font-size: 24px;"><i class="fa-solid fa-building-circle-gear" style="color:var(--primary)"></i> Perfil Institucional da Empresa</h1>
+        <span id="statusSalvar" style="font-weight: 600; font-size: 14px;"></span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+        <div class="card" style="text-align: center; border-top: 4px solid var(--primary);">
+            <i class="fa-solid fa-shield-virus" style="font-size: 45px; color: var(--primary); margin-bottom: 15px;"></i>
+            <h2 id="viewNome" style="margin-bottom: 5px; font-size: 20px;">PestControlX</h2>
+            <div id="viewCnpj" style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">CNPJ: 00.000.000/0001-00</div>
+            
+            <p id="viewSobre" style="color: var(--text-main); font-size: 14px; line-height: 1.6; background: var(--kanban-col); padding: 15px; border-radius: 8px; min-height: 120px; text-align: left;">
+                Carregando descrição oficial do banco de dados...
+            </p>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 15px; font-size: 16px; color: var(--primary);"><i class="fa-solid fa-pen-to-square"></i> Atualizar Informações da Central</h3>
+            
+            <form id="formSobre" onsubmit="salvarDadosEmpresa(event)">
+                <div class="form-group">
+                    <label>Descrição Institucional (Aparece no App)</label>
+                    <textarea id="inputSobre" rows="4" placeholder="Escreva o texto sobre as certificações e serviços da empresa..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-regular fa-comment-dots"></i> Mensagem Automática de Boas-Vindas</label>
+                    <input type="text" id="inputWelcome" placeholder="Ex: Olá! Recebemos sua solicitação. Um técnico entrará em contato em breve.">
+                </div>
+
+                <button type="submit" class="btn-green" style="width: 100%; justify-content: center;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Sincronizar com o Aplicativo
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://appdedetizacao.onrender.com";
+        // CORREÇÃO CRÍTICA DO TOKEN: Puxa exatamente a chave padrão do seu sistema
+        const token = localStorage.getItem("token") || localStorage.getItem("meu_token_chave");
+        const empresaId = localStorage.getItem("empresaId") || "1";
+
+        async function carregarDadosEmpresa() {
+            try {
+                const response = await fetch(`${API_URL}/api/empresas/${empresaId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if(response.ok) {
+                    const emp = await response.json();
+                    document.getElementById("viewNome").innerText = emp.nome || "PestControlX";
+                    document.getElementById("viewCnpj").innerText = "CNPJ: " + (emp.cnpj || "Sem CNPJ cadastrado");
+                    document.getElementById("viewSobre").innerText = emp.sobre || "Nenhuma descrição informada.";
+                    document.getElementById("inputSobre").value = emp.sobre || "";
+                }
+            } catch (err) {
+                console.error("Erro ao conectar com a API", err);
+            }
+
+            // Carrega mensagem de boas vindas local ou da configuração
+            const welcomeSalva = localStorage.getItem(`welcomeMsg_${empresaId}`) || "Olá! Seu chamado de controle de pragas foi recebido e está na fila de atendimento.";
+            document.getElementById("inputWelcome").value = welcomeSalva;
+        }
+
+        async function salvarDadosEmpresa(e) {
+            e.preventDefault();
+            const statusLabel = document.getElementById("statusSalvar");
+            statusLabel.innerText = "Sincronizando...";
+            statusLabel.style.color = "orange";
+
+            const textoSobre = document.getElementById("inputSobre").value;
+            const welcomeMsg = document.getElementById("inputWelcome").value;
+
+            try {
+                // Envia as atualizações via PUT para salvar na nuvem e atualizar o Android
+                const response = await fetch(`${API_URL}/api/empresas/${empresaId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        sobre: textoSobre
+                    })
+                });
+
+                if(response.ok) {
+                    localStorage.setItem(`welcomeMsg_${empresaId}`, welcomeMsg);
+                    statusLabel.innerText = "✓ Sincronizado com Sucesso!";
+                    statusLabel.style.color = "var(--primary)";
+                    document.getElementById("viewSobre").innerText = textoSobre;
+                } else {
+                    statusLabel.innerText = "Erro ao salvar (HTTP " + response.status + ")";
+                    statusLabel.style.color = "red";
+                }
+            } catch(err) {
+                statusLabel.innerText = "Erro na conexão de rede.";
+                statusLabel.style.color = "red";
+            }
+        }
+
+        // Inicializa ao abrir a tela
+        carregarDadosEmpresa();
+    </script>
+</body>
+</html>
