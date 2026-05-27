@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PestControlX - Central de Monitoramento</title>
+    <style>
+        :root {
+            --bg-principal: #0b0f19;
+            --bg-card: #161b22;
+            --neon-verde: #00ff88;
+            --neon-azul: #00e1ff;
+            --texto-claro: #f0f6fc;
+            --texto-escuro: #8b949e;
+            --borda: #30363d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-principal);
+            color: var(--texto-claro);
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--borda);
+            padding-bottom: 20px;
+        }
+
+        header h1 {
+            color: var(--neon-verde);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+        }
+
+        header p {
+            color: var(--texto-escuro);
+            margin-top: 5px;
+        }
+
+        .container-fluxo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) 350px;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .coluna-kanban {
+            background-color: rgba(22, 27, 34, 0.5);
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 500px;
+        }
+
+        .coluna-kanban h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--borda);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .pendente h2 { color: #ff4560; border-color: #ff4560; }
+        .andamento h2 { color: var(--neon-azul); border-color: var(--neon-azul); }
+        .concluido h2 { color: var(--neon-verde); border-color: var(--neon-verde); }
+
+        .lista-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .card-chamado {
+            background-color: var(--bg-card);
+            border: 1px solid var(--borda);
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .card-chamado:hover {
+            transform: translateY(-3px);
+            border-color: var(--neon-azul);
+            box-shadow: 0 5px 15px rgba(0, 225, 255, 0.1);
+        }
+
+        .card-chamado h3 {
+            font-size: 1rem;
+            color: var(--texto-claro);
+            margin-bottom: 5px;
+        }
+
+        .card-chamado p {
+            font-size: 0.9rem;
+            color: var(--texto-escuro);
+        }
+
+        .btn-mover {
+            margin-top: 10px;
+            background: transparent;
+            border: 1px solid var(--neon-azul);
+            color: var(--neon-azul);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+
+        .btn-mover:hover {
+            background-color: var(--neon-azul);
+            color: var(--bg-principal);
+        }
+
+        /* Central de Chat WhatsApp Comercial Estilo */
+        .painel-chat {
+            background-color: var(--bg-card);
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-bottom: 1px solid var(--borda);
+            font-weight: bold;
+            color: var(--neon-verde);
+        }
+
+        .chat-mensagens {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 0.95rem;
+        }
+
+        .msg {
+            padding: 10px;
+            border-radius: 6px;
+            max-width: 80%;
+        }
+        .msg.cliente { background-color: #21262d; align-self: flex-start; }
+        .msg.empresa { background-color: #0e4429; align-self: flex-end; border-left: 3px solid var(--neon-verde); }
+
+        .respostas-prontas {
+            padding: 10px;
+            border-top: 1px solid var(--borda);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .respostas-prontas p {
+            font-size: 0.8rem;
+            color: var(--texto-escuro);
+        }
+
+        .container-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            background-color: #21262d;
+            border: 1px solid var(--borda);
+            color: var(--texto-claro);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .chip:hover {
+            border-color: var(--neon-verde);
+            color: var(--neon-verde);
+            background-color: rgba(0, 255, 136, 0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>PESTCONTROLX</h1>
+        <p>Dashboard Operacional da Conta Comercial</p>
+    </header>
+
+    <div class="container-fluxo">
+        
+        <div class="coluna-kanban pendente">
+            <h2>Pendentes <span id="qtd-pendente">0</span></h2>
+            <div class="lista-cards" id="lista-pendentes">
+                </div>
+        </div>
+
+        <div class="coluna-kanban andamento">
+            <h2>Em Atendimento <span id="qtd-andamento">0</span></h2>
+            <div class="lista-cards" id="lista-andamento">
+                </div>
+        </div>
+
+        <div class="painel-chat">
+            <div class="chat-header" id="chat-titulo">Selecione um Chamado</div>
+            <div class="chat-mensagens" id="chat-corpo">
+                <p style="color: var(--texto-escuro); text-align: center; margin-top: 40px;">Clique em um chamado para abrir o canal direto.</p>
+            </div>
+            
+            <div class="respostas-prontas">
+                <p>⚡ Respostas Rápidas (WhatsApp Style):</p>
+                <div class="container-chips">
+                    <button class="chip" onclick="enviarMensagemRapida('Olá! Recebemos o seu chamado e o técnico já está avaliando o caso.')">Confirmar Chamado</button>
+                    <button class="chip" onclick="enviarMensagemRapida('Qual o melhor período (Manhã/Tarde) para realizarmos a aplicação?')">Agendar Período</button>
+                    <button class="chip" onclick="enviarMensagemRapida('Obrigado pela preferência! Serviço concluído com sucesso e garantia emitida.')">Finalizar Serviço</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api/solicitacoes';
+        let chamadoAtivo = null;
+
+        // 1. Busca os chamados do seu backend Spring Boot em tempo real
+        async function carregarChamados() {
+            try {
+                const resposta = await fetch(API_URL);
+                const chamados = await resposta.json();
+                
+                const listaPendentes = document.getElementById('lista-pendentes');
+                const listaAndamento = document.getElementById('lista-andamento');
+                
+                listaPendentes.innerHTML = '';
+                listaAndamento.innerHTML = '';
+
+                let qtdP = 0, qtdA = 0;
+
+                chamados.forEach(os => {
+                    const card = document.createElement('div');
+                    card.className = 'card-chamado';
+                    card.onclick = () => abrirChat(os);
+                    
+                    card.innerHTML = `
+                        <h3>${os.nomeCliente || 'Cliente Anonimo'}</h3>
+                        <p>${os.descricao}</p>
+                        <button class="btn-mover" onclick="moverStatus(${os.id}, '${os.status}', event)">
+                            ${os.status === 'PENDENTE' ? 'Aprovar Atendimento ➔' : 'Concluir Serviço ✓'}
+                        </button>
+                    `;
+
+                    if (os.status === 'PENDENTE') {
+                        listaPendentes.appendChild(card);
+                        qtdP++;
+                    } else {
+                        listaAndamento.appendChild(card);
+                        qtdA++;
+                    }
+                });
+
+                document.getElementById('qtd-pendente').innerText = qtdP;
+                document.getElementById('qtd-andamento').innerText = qtdA;
+
+            } catch (erro) {
+                console.error("Erro ao conectar no Spring Boot: ", erro);
+            }
+        }
+
+        // 2. Transiciona o status atualizando no banco via PUT
+        async function moverStatus(id, statusAtual, evento) {
+            evento.stopPropagation(); // Impede de abrir o chat ao clicar no botão
+            const novoStatus = statusAtual === 'PENDENTE' ? 'ACEITO' : 'CONCLUIDO';
+            
+            try {
+                // Monta a requisição simulando a atualização do objeto OrdemDeServico no seu banco
+                await fetch(`${API_URL}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: novoStatus })
+                });
+                
+                carregarChamados();
+                if(chamadoAtivo && chamadoAtivo.id === id) {
+                    document.getElementById('chat-titulo').innerText = "Selecione um Chamado";
+                    document.getElementById('chat-corpo').innerHTML = '<p style="color: var(--texto-escuro); text-align: center; margin-top: 40px;">Chamado atualizado.</p>';
+                    chamadoAtivo = null;
+                }
+            } catch (erro) {
+                alert("Erro ao mudar status do chamado.");
+            }
+        }
+
+        // 3. Abre a visualização da central de conversação
+        function abrirChat(os) {
+            chamadoAtivo = os;
+            document.getElementById('chat-titulo').innerText = `Atendendo: ${os.nomeCliente || 'App Cliente'}`;
+            
+            const corpo = document.getElementById('chat-corpo');
+            corpo.innerHTML = `
+                <div class="msg cliente">
+                    <strong>Problema relatado:</strong><br>${os.descricao}
+                </div>
+            `;
+        }
+
+        // 4. Dispara a resposta rápida simulando o painel comercial
+        function enviarMensagemRapida(texto) {
+            if (!chamadoAtivo) {
+                alert("Selecione um chamado ativo na lista primeiro!");
+                return;
+            }
+            const corpo = document.getElementById('chat-corpo');
+            const novaMsg = document.createElement('div');
+            novaMsg.className = 'msg empresa';
+            novaMsg.innerHTML = `<strong>Central:</strong><br>${texto}`;
+            corpo.appendChild(novaMsg);
+            corpo.scrollTop = corpo.scrollHeight;
+        }
+
+        // Carrega as informações ao abrir a página e atualiza a cada 5 segundos
+        carregarChamados();
+        setInterval(carregarChamados, 5000);
+    </script>
+</body>
+</html>
