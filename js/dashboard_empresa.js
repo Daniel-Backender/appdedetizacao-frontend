@@ -1,28 +1,40 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Busca dados reais gravados na autenticação
+    // Busca dados reais gravados na autenticação corporativa
     const email = localStorage.getItem("userEmail") || "central@pestcontrolx.com";
     const nome = localStorage.getItem("empresaNome") || "PestControlX Matriz";
     
-    document.getElementById("userName").innerText = nome;
-    document.getElementById("userEmail").innerText = email;
+    if (document.getElementById("userName")) {
+        document.getElementById("userName").innerText = nome;
+    }
+    if (document.getElementById("userEmail")) {
+        document.getElementById("userEmail").innerText = email;
+    }
 
     // Carrega foto de perfil do cache se existir
     const fotoSalva = localStorage.getItem("pfpBase64");
     if(fotoSalva) {
-        document.getElementById("imgPfpSidebar").src = fotoSalva;
-        document.getElementById("imgPfpTopbar").src = fotoSalva;
+        if(document.getElementById("imgPfpSidebar")) document.getElementById("imgPfpSidebar").src = fotoSalva;
+        if(document.getElementById("imgPfpTopbar")) document.getElementById("imgPfpTopbar").src = fotoSalva;
     }
 });
 
+// Sistema de navegação por iframes internos das telas
 function navegar(btnElement, url) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    btnElement.classList.add('active');
-    document.getElementById('telaExterna').src = url;
+    if (btnElement) btnElement.classList.add('active');
+    
+    const telaExterna = document.getElementById('telaExterna');
+    if (telaExterna) {
+        telaExterna.src = url;
+    }
 }
 
 function toggleMenu() {
-    document.getElementById('sidebar').classList.toggle('collapsed');
-    document.getElementById('mainContent').classList.toggle('expanded');
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('mainContent');
+    
+    if (sidebar) sidebar.classList.toggle('collapsed');
+    if (mainContent) mainContent.classList.toggle('expanded');
 }
 
 function uploadFotoPerfil(input) {
@@ -31,13 +43,14 @@ function uploadFotoPerfil(input) {
         reader.onload = function(e) {
             const base64 = e.target.result;
             localStorage.setItem("pfpBase64", base64);
-            document.getElementById("imgPfpSidebar").src = base64;
-            document.getElementById("imgPfpTopbar").src = base64;
+            if(document.getElementById("imgPfpSidebar")) document.getElementById("imgPfpSidebar").src = base64;
+            if(document.getElementById("imgPfpTopbar")) document.getElementById("imgPfpTopbar").src = base64;
         }
         reader.readAsDataURL(input.files[0]);
     }
 }
 
+// Limpeza segura dos tokens corporativos ao deslogar
 function logout() {
     localStorage.clear();
     window.location.href = "index.html";
