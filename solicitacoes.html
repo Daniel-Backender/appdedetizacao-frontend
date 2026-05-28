@@ -98,7 +98,7 @@
     <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');</script>
 
     <div class="top-bar">
-        <h1 style="font-size: 24px; margin:0;"><i class="fa-solid fa-columns" style="color: var(--primary)"></i> Painel de Solicitações (Mapeamento)</h1>
+        <h1 style="font-size: 24px; margin:0;"><i class="fa-solid fa-columns" style="color: var(--primary)"></i> Painel de Solicitações</h1>
         <button class="btn-refresh" onclick="carregarOrdens()">
             <i class="fa-solid fa-rotate-right"></i> Sincronizar Central
         </button>
@@ -131,13 +131,33 @@
     </div>
 
     <script>
-        const API_URL = "https://appdedetizacao.onrender.com/api/solicitacoes";
-        const token = localStorage.getItem("token") || localStorage.getItem("meu_token_chave");
+        const API_URL = "https://appdedetizacao.onrender.com/api";
+
+        // 🚀 FUNÇÃO BLINDADA: Tenta puxar o token de qualquer chave que o seu sistema use!
+        function obterTokenSeguro() {
+            return localStorage.getItem("TOKEN_AUTH") || 
+                   localStorage.getItem("token") || 
+                   localStorage.getItem("token_usuario") || 
+                   localStorage.getItem("meu_token_chave");
+        }
 
         async function carregarOrdens() {
             try {
-                const response = await fetch(API_URL, { headers: { 'Authorization': `Bearer ${token}` } });
+                const token = obterTokenSeguro();
+                const response = await fetch(`${API_URL}/solicitacoes`, { 
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    } 
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    console.error("Sessão expirada. O token é inválido ou nulo.");
+                    return;
+                }
                 if (!response.ok) return;
+                
                 const ordens = await response.json();
                 
                 document.getElementById('col-pendentes').innerHTML = '';
@@ -148,10 +168,10 @@
 
                 ordens.forEach(os => {
                     let btnAcao = '';
-                    if (os.status === 'PENDENTE') {
+                    if (os.status === 'PENDENTE' || os.status === 'NOVAS') {
                         cp++;
                         btnAcao = `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'EM_ANDAMENTO')"><i class="fa-solid fa-forward"></i> Aprovar Chamado</button>`;
-                    } else if (os.status === 'EM_ANDAMENTO') {
+                    } else if (os.status === 'EM_ANDAMENTO' || os.status === 'EM_ATENDIMENTO') {
                         ca++;
                         btnAcao = `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'CONCLUIDA')"><i class="fa-solid fa-check"></i> Finalizar Serviço</button>`;
                     } else {
@@ -159,22 +179,26 @@
                         btnAcao = `<div style="text-align: center; color: var(--primary); font-weight: bold; font-size: 11px; margin-top: 12px; letter-spacing: 0.5px;"><i class="fa-solid fa-check-double"></i> OS ARQUIVADA</div>`;
                     }
 
+                    // Corrige a leitura do JSON do Java eliminando os "undefined"
+                    const descricaoCard = os.descricao || os.description || os.texto || "Sem descrição informada";
+                    const nomeCliente = os.clienteNome || os.cliente || "App Mobile";
+
                     const card = `
                         <div class="os-card">
                             <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:8px;">
                                 <span>REGISTRO #${os.id}</span>
                                 <span style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-bug"></i> INSPEÇÃO</span>
                             </div>
-                            <h4 style="color: #fff; margin: 0 0 8px 0; font-size: 14px; font-weight:600; line-height:1.4;">${os.descricao}</h4>
+                            <h4 style="color: #fff; margin: 0 0 8px 0; font-size: 14px; font-weight:600; line-height:1.4;">${descricaoCard}</h4>
                             <p style="color: var(--text-muted); font-size: 12px; margin: 0;">
-                                <strong style="color:#fff;">Cliente:</strong> ${os.clienteNome || 'App Mobile'}
+                                <strong style="color:#fff;">Cliente:</strong> ${nomeCliente}
                             </p>
                             ${btnAcao}
                         </div>
                     `;
                     
-                    if (os.status === 'PENDENTE') document.getElementById('col-pendentes').innerHTML += card;
-                    else if (os.status === 'EM_ANDAMENTO') document.getElementById('col-campo').innerHTML += card;
+                    if (os.status === 'PENDENTE' || os.status === 'NOVAS') document.getElementById('col-pendentes').innerHTML += card;
+                    else if (os.status === 'EM_ANDAMENTO' || os.status === 'EM_ATENDIMENTO') document.getElementById('col-campo').innerHTML += card;
                     else document.getElementById('col-concluidas').innerHTML += card;
                 });
 
@@ -183,27 +207,44 @@
                 document.getElementById("count-concluidas").innerText = cc;
 
             } catch (e) {
-                console.error("Erro de Rede:", e);
+                console.error("Erro de Rede ao carregar ordens:", e);
             }
         }
 
         async function atualizarStatus(id, novoStatus) {
             try {
-                const response = await fetch(`https://appdedetizacao.onrender.com/api/ordens/${id}`, {
+                const token = obterTokenSeguro();
+                
+                // 🚀 O pulo do gato: Fetch enviando o header exato que o Spring Boot quer
+                const response = await fetch(`${API_URL}/ordens/${id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
                     body: JSON.stringify({ status: novoStatus })
                 });
-                if(response.ok) carregarOrdens();
-                else alert("Falha ao salvar no banco de dados.");
+
+                if (response.status === 401 || response.status === 403) {
+                    alert("Sessão expirada! Por favor, faça login novamente no painel para revalidar.");
+                    return;
+                }
+
+                if (response.ok) {
+                    alert(`Chamado #${id} atualizado para [${novoStatus}]! O cliente foi notificado no celular.`);
+                    carregarOrdens(); // Atualiza a tela perfeitamente!
+                } else {
+                    alert("Falha ao salvar no banco de dados. Status retornado: " + response.status);
+                }
             } catch(err) {
-                alert("Erro de conexão.");
+                alert("Erro de conexão com o servidor.");
             }
         }
 
+        // Dá o pontapé inicial
         carregarOrdens();
         
-        // Puxa taxa configurada dinamicamente das configurações avançadas! Default de 15s se não houver
+        // Puxa taxa configurada dinamicamente, mantendo o padrão de 15s
         const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
         if(taxaRefresh > 0) {
             setInterval(carregarOrdens, taxaRefresh);
