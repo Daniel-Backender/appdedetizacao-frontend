@@ -212,34 +212,69 @@
         }
 
         async function atualizarStatus(id, novoStatus) {
-            try {
-                const token = obterTokenSeguro();
-                
-                // 🚀 O pulo do gato: Fetch enviando o header exato que o Spring Boot quer
-                const response = await fetch(`${API_URL}/ordens/${id}`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({ status: novoStatus })
-                });
+    try {
+        const token = obterTokenSeguro();
+        
+        // 1. Antes de atualizar, precisamos dos dados atuais da ordem (IDs do cliente e empresa)
+        const respostaOrdem = await fetch(`${API_URL}/solicitacoes`, {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const ordens = await respostaOrdem.json();
+        const ordemAtual = ordens.find(o => o.id === id);
 
-                if (response.status === 401 || response.status === 403) {
-                    alert("Sessão expirada! Por favor, faça login novamente no painel para revalidar.");
-                    return;
-                }
-
-                if (response.ok) {
-                    alert(`Chamado #${id} atualizado para [${novoStatus}]! O cliente foi notificado no celular.`);
-                    carregarOrdens(); // Atualiza a tela perfeitamente!
-                } else {
-                    alert("Falha ao salvar no banco de dados. Status retornado: " + response.status);
-                }
-            } catch(err) {
-                alert("Erro de conexão com o servidor.");
-            }
+        if (!ordemAtual) {
+            alert("Não foi possível encontrar os dados desta ordem.");
+            return;
         }
+
+        // 2. Monta o corpo da requisição exatamente como o Spring precisa
+        const corpoRequisicao = {
+            id: id,
+            status: novoStatus,
+            cliente: ordemAtual.cliente || { id: ordemAtual.clienteId }, // Garante o vínculo do cliente
+            empresa: ordemAtual.empresa || { id: ordemAtual.empresaId }   // Garante o vínculo da empresa
+        };
+        
+        // 3. Envia a atualização de status para o Spring Boot
+        const response = await fetch(`${API_URL}/ordens/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify(corpoRequisicao)
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            alert("Sessão expirada! Por favor, faça login novamente no painel.");
+            return;
+        }
+
+        if (response.ok) {
+            // ✨ O PULO DO GATO: Se foi aprovada, força o disparo do Push Notification no Firebase!
+            if (novoStatus === 'EM_ANDAMENTO') {
+                const clienteId = ordemAtual.clienteId || (ordemAtual.cliente ? ordemAtual.cliente.id : null);
+                
+                if (clienteId) {
+                    // Chama o seu NotificationController que dispara o push real
+                    await fetch(`${API_URL}/notifications/trigger-acceptance?clienteId=${clienteId}&ordemId=${id}`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                }
+            }
+
+            alert(`Chamado #${id} aprovado com sucesso! O cliente foi notificado.`);
+            carregarOrdens(); 
+        } else {
+            alert("Falha ao salvar no banco de dados. Status: " + response.status);
+        }
+    } catch(err) {
+        console.error(err);
+        alert("Erro de conexão com o servidor.");
+    }
+}
 
         // Dá o pontapé inicial
         carregarOrdens();
