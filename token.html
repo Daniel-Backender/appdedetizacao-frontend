@@ -103,98 +103,98 @@
             });
 
             async function validarToken() {
-                const codigoInput = document.getElementById("codigo");
-                const btnSubmit = form.querySelector("button");
-                
-                if (!codigoInput) {
-                    alert("Erro interno: Campo de código de verificação não encontrado.");
-                    return;
-                }
+    const codigoInput = document.getElementById("codigo");
+    const btnSubmit = form.querySelector("button");
+    
+    if (!codigoInput) {
+        alert("Erro interno: Campo de código de verificação não encontrado.");
+        return;
+    }
 
-                const codigo = codigoInput.value.trim();
-                const email = localStorage.getItem("emailTemp") || localStorage.getItem("logging_email");
+    const codigo = codigoInput.value.trim();
+    const email = localStorage.getItem("emailTemp") || localStorage.getItem("logging_email");
 
-                if (!email) {
-                    alert("Sessão expirada ou inválida. Por favor, faça o login novamente.");
-                    window.location.href = "index.html";
-                    return;
-                }
+    if (!email) {
+        alert("Sessão expirada ou inválida. Por favor, faça o login novamente.");
+        window.location.href = "index.html";
+        return;
+    }
 
-                if (!codigo) {
-                    alert("Por favor, insira o código de autenticação enviado ao seu e-mail.");
-                    return;
-                }
+    if (!codigo) {
+        alert("Por favor, insira o código de autenticação enviado ao seu e-mail.");
+        return;
+    }
 
-                const originalText = btnSubmit.innerHTML;
-                btnSubmit.innerHTML = "〈 VALIDANDO ACESSO... 〉";
-                btnSubmit.disabled = true;
-                btnSubmit.style.boxShadow = "0 0 15px #00ffcc"; 
-                btnSubmit.style.transition = "all 0.3s ease";
+    const originalText = btnSubmit.innerHTML;
+    btnSubmit.innerHTML = "〈 VALIDANDO ACESSO... 〉";
+    btnSubmit.disabled = true;
+    btnSubmit.style.boxShadow = "0 0 15px #00ffcc"; 
 
-                try {
-                    const response = await fetch(`${BASE_URL}/auth/validar`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email, codigo })
-                    });
+    try {
+        const response = await fetch(`${BASE_URL}/auth/validar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, codigo })
+        });
 
-                    const data = await response.json();
+        const data = await response.json();
 
-                    if (!response.ok) {
-                        throw new Error(data.message || "Código de autenticação inválido ou expirado.");
-                    }
+        if (!response.ok) {
+            throw new Error(data.message || "Código de autenticação inválido ou expirado.");
+        }
 
-                    const idEncontrado = data.id || data.empresaId || data.usuarioId;
-                    
-                    if (!idEncontrado) {
-                        throw new Error("Erro de sincronização: O servidor não retornou sua ID.");
-                    }
+        // 🎯 MAPEAMENTO CORRIGIDO: Buscando 'idEmpresa' diretamente do seu Spring Boot
+        const idEncontrado = data.idEmpresa || data.id || data.empresaId || data.usuarioId;
+        
+        if (!idEncontrado) {
+            throw new Error("Erro de sincronização: O servidor não retornou um ID de Empresa válido.");
+        }
 
-                    // 🚀 LIMPEZA CONTROLADA DOS DADOS TEMPORÁRIOS
-                    localStorage.removeItem("emailTemp");
-                    localStorage.removeItem("logging_email");
-                    localStorage.removeItem("tipoTemp");
+        // Limpa chaves temporárias do login
+        localStorage.removeItem("emailTemp");
+        localStorage.removeItem("logging_email");
+        localStorage.removeItem("tipoTemp");
 
-                    // 🔑 SALVAMENTO BLINDADO - GERANDO TODAS AS CHAVES NECESSÁRIAS
-                    localStorage.setItem("token_usuario", data.token); // 🌟 ESSA COMPLETA O FLUXO DO DASHBOARD E ANDROID!
-                    localStorage.setItem("token", data.token);
-                    localStorage.setItem("TOKEN_AUTH", data.token);
-                    
-                    localStorage.setItem("empresaId", idEncontrado);
-                    localStorage.setItem("usuario_id", idEncontrado);
-                    
-                    localStorage.setItem("tipoUsuario", data.tipo);
-                    localStorage.setItem("userName", data.nome || "Operador");
-                    localStorage.setItem("empresaNome", data.nome || "Operador");
-                    localStorage.setItem("userEmail", email);
+        // 🔑 SALVAMENTO COMPLETO (Sincroniza Web Dashboard e Android)
+        localStorage.setItem("token_usuario", data.token); // Alinha com o if do seu Dashboard!
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("TOKEN_AUTH", data.token);
+        
+        localStorage.setItem("empresaId", idEncontrado); // Alinha com o if do seu Dashboard!
+        localStorage.setItem("usuario_id", idEncontrado);
+        
+        localStorage.setItem("tipoUsuario", data.tipo);
+        localStorage.setItem("userName", data.nome || "Operador");
+        localStorage.setItem("empresaNome", data.nome || "Operador");
+        localStorage.setItem("userEmail", email);
 
-                    console.log("🟢 Chaves de acesso alinhadas com sucesso no LocalStorage.");
+        console.log("🟢 Chaves de acesso geradas e alinhadas no LocalStorage!");
 
-                    const tipoTratado = data.tipo ? data.tipo.toUpperCase() : "EMPRESA";
-                    let destino = "dashboard_empresa.html";
-                    
-                    if (tipoTratado === "ADMIN" || tipoTratado === "ADMINISTRADOR") {
-                        destino = "dashboard_admin.html";
-                    } else if (tipoTratado === "CLIENTE") {
-                        destino = "dashboard_cliente.html";
-                    }
+        const tipoTratado = data.tipo ? data.tipo.toUpperCase() : "EMPRESA";
+        let destino = "dashboard_empresa.html";
+        
+        if (tipoTratado === "ADMIN" || tipoTratado === "ADMINISTRADOR") {
+            destino = "dashboard_admin.html";
+        } else if (tipoTratado === "CLIENTE") {
+            destino = "dashboard_cliente.html";
+        }
 
-                    btnSubmit.innerHTML = "〈 CONEXÃO ESTABELECIDA 〉";
-                    btnSubmit.style.boxShadow = "0 0 20px #00ff55";
-                    btnSubmit.style.color = "#00ff55";
+        btnSubmit.innerHTML = "〈 CONEXÃO ESTABELECIDA 〉";
+        btnSubmit.style.boxShadow = "0 0 20px #00ff55";
+        btnSubmit.style.color = "#00ff55";
 
-                    setTimeout(() => {
-                        window.location.href = destino;
-                    }, 1000);
+        setTimeout(() => {
+            window.location.href = destino;
+        }, 1000);
 
-                } catch (err) {
-                    alert(err.message);
-                    btnSubmit.innerHTML = originalText;
-                    btnSubmit.disabled = false;
-                    btnSubmit.style.boxShadow = "";
-                    btnSubmit.style.color = "";
-                }
-            }
+    } catch (err) {
+        alert(err.message);
+        btnSubmit.innerHTML = originalText;
+        btnSubmit.disabled = false;
+        btnSubmit.style.boxShadow = "";
+        btnSubmit.style.color = "";
+    }
+}
         });
     </script>
 </body>
