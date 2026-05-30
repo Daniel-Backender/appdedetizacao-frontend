@@ -103,98 +103,110 @@
             });
 
             async function validarToken() {
-    const codigoInput = document.getElementById("codigo");
-    const btnSubmit = form.querySelector("button");
-    
-    if (!codigoInput) {
-        alert("Erro interno: Campo de código de verificação não encontrado.");
-        return;
-    }
+                const codigoInput = document.getElementById("codigo");
+                const btnSubmit = form.querySelector("button");
+                const alertBox = document.getElementById("alertBox");
+                
+                if (!codigoInput || !alertBox) {
+                    console.error("Erro interno: Elementos da árvore DOM não mapeados.");
+                    return;
+                }
 
-    const codigo = codigoInput.value.trim();
-    const email = localStorage.getItem("emailTemp") || localStorage.getItem("logging_email");
+                const codigo = codigoInput.value.trim();
+                const email = localStorage.getItem("emailTemp") || localStorage.getItem("logging_email");
 
-    if (!email) {
-        alert("Sessão expirada ou inválida. Por favor, faça o login novamente.");
-        window.location.href = "index.html";
-        return;
-    }
+                if (!email) {
+                    alertBox.className = "alert-box alert-error";
+                    alertBox.textContent = "Sessão expirada ou inválida. Retornando ao login...";
+                    alertBox.style.display = "block";
+                    setTimeout(() => { window.location.href = "index.html"; }, 2000);
+                    return;
+                }
 
-    if (!codigo) {
-        alert("Por favor, insira o código de autenticação enviado ao seu e-mail.");
-        return;
-    }
+                if (!codigo || codigo.length < 6) {
+                    alertBox.className = "alert-box alert-error";
+                    alertBox.textContent = "Por favor, insira o código de autenticação completo (6 dígitos).";
+                    alertBox.style.display = "block";
+                    return;
+                }
 
-    const originalText = btnSubmit.innerHTML;
-    btnSubmit.innerHTML = "〈 VALIDANDO ACESSO... 〉";
-    btnSubmit.disabled = true;
-    btnSubmit.style.boxShadow = "0 0 15px #00ffcc"; 
+                // Efeito Estilizado Industrial/Neon
+                const originalText = btnSubmit.innerHTML;
+                btnSubmit.innerHTML = "〈 VALIDANDO ACESSO... 〉";
+                btnSubmit.disabled = true;
+                btnSubmit.style.boxShadow = "0 0 15px #00ffcc"; 
+                alertBox.style.display = "none";
 
-    try {
-        const response = await fetch(`${BASE_URL}/auth/validar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, codigo })
-        });
+                try {
+                    const response = await fetch(`${BASE_URL}/auth/validar`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email, codigo })
+                    });
 
-        const data = await response.json();
+                    const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || "Código de autenticação inválido ou expirado.");
-        }
+                    if (!response.ok) {
+                        throw new Error(data.message || "Código de autenticação inválido ou expirado.");
+                    }
 
-        // 🎯 MAPEAMENTO CORRIGIDO: Buscando 'idEmpresa' diretamente do seu Spring Boot
-        const idEncontrado = data.idEmpresa || data.id || data.empresaId || data.usuarioId;
-        
-        if (!idEncontrado) {
-            throw new Error("Erro de sincronização: O servidor não retornou um ID de Empresa válido.");
-        }
+                    // Mapeia o ID vindo do Spring Boot de forma resiliente
+                    const idEncontrado = data.idEmpresa || data.id || data.empresaId || data.usuarioId;
+                    
+                    if (!idEncontrado) {
+                        throw new Error("Erro de sincronização: O servidor não retornou um ID de Empresa válido.");
+                    }
 
-        // Limpa chaves temporárias do login
-        localStorage.removeItem("emailTemp");
-        localStorage.removeItem("logging_email");
-        localStorage.removeItem("tipoTemp");
+                    // Limpa chaves provisórias
+                    localStorage.removeItem("emailTemp");
+                    localStorage.removeItem("logging_email");
 
-        // 🔑 SALVAMENTO COMPLETO (Sincroniza Web Dashboard e Android)
-        localStorage.setItem("token_usuario", data.token); // Alinha com o if do seu Dashboard!
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("TOKEN_AUTH", data.token);
-        
-        localStorage.setItem("empresaId", idEncontrado); // Alinha com o if do seu Dashboard!
-        localStorage.setItem("usuario_id", idEncontrado);
-        
-        localStorage.setItem("tipoUsuario", data.tipo);
-        localStorage.setItem("userName", data.nome || "Operador");
-        localStorage.setItem("empresaNome", data.nome || "Operador");
-        localStorage.setItem("userEmail", email);
+                    // Sincroniza chaves globais (Web e Android Mobile)
+                    localStorage.setItem("token_usuario", data.token);
+                    localStorage.setItem("token", data.token);
+                    localStorage.setItem("TOKEN_AUTH", data.token);
+                    
+                    localStorage.setItem("empresaId", idEncontrado);
+                    localStorage.setItem("usuario_id", idEncontrado);
+                    
+                    localStorage.setItem("tipoUsuario", data.tipo);
+                    localStorage.setItem("userName", data.nome || "Operador");
+                    localStorage.setItem("empresaNome", data.nome || "Operador");
+                    localStorage.setItem("userEmail", email);
 
-        console.log("🟢 Chaves de acesso geradas e alinhadas no LocalStorage!");
+                    // Atualiza caixa de sucesso local
+                    alertBox.className = "alert-box alert-success";
+                    alertBox.textContent = "Código aceito com sucesso! Redirecionando...";
+                    alertBox.style.display = "block";
 
-        const tipoTratado = data.tipo ? data.tipo.toUpperCase() : "EMPRESA";
-        let destino = "dashboard_empresa.html";
-        
-        if (tipoTratado === "ADMIN" || tipoTratado === "ADMINISTRADOR") {
-            destino = "dashboard_admin.html";
-        } else if (tipoTratado === "CLIENTE") {
-            destino = "dashboard_cliente.html";
-        }
+                    btnSubmit.innerHTML = "〈 CONEXÃO ESTABELECIDA 〉";
+                    btnSubmit.style.boxShadow = "0 0 20px #00ff55";
+                    btnSubmit.style.color = "#00ff55";
 
-        btnSubmit.innerHTML = "〈 CONEXÃO ESTABELECIDA 〉";
-        btnSubmit.style.boxShadow = "0 0 20px #00ff55";
-        btnSubmit.style.color = "#00ff55";
+                    const tipoTratado = data.tipo ? data.tipo.toUpperCase() : "EMPRESA";
+                    let destino = "dashboard_empresa.html";
+                    
+                    if (tipoTratado === "ADMIN" || tipoTratado === "ADMINISTRADOR") {
+                        destino = "dashboard_admin.html";
+                    } else if (tipoTratado === "CLIENTE") {
+                        destino = "dashboard_cliente.html";
+                    }
 
-        setTimeout(() => {
-            window.location.href = destino;
-        }, 1000);
+                    setTimeout(() => {
+                        window.location.href = destino;
+                    }, 1200);
 
-    } catch (err) {
-        alert(err.message);
-        btnSubmit.innerHTML = originalText;
-        btnSubmit.disabled = false;
-        btnSubmit.style.boxShadow = "";
-        btnSubmit.style.color = "";
-    }
-}
+                } catch (err) {
+                    alertBox.className = "alert-box alert-error";
+                    alertBox.textContent = err.message;
+                    alertBox.style.display = "block";
+
+                    btnSubmit.innerHTML = originalText;
+                    btnSubmit.disabled = false;
+                    btnSubmit.style.boxShadow = "";
+                    btnSubmit.style.color = "";
+                }
+            }
         });
     </script>
 </body>

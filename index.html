@@ -168,8 +168,7 @@
         </form>
     </div>
 
-    <script>
-        // 🔴 CORREÇÃO CRÍTICA: APONTAR PARA O SERVIDOR NO RENDER EM VEZ DO LOCALHOST 🔴
+   <script>
         const API_BASE_URL = 'https://appdedetizacao.onrender.com';
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -177,6 +176,12 @@
             const email = document.getElementById('email').value;
             const senha = document.getElementById('senha').value;
             const alertBox = document.getElementById('alertBox');
+            const btnSubmit = e.target.querySelector('button');
+
+            // Feedback visual de carregamento
+            const originalText = btnSubmit.textContent;
+            btnSubmit.textContent = 'Enviando código...';
+            btnSubmit.disabled = true;
 
             try {
                 const response = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -184,24 +189,44 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, senha })
                 });
-                const data = await response.json();
 
+                // Se a requisição deu certo
                 if (response.ok) {
                     alertBox.className = 'alert-box alert-success';
-                    alertBox.textContent = 'Autenticação inicial efetuada. Aguarde o código...';
+                    alertBox.textContent = 'Autenticação inicial efetuada. Aguarde o código no seu e-mail...';
                     alertBox.style.display = 'block';
                     
+                    // Garante que o e-mail fique guardado de forma idêntica para a próxima tela
                     localStorage.setItem('logging_email', email);
-                    setTimeout(() => { window.location.href = 'token.html'; }, 1200);
+                    localStorage.setItem('emailTemp', email);
+
+                    setTimeout(() => { 
+                        window.location.href = 'token.html'; 
+                    }, 1500);
                 } else {
+                    // Se falhou, tenta ler a mensagem de erro do JSON de forma segura
+                    let nomeErro = 'Credenciais inválidas. Tente novamente.';
+                    try {
+                        const data = await response.json();
+                        if (data && data.message) nomeErro = data.message;
+                    } catch (jsonErr) {
+                        // Se não for um JSON válido, mantém a mensagem padrão
+                    }
+
                     alertBox.className = 'alert-box alert-error';
-                    alertBox.textContent = data.message || 'Credenciais inválidas. Tente novamente.';
+                    alertBox.textContent = nomeErro;
                     alertBox.style.display = 'block';
+                    
+                    btnSubmit.textContent = originalText;
+                    btnSubmit.disabled = false;
                 }
             } catch (err) {
                 alertBox.className = 'alert-box alert-error';
                 alertBox.textContent = 'Não foi possível estabelecer ligação com o servidor.';
                 alertBox.style.display = 'block';
+                
+                btnSubmit.textContent = originalText;
+                btnSubmit.disabled = false;
             }
         });
     </script>
