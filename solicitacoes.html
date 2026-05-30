@@ -132,6 +132,7 @@
 
     <script>
     const API_URL = "https://appdedetizacao.onrender.com/api";
+    let loopDeAtualizacao; // 🚀 Variável para controlar e destruir o loop se der erro
 
     function obterTokenSeguro() {
         return localStorage.getItem("TOKEN_AUTH") || 
@@ -139,9 +140,8 @@
                localStorage.getItem("token_usuario");
     }
 
-    // Pega o ID da Empresa logada no Painel Vercel para puxar só as OS dela
     function obterIdEmpresaLogada() {
-        return localStorage.getItem("usuario_id") || localStorage.getItem("id_empresa"); 
+        return localStorage.getItem("usuario_id") || localStorage.getItem("empresaId"); 
     }
 
     async function carregarOrdens() {
@@ -149,13 +149,14 @@
             const token = obterTokenSeguro();
             const empresaId = obterIdEmpresaLogada();
 
+            // 🚀 SE NÃO TEM TOKEN, MATA O LOOP E MANDA PRO LOGIN!
             if (!token) {
-                console.warn("Usuário não logado. Redirecionando...");
-                // logout(); // Descomente para forçar a saída se não tiver token
+                console.warn("Usuário não logado. Destruindo loop e redirecionando...");
+                clearInterval(loopDeAtualizacao);
+                window.parent.location.href = "index.html"; // Sai do Iframe pro login raiz
                 return;
             }
 
-            // Busca as ORDENS da empresa logada (e não solicitações genéricas)
             const endpoint = empresaId ? `${API_URL}/ordens/empresa/${empresaId}` : `${API_URL}/ordens`;
 
             const response = await fetch(endpoint, { 
@@ -166,10 +167,16 @@
                 } 
             });
             
+            // 🚀 SE O TOKEN FOR INVÁLIDO OU EXPIRADO, MATA O LOOP E MANDA PRO LOGIN!
             if (response.status === 401 || response.status === 403) {
                 console.error("Sessão expirada. O token é inválido.");
+                clearInterval(loopDeAtualizacao); // PARA A METRALHADORA DE ERROS
+                localStorage.clear(); // Limpa o token sujo
+                alert("Sua sessão de segurança expirou. Por favor, faça login novamente.");
+                window.parent.location.href = "index.html"; 
                 return;
             }
+
             if (!response.ok) throw new Error("Erro na requisição: " + response.status);
             
             const ordens = await response.json();
@@ -182,8 +189,6 @@
 
             ordens.forEach(os => {
                 let btnAcao = '';
-                
-                // Trata a falta de padrão entre PENDENTE, NOVA e SOLICITADO
                 const statusNormalizado = (os.status || '').toUpperCase();
 
                 if (statusNormalizado === 'PENDENTE' || statusNormalizado === 'NOVAS' || statusNormalizado === 'SOLICITADO') {
@@ -197,7 +202,6 @@
                     btnAcao = `<div style="text-align: center; color: var(--primary); font-weight: bold; font-size: 11px; margin-top: 12px; letter-spacing: 0.5px;"><i class="fa-solid fa-check-double"></i> OS ARQUIVADA</div>`;
                 }
 
-                // Evita quebra de código se as entidades Java vierem nulas
                 const descricaoCard = os.descricao || os.texto || "Inspeção Solicitada";
                 const nomeCliente = (os.cliente && os.cliente.nome) ? os.cliente.nome : (os.clienteNome || "App Mobile");
 
@@ -236,11 +240,7 @@
     async function atualizarStatus(id, novoStatus) {
         try {
             const token = obterTokenSeguro();
-            
-            // Corpo exato que o Spring Boot exige para um PUT
-            const corpoRequisicao = {
-                status: novoStatus
-            };
+            const corpoRequisicao = { status: novoStatus };
             
             const response = await fetch(`${API_URL}/ordens/${id}`, {
                 method: 'PUT',
@@ -252,13 +252,14 @@
             });
 
             if (response.status === 401 || response.status === 403) {
+                clearInterval(loopDeAtualizacao);
+                localStorage.clear();
                 alert("Sessão expirada! Faça login novamente.");
+                window.parent.location.href = "index.html";
                 return;
             }
 
             if (response.ok) {
-                // A notificação Push (Firebase) já está sendo feita automaticamente pelo Backend
-                // no OrdemDeServicoController.java quando o PUT responde "EM_ANDAMENTO".
                 alert(`Chamado #${id} aprovado com sucesso! O cliente receberá a notificação.`);
                 carregarOrdens(); 
             } else {
@@ -270,11 +271,11 @@
         }
     }
 
-    // Inicialização
+    // Inicialização Protegida
     carregarOrdens();
     const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
-    setInterval(carregarOrdens, taxaRefresh);
+    loopDeAtualizacao = setInterval(carregarOrdens, taxaRefresh);
 
-</script>
+    </script>
 </body>
 </html>

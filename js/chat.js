@@ -1,11 +1,10 @@
 var stompClient = null;
-const RENDER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol'; 
+const RENDER_URL = 'wss://appdedetizacao.onrender.com/ws-pestcontrol'; 
 const tokenAuth = localStorage.getItem("tokenJWT") || localStorage.getItem("token");
 
-// 🚀 ESSENCIAIS: O chat precisa saber quem é a empresa e quem é o cliente!
-// Modifique essa lógica para bater com a forma que você abre a tela de chat
-const empresaId = localStorage.getItem("empresaId") || 1; // Padrão 1 para testes
-const clienteId = localStorage.getItem("clienteId") || 1; // Padrão 1 para testes
+
+const empresaId = localStorage.getItem("empresaId") || 1; 
+const clienteId = localStorage.getItem("clienteId") || 1; 
 
 document.addEventListener("DOMContentLoaded", () => {
     const campoTexto = document.getElementById('msg');
