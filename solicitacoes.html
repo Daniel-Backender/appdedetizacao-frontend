@@ -131,8 +131,8 @@
     </div>
 
     <script>
-    const API_URL = "https://appdedetizacao.onrender.com/api";
-    let loopDeAtualizacao; // 🚀 Variável para controlar e destruir o loop se der erro
+   const API_URL = "https://appdedetizacao.onrender.com/api";
+    let loopDeAtualizacao; 
 
     function obterTokenSeguro() {
         return localStorage.getItem("TOKEN_AUTH") || 
@@ -149,11 +149,10 @@
             const token = obterTokenSeguro();
             const empresaId = obterIdEmpresaLogada();
 
-            // 🚀 SE NÃO TEM TOKEN, MATA O LOOP E MANDA PRO LOGIN!
             if (!token) {
                 console.warn("Usuário não logado. Destruindo loop e redirecionando...");
                 clearInterval(loopDeAtualizacao);
-                window.parent.location.href = "index.html"; // Sai do Iframe pro login raiz
+                window.parent.location.href = "index.html"; 
                 return;
             }
 
@@ -167,11 +166,10 @@
                 } 
             });
             
-            // 🚀 SE O TOKEN FOR INVÁLIDO OU EXPIRADO, MATA O LOOP E MANDA PRO LOGIN!
             if (response.status === 401 || response.status === 403) {
                 console.error("Sessão expirada. O token é inválido.");
-                clearInterval(loopDeAtualizacao); // PARA A METRALHADORA DE ERROS
-                localStorage.clear(); // Limpa o token sujo
+                clearInterval(loopDeAtualizacao); 
+                localStorage.clear(); 
                 alert("Sua sessão de segurança expirou. Por favor, faça login novamente.");
                 window.parent.location.href = "index.html"; 
                 return;
@@ -181,9 +179,10 @@
             
             const ordens = await response.json();
             
-            document.getElementById('col-pendentes').innerHTML = '';
-            document.getElementById('col-campo').innerHTML = '';
-            document.getElementById('col-concluidas').innerHTML = '';
+            // 🚀 OTIMIZAÇÃO: Acumuladores de string para atualizar o DOM uma única vez
+            let htmlPendentes = '';
+            let htmlCampo = '';
+            let htmlConcluidas = '';
 
             let cp = 0, ca = 0, cc = 0;
 
@@ -219,14 +218,20 @@
                     </div>
                 `;
                 
+                // Acumula o HTML na variável correspondente
                 if (statusNormalizado === 'PENDENTE' || statusNormalizado === 'NOVAS' || statusNormalizado === 'SOLICITADO') {
-                    document.getElementById('col-pendentes').innerHTML += card;
+                    htmlPendentes += card;
                 } else if (statusNormalizado === 'EM_ANDAMENTO' || statusNormalizado === 'EM_ATENDIMENTO') {
-                    document.getElementById('col-campo').innerHTML += card;
+                    htmlCampo += card;
                 } else {
-                    document.getElementById('col-concluidas').innerHTML += card;
+                    htmlConcluidas += card;
                 }
             });
+
+            // 🚀 Alimenta o DOM de uma vez só (Melhora drástica de performance)
+            document.getElementById('col-pendentes').innerHTML = htmlPendentes;
+            document.getElementById('col-campo').innerHTML = htmlCampo;
+            document.getElementById('col-concluidas').innerHTML = htmlConcluidas;
 
             document.getElementById("count-pendentes").innerText = cp;
             document.getElementById("count-campo").innerText = ca;
@@ -260,7 +265,14 @@
             }
 
             if (response.ok) {
-                alert(`Chamado #${id} aprovado com sucesso! O cliente receberá a notificação.`);
+                // 🚀 CORREÇÃO: Mensagem dinâmica baseada no destino da ação
+                if (novoStatus === 'EM_ANDAMENTO') {
+                    alert(`Chamado #${id} aprovado com sucesso! O técnico já pode visualizar em campo.`);
+                } else if (novoStatus === 'CONCLUIDA') {
+                    alert(`Ordem de Serviço #${id} finalizada e arquivada com sucesso!`);
+                } else {
+                    alert(`Status da OS #${id} atualizado para ${novoStatus}.`);
+                }
                 carregarOrdens(); 
             } else {
                 alert("Falha ao salvar no banco de dados. Status: " + response.status);

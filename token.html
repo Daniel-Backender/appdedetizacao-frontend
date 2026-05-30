@@ -89,7 +89,6 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // 🚀 CORREÇÃO MÁXIMA: Agora ele pega o ID certo do formulário HTML!
             const form = document.getElementById("tokenForm");
             const BASE_URL = "https://appdedetizacao.onrender.com";
 
@@ -151,18 +150,25 @@
                         throw new Error("Erro de sincronização: O servidor não retornou sua ID.");
                     }
 
-                    // 🚀 AQUI ACONTECE A MÁGICA DE VERDADE: Salvando os tokens reais!
-                    localStorage.clear();
-                    sessionStorage.clear();
+                    // 🚀 LIMPEZA CONTROLADA DOS DADOS TEMPORÁRIOS
+                    localStorage.removeItem("emailTemp");
+                    localStorage.removeItem("logging_email");
+                    localStorage.removeItem("tipoTemp");
 
+                    // 🔑 SALVAMENTO BLINDADO - GERANDO TODAS AS CHAVES NECESSÁRIAS
+                    localStorage.setItem("token_usuario", data.token); // 🌟 ESSA COMPLETA O FLUXO DO DASHBOARD E ANDROID!
                     localStorage.setItem("token", data.token);
+                    localStorage.setItem("TOKEN_AUTH", data.token);
+                    
                     localStorage.setItem("empresaId", idEncontrado);
+                    localStorage.setItem("usuario_id", idEncontrado);
+                    
                     localStorage.setItem("tipoUsuario", data.tipo);
                     localStorage.setItem("userName", data.nome || "Operador");
-                    localStorage.setItem("userEmail", email);
-                    localStorage.setItem("TOKEN_AUTH", data.token);
-                    localStorage.setItem("usuario_id", idEncontrado);
                     localStorage.setItem("empresaNome", data.nome || "Operador");
+                    localStorage.setItem("userEmail", email);
+
+                    console.log("🟢 Chaves de acesso alinhadas com sucesso no LocalStorage.");
 
                     const tipoTratado = data.tipo ? data.tipo.toUpperCase() : "EMPRESA";
                     let destino = "dashboard_empresa.html";
