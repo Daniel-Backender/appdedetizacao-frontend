@@ -131,159 +131,150 @@
     </div>
 
     <script>
-        const API_URL = "https://appdedetizacao.onrender.com/api";
+    const API_URL = "https://appdedetizacao.onrender.com/api";
 
-        // 🚀 FUNÇÃO BLINDADA: Tenta puxar o token de qualquer chave que o seu sistema use!
-        function obterTokenSeguro() {
-            return localStorage.getItem("TOKEN_AUTH") || 
-                   localStorage.getItem("token") || 
-                   localStorage.getItem("token_usuario") || 
-                   localStorage.getItem("meu_token_chave");
-        }
-
-        async function carregarOrdens() {
-            try {
-                const token = obterTokenSeguro();
-                const response = await fetch(`${API_URL}/solicitacoes`, { 
-                    method: 'GET',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    } 
-                });
-                
-                if (response.status === 401 || response.status === 403) {
-                    console.error("Sessão expirada. O token é inválido ou nulo.");
-                    return;
-                }
-                if (!response.ok) return;
-                
-                const ordens = await response.json();
-                
-                document.getElementById('col-pendentes').innerHTML = '';
-                document.getElementById('col-campo').innerHTML = '';
-                document.getElementById('col-concluidas').innerHTML = '';
-
-                let cp = 0, ca = 0, cc = 0;
-
-                ordens.forEach(os => {
-                    let btnAcao = '';
-                    if (os.status === 'PENDENTE' || os.status === 'NOVAS') {
-                        cp++;
-                        btnAcao = `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'EM_ANDAMENTO')"><i class="fa-solid fa-forward"></i> Aprovar Chamado</button>`;
-                    } else if (os.status === 'EM_ANDAMENTO' || os.status === 'EM_ATENDIMENTO') {
-                        ca++;
-                        btnAcao = `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'CONCLUIDA')"><i class="fa-solid fa-check"></i> Finalizar Serviço</button>`;
-                    } else {
-                        cc++;
-                        btnAcao = `<div style="text-align: center; color: var(--primary); font-weight: bold; font-size: 11px; margin-top: 12px; letter-spacing: 0.5px;"><i class="fa-solid fa-check-double"></i> OS ARQUIVADA</div>`;
-                    }
-
-                    // Corrige a leitura do JSON do Java eliminando os "undefined"
-                    const descricaoCard = os.descricao || os.description || os.texto || "Sem descrição informada";
-                    const nomeCliente = os.clienteNome || os.cliente || "App Mobile";
-
-                    const card = `
-                        <div class="os-card">
-                            <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:8px;">
-                                <span>REGISTRO #${os.id}</span>
-                                <span style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-bug"></i> INSPEÇÃO</span>
-                            </div>
-                            <h4 style="color: #fff; margin: 0 0 8px 0; font-size: 14px; font-weight:600; line-height:1.4;">${descricaoCard}</h4>
-                            <p style="color: var(--text-muted); font-size: 12px; margin: 0;">
-                                <strong style="color:#fff;">Cliente:</strong> ${nomeCliente}
-                            </p>
-                            ${btnAcao}
-                        </div>
-                    `;
-                    
-                    if (os.status === 'PENDENTE' || os.status === 'NOVAS') document.getElementById('col-pendentes').innerHTML += card;
-                    else if (os.status === 'EM_ANDAMENTO' || os.status === 'EM_ATENDIMENTO') document.getElementById('col-campo').innerHTML += card;
-                    else document.getElementById('col-concluidas').innerHTML += card;
-                });
-
-                document.getElementById("count-pendentes").innerText = cp;
-                document.getElementById("count-campo").innerText = ca;
-                document.getElementById("count-concluidas").innerText = cc;
-
-            } catch (e) {
-                console.error("Erro de Rede ao carregar ordens:", e);
-            }
-        }
-
-        async function atualizarStatus(id, novoStatus) {
-    try {
-        const token = obterTokenSeguro();
-        
-        // 1. Antes de atualizar, precisamos dos dados atuais da ordem (IDs do cliente e empresa)
-        const respostaOrdem = await fetch(`${API_URL}/solicitacoes`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const ordens = await respostaOrdem.json();
-        const ordemAtual = ordens.find(o => o.id === id);
-
-        if (!ordemAtual) {
-            alert("Não foi possível encontrar os dados desta ordem.");
-            return;
-        }
-
-        // 2. Monta o corpo da requisição exatamente como o Spring precisa
-        const corpoRequisicao = {
-            id: id,
-            status: novoStatus,
-            cliente: ordemAtual.cliente || { id: ordemAtual.clienteId }, // Garante o vínculo do cliente
-            empresa: ordemAtual.empresa || { id: ordemAtual.empresaId }   // Garante o vínculo da empresa
-        };
-        
-        // 3. Envia a atualização de status para o Spring Boot
-        const response = await fetch(`${API_URL}/ordens/${id}`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify(corpoRequisicao)
-        });
-
-        if (response.status === 401 || response.status === 403) {
-            alert("Sessão expirada! Por favor, faça login novamente no painel.");
-            return;
-        }
-
-        if (response.ok) {
-            // ✨ O PULO DO GATO: Se foi aprovada, força o disparo do Push Notification no Firebase!
-            if (novoStatus === 'EM_ANDAMENTO') {
-                const clienteId = ordemAtual.clienteId || (ordemAtual.cliente ? ordemAtual.cliente.id : null);
-                
-                if (clienteId) {
-                    // Chama o seu NotificationController que dispara o push real
-                    await fetch(`${API_URL}/notifications/trigger-acceptance?clienteId=${clienteId}&ordemId=${id}`, {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                }
-            }
-
-            alert(`Chamado #${id} aprovado com sucesso! O cliente foi notificado.`);
-            carregarOrdens(); 
-        } else {
-            alert("Falha ao salvar no banco de dados. Status: " + response.status);
-        }
-    } catch(err) {
-        console.error(err);
-        alert("Erro de conexão com o servidor.");
+    function obterTokenSeguro() {
+        return localStorage.getItem("TOKEN_AUTH") || 
+               localStorage.getItem("token") || 
+               localStorage.getItem("token_usuario");
     }
-}
 
-        // Dá o pontapé inicial
-        carregarOrdens();
-        
-        // Puxa taxa configurada dinamicamente, mantendo o padrão de 15s
-        const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
-        if(taxaRefresh > 0) {
-            setInterval(carregarOrdens, taxaRefresh);
+    // Pega o ID da Empresa logada no Painel Vercel para puxar só as OS dela
+    function obterIdEmpresaLogada() {
+        return localStorage.getItem("usuario_id") || localStorage.getItem("id_empresa"); 
+    }
+
+    async function carregarOrdens() {
+        try {
+            const token = obterTokenSeguro();
+            const empresaId = obterIdEmpresaLogada();
+
+            if (!token) {
+                console.warn("Usuário não logado. Redirecionando...");
+                // logout(); // Descomente para forçar a saída se não tiver token
+                return;
+            }
+
+            // Busca as ORDENS da empresa logada (e não solicitações genéricas)
+            const endpoint = empresaId ? `${API_URL}/ordens/empresa/${empresaId}` : `${API_URL}/ordens`;
+
+            const response = await fetch(endpoint, { 
+                method: 'GET',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                } 
+            });
+            
+            if (response.status === 401 || response.status === 403) {
+                console.error("Sessão expirada. O token é inválido.");
+                return;
+            }
+            if (!response.ok) throw new Error("Erro na requisição: " + response.status);
+            
+            const ordens = await response.json();
+            
+            document.getElementById('col-pendentes').innerHTML = '';
+            document.getElementById('col-campo').innerHTML = '';
+            document.getElementById('col-concluidas').innerHTML = '';
+
+            let cp = 0, ca = 0, cc = 0;
+
+            ordens.forEach(os => {
+                let btnAcao = '';
+                
+                // Trata a falta de padrão entre PENDENTE, NOVA e SOLICITADO
+                const statusNormalizado = (os.status || '').toUpperCase();
+
+                if (statusNormalizado === 'PENDENTE' || statusNormalizado === 'NOVAS' || statusNormalizado === 'SOLICITADO') {
+                    cp++;
+                    btnAcao = `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'EM_ANDAMENTO')"><i class="fa-solid fa-forward"></i> Aprovar Chamado</button>`;
+                } else if (statusNormalizado === 'EM_ANDAMENTO' || statusNormalizado === 'EM_ATENDIMENTO') {
+                    ca++;
+                    btnAcao = `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'CONCLUIDA')"><i class="fa-solid fa-check"></i> Finalizar Serviço</button>`;
+                } else {
+                    cc++;
+                    btnAcao = `<div style="text-align: center; color: var(--primary); font-weight: bold; font-size: 11px; margin-top: 12px; letter-spacing: 0.5px;"><i class="fa-solid fa-check-double"></i> OS ARQUIVADA</div>`;
+                }
+
+                // Evita quebra de código se as entidades Java vierem nulas
+                const descricaoCard = os.descricao || os.texto || "Inspeção Solicitada";
+                const nomeCliente = (os.cliente && os.cliente.nome) ? os.cliente.nome : (os.clienteNome || "App Mobile");
+
+                const card = `
+                    <div class="os-card">
+                        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:8px;">
+                            <span>REGISTRO #${os.id}</span>
+                            <span style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-bug"></i> INSPEÇÃO</span>
+                        </div>
+                        <h4 style="color: #fff; margin: 0 0 8px 0; font-size: 14px; font-weight:600; line-height:1.4;">${descricaoCard}</h4>
+                        <p style="color: var(--text-muted); font-size: 12px; margin: 0;">
+                            <strong style="color:#fff;">Cliente:</strong> ${nomeCliente}
+                        </p>
+                        ${btnAcao}
+                    </div>
+                `;
+                
+                if (statusNormalizado === 'PENDENTE' || statusNormalizado === 'NOVAS' || statusNormalizado === 'SOLICITADO') {
+                    document.getElementById('col-pendentes').innerHTML += card;
+                } else if (statusNormalizado === 'EM_ANDAMENTO' || statusNormalizado === 'EM_ATENDIMENTO') {
+                    document.getElementById('col-campo').innerHTML += card;
+                } else {
+                    document.getElementById('col-concluidas').innerHTML += card;
+                }
+            });
+
+            document.getElementById("count-pendentes").innerText = cp;
+            document.getElementById("count-campo").innerText = ca;
+            document.getElementById("count-concluidas").innerText = cc;
+
+        } catch (e) {
+            console.error("Erro ao carregar o quadro Kanban:", e);
         }
-    </script>
+    }
+
+    async function atualizarStatus(id, novoStatus) {
+        try {
+            const token = obterTokenSeguro();
+            
+            // Corpo exato que o Spring Boot exige para um PUT
+            const corpoRequisicao = {
+                status: novoStatus
+            };
+            
+            const response = await fetch(`${API_URL}/ordens/${id}`, {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(corpoRequisicao)
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                alert("Sessão expirada! Faça login novamente.");
+                return;
+            }
+
+            if (response.ok) {
+                // A notificação Push (Firebase) já está sendo feita automaticamente pelo Backend
+                // no OrdemDeServicoController.java quando o PUT responde "EM_ANDAMENTO".
+                alert(`Chamado #${id} aprovado com sucesso! O cliente receberá a notificação.`);
+                carregarOrdens(); 
+            } else {
+                alert("Falha ao salvar no banco de dados. Status: " + response.status);
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Erro de conexão com o servidor.");
+        }
+    }
+
+    // Inicialização
+    carregarOrdens();
+    const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
+    setInterval(carregarOrdens, taxaRefresh);
+
+</script>
 </body>
 </html>

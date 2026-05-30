@@ -2,6 +2,11 @@ var stompClient = null;
 const RENDER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol'; 
 const tokenAuth = localStorage.getItem("tokenJWT") || localStorage.getItem("token");
 
+// 🚀 ESSENCIAIS: O chat precisa saber quem é a empresa e quem é o cliente!
+// Modifique essa lógica para bater com a forma que você abre a tela de chat
+const empresaId = localStorage.getItem("empresaId") || 1; // Padrão 1 para testes
+const clienteId = localStorage.getItem("clienteId") || 1; // Padrão 1 para testes
+
 document.addEventListener("DOMContentLoaded", () => {
     const campoTexto = document.getElementById('msg');
     if (campoTexto) {
@@ -24,7 +29,7 @@ function atualizarStatusInterface(texto, corHex) {
     if (!el) {
         const elementos = document.querySelectorAll('div, span, button, p');
         for (let item of elementos) {
-            if (item.innerText && item.innerText.includes("SISTEMA") || item.innerText.includes("Conectando")) {
+            if (item.innerText && (item.innerText.includes("SISTEMA") || item.innerText.includes("Conectando") || item.innerText.includes("BARRAMENTO"))) {
                 el = item; break;
             }
         }
@@ -55,7 +60,6 @@ function conectar() {
     stompClient = Stomp.over(socket);
     stompClient.debug = null; 
 
-    // A MÁGICA ACONTECE AQUI: Passando o JWT para o Spring Boot aceitar a conexão STOMP
     const headers = {
         'Authorization': 'Bearer ' + tokenAuth
     };
@@ -64,13 +68,17 @@ function conectar() {
         console.log('Conectado de forma segura ao Servidor STOMP');
         atualizarStatusInterface("BARRAMENTO ONLINE", "#3DDC84");
         
-        stompClient.subscribe('/topic/mensagens', function (msg) {
+        // 🚀 CORREÇÃO AQUI: Escutando o tópico dinâmico específico dessa conversa
+        const topicoDinamico = `/topic/chat/${empresaId}/${clienteId}`;
+        
+        stompClient.subscribe(topicoDinamico, function (msg) {
             var dados = JSON.parse(msg.body);
             var chat = document.getElementById('chat');
             if (!chat) return;
 
-            let cor = dados.remetente === 'EMPRESA' ? '#3DDC84' : '#ffffff';
-            chat.innerHTML += `<p style="margin: 4px 0;"><span style="color: ${cor}">[${dados.remetente}]</span>: ${dados.texto}</p>`;
+            // Alinha visualmente quem mandou a mensagem
+            let cor = dados.remetente === 'EMPRESA' ? '#3DDC84' : '#00ffff'; // Neon para destacar
+            chat.innerHTML += `<p style="margin: 6px 0; font-family: sans-serif;"><span style="color: ${cor}; font-weight: bold;">[${dados.remetente}]</span>: ${dados.texto}</p>`;
             chat.scrollTop = chat.scrollHeight;
 
             if (dados.remetente !== 'EMPRESA') tocarSomNotificacao();
@@ -88,12 +96,17 @@ function enviar() {
 
     var textoDigitado = input.value.trim();
     
+    // Verifica se está conectado de verdade antes de disparar
     if (textoDigitado !== "" && stompClient && stompClient.connected) {
         var payload = JSON.stringify({
             'remetente': 'EMPRESA',
-            'texto': textoDigitado 
+            'texto': textoDigitado
         });
-        stompClient.send("/app/enviar", {}, payload);
+        
+        // 🚀 CORREÇÃO AQUI: Enviando para o prefixo /app + a rota mapeada no ChatController
+        const rotaEnvio = `/app/chat/${empresaId}/${clienteId}`;
+        
+        stompClient.send(rotaEnvio, {}, payload);
         input.value = '';
         input.focus();
     } else {
