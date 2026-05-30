@@ -89,12 +89,12 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            // Mapeado corretamente para o ID 'tokenForm' do HTML acima
+            // 🚀 CORREÇÃO MÁXIMA: Agora ele pega o ID certo do formulário HTML!
             const form = document.getElementById("tokenForm");
             const BASE_URL = "https://appdedetizacao.onrender.com";
 
             if (!form) {
-                console.error("Erro: Formulário 'tokenForm' não foi encontrado na página.");
+                console.error("Erro: Formulário não foi encontrado.");
                 return;
             }
 
@@ -126,9 +126,8 @@
                     return;
                 }
 
-                // --- EFEITO VISUAL DE CARREGAMENTO ---
                 const originalText = btnSubmit.innerHTML;
-                btnSubmit.innerHTML = "〈 VALIDANDO ACESSO AO TERMINAL 〉";
+                btnSubmit.innerHTML = "〈 VALIDANDO ACESSO... 〉";
                 btnSubmit.disabled = true;
                 btnSubmit.style.boxShadow = "0 0 15px #00ffcc"; 
                 btnSubmit.style.transition = "all 0.3s ease";
@@ -141,18 +140,18 @@
                     });
 
                     const data = await response.json();
-                    console.log("LOG_SECURITY: Resposta de autenticação recebida:", data);
 
                     if (!response.ok) {
                         throw new Error(data.message || "Código de autenticação inválido ou expirado.");
                     }
 
                     const idEncontrado = data.id || data.empresaId || data.usuarioId;
+                    
                     if (!idEncontrado) {
-                        throw new Error("Erro de sincronização: O servidor não retornou sua ID de usuário.");
+                        throw new Error("Erro de sincronização: O servidor não retornou sua ID.");
                     }
 
-                    // Limpeza e salvamento seguro multifromato
+                    // 🚀 AQUI ACONTECE A MÁGICA DE VERDADE: Salvando os tokens reais!
                     localStorage.clear();
                     sessionStorage.clear();
 
@@ -161,16 +160,13 @@
                     localStorage.setItem("tipoUsuario", data.tipo);
                     localStorage.setItem("userName", data.nome || "Operador");
                     localStorage.setItem("userEmail", email);
-
-                    // Padrão do App Android e painel de solicitações
                     localStorage.setItem("TOKEN_AUTH", data.token);
                     localStorage.setItem("usuario_id", idEncontrado);
                     localStorage.setItem("empresaNome", data.nome || "Operador");
 
-                    console.log("🟢 Chaves de acesso geradas com sucesso.");
-
                     const tipoTratado = data.tipo ? data.tipo.toUpperCase() : "EMPRESA";
                     let destino = "dashboard_empresa.html";
+                    
                     if (tipoTratado === "ADMIN" || tipoTratado === "ADMINISTRADOR") {
                         destino = "dashboard_admin.html";
                     } else if (tipoTratado === "CLIENTE") {
@@ -186,9 +182,7 @@
                     }, 1000);
 
                 } catch (err) {
-                    console.error("🚨 FALHA NA AUTENTICAÇÃO:", err);
                     alert(err.message);
-                    
                     btnSubmit.innerHTML = originalText;
                     btnSubmit.disabled = false;
                     btnSubmit.style.boxShadow = "";
