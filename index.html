@@ -168,35 +168,44 @@
         </form>
     </div>
 
-   <script>
+  <script>
         const API_BASE_URL = 'https://appdedetizacao.onrender.com';
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value;
             const alertBox = document.getElementById('alertBox');
             const btnSubmit = e.target.querySelector('button');
 
-            // Feedback visual de carregamento
             const originalText = btnSubmit.textContent;
             btnSubmit.textContent = 'Enviando código...';
             btnSubmit.disabled = true;
+            alertBox.style.display = 'none';
 
             try {
+                // 🚀 CORREÇÃO: Enviamos o payload completo alinhado com o seu Spring Boot
+                const payload = { 
+                    email: email, 
+                    senha: senha, 
+                    tipoUsuario: "EMPRESA", // Garante o mapeamento do DTO corporativo
+                    tipo: "EMPRESA"         // redundância de segurança caso o campo varie
+                };
+
                 const response = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha })
+                    body: JSON.stringify(payload)
                 });
 
-                // Se a requisição deu certo
+                console.log(`📡 Status da Resposta: ${response.status}`);
+
                 if (response.ok) {
                     alertBox.className = 'alert-box alert-success';
-                    alertBox.textContent = 'Autenticação inicial efetuada. Aguarde o código no seu e-mail...';
+                    alertBox.textContent = 'Autenticação efetuada! Verifique o código enviado ao seu e-mail...';
                     alertBox.style.display = 'block';
                     
-                    // Garante que o e-mail fique guardado de forma idêntica para a próxima tela
+                    // Salva o e-mail para ser usado na tela do token
                     localStorage.setItem('logging_email', email);
                     localStorage.setItem('emailTemp', email);
 
@@ -204,25 +213,28 @@
                         window.location.href = 'token.html'; 
                     }, 1500);
                 } else {
-                    // Se falhou, tenta ler a mensagem de erro do JSON de forma segura
-                    let nomeErro = 'Credenciais inválidas. Tente novamente.';
+                    // Se falhar, tenta ler a mensagem do servidor de forma segura
+                    let msgErro = 'Credenciais inválidas ou erro no servidor.';
                     try {
                         const data = await response.json();
-                        if (data && data.message) nomeErro = data.message;
-                    } catch (jsonErr) {
-                        // Se não for um JSON válido, mantém a mensagem padrão
+                        if (data && data.message) msgErro = data.message;
+                    } catch (e) {
+                        // Se o corpo vier vazio ou texto simples, evita crash do JS
                     }
 
                     alertBox.className = 'alert-box alert-error';
-                    alertBox.textContent = nomeErro;
+                    alertBox.textContent = msgErro;
                     alertBox.style.display = 'block';
                     
                     btnSubmit.textContent = originalText;
                     btnSubmit.disabled = false;
                 }
             } catch (err) {
+                // Captura erros de rede ou de CORS no console
+                console.error("🔴 Erro crítico na requisição de login:", err);
+                
                 alertBox.className = 'alert-box alert-error';
-                alertBox.textContent = 'Não foi possível estabelecer ligação com o servidor.';
+                alertBox.textContent = 'Não foi possível conectar ao servidor. Verifique o console (F12).';
                 alertBox.style.display = 'block';
                 
                 btnSubmit.textContent = originalText;
