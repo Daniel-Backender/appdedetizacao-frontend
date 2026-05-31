@@ -1,246 +1,198 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PestControlX - Painel de Acesso</title>
+    <title>PestControlX - Painel de Controlo Operacional</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <style>
         :root {
-            --bg-global: #f8fafc;
-            --card-bg: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --brand-green: #16a34a;
-            --brand-green-hover: #15803d;
-            --border-light: #e2e8f0;
-            --input-focus: #bbf7d0;
+            --bg-color: #0d0f12;
+            --panel-bg: #14181f;
+            --neon-cyan: #00f0ff;
+            --neon-green: #3ddc84;
+            --text-main: #e2e8f0;
+            --border-glow: rgba(0, 240, 255, 0.2);
         }
+
         body {
-            background-color: var(--bg-global);
-            color: var(--text-primary);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, sans-serif;
             margin: 0;
+            padding: 20px;
         }
-        .login-wrapper {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-light);
-            border-radius: 16px;
-            padding: 45px 40px;
+
+        h1 {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 2px solid var(--neon-cyan);
+            padding-bottom: 10px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-glow);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        table {
             width: 100%;
-            max-width: 450px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            box-sizing: border-box;
-        }
-        .brand-header {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-        .brand-header img.logo {
-            max-height: 85px;
-            margin-bottom: 16px;
-        }
-        .brand-header h1 {
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
-        }
-        .brand-header p {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-top: 8px;
-        }
-        .form-group {
-            margin-bottom: 22px;
-            text-align: left;
-        }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 13px 16px;
-            border: 1px solid var(--border-light);
-            border-radius: 10px;
-            background-color: #fff;
-            color: var(--text-primary);
-            font-size: 14px;
-            box-sizing: border-box;
-            transition: all 0.2s ease;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--brand-green);
-            box-shadow: 0 0 0 3px var(--input-focus);
-        }
-        .action-row {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 25px;
-        }
-        .action-row a {
-            color: var(--brand-green);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-        }
-        .action-row a:hover {
-            text-decoration: underline;
-        }
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--brand-green);
-            border: none;
-            border-radius: 10px;
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        .btn-primary:hover {
-            background-color: var(--brand-green-hover);
-        }
-        .footer-links {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-        .footer-links a {
-            color: var(--brand-green);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-        .alert-box {
+            border-collapse: collapse;
             margin-top: 15px;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 13px;
-            display: none;
         }
-        .alert-error { background-color: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; }
-        .alert-success { background-color: #f0fdf4; border: 1px solid #dcfce7; color: #166534; }
+
+        th {
+            background-color: rgba(0, 240, 255, 0.1);
+            color: var(--neon-cyan);
+            text-align: left;
+            padding: 12px;
+            border-bottom: 2px solid var(--neon-cyan);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #1e2530;
+        }
+
+        tr:hover {
+            background-color: rgba(61, 220, 132, 0.05);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: rgba(61, 220, 132, 0.2);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+        }
+
+        #map-fallback {
+            height: 300px;
+            background: #090b0e;
+            border: 1px dashed var(--neon-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            margin-top: 15px;
+            border-radius: 6px;
+        }
+
+        .glow-text {
+            color: var(--neon-green);
+            text-shadow: 0 0 8px rgba(61, 220, 132, 0.6);
+        }
     </style>
 </head>
 <body>
 
-    <div class="login-wrapper">
-        <div class="brand-header">
-            <img src="img/logo2 copy.png" alt="Logo" class="logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2942/2942780.png'">
-            <h1>Aceder ao Painel Corporativo</h1>
-            <p class="subtitle">Insira as suas credenciais de operador</p>
+    <h1>🚀 PestControlX // Central de Despacho Operacional</h1>
+
+    <div class="grid-container">
+        <div class="panel">
+            <h2>Ordens de Serviço Ativas</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>OS Nº</th>
+                        <th>Cliente</th>
+                        <th>Contacto</th>
+                        <th>Serviço</th>
+                        <th>Status Operacional</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-ordens">
+                    <tr>
+                        <td>#1024</td>
+                        <td>Condomínio Alfa Premium</td>
+                        <td>(11) 99999-0011</td>
+                        <td>Desinfestão Química Geral</td>
+                        <td><span class="status-badge status-active">Em Execução</span></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="email">E-mail Institucional</label>
-                <input type="email" id="email" placeholder="nome@empresa.com" required>
+        <div class="panel">
+            <h2>Telemetria GPS (Técnico)</h2>
+            <div id="status-conexao">Status WebSocket: <span style="color: yellow;">A conectar...</span></div>
+            <div id="map-fallback">
+                <div id="coordenadas-realtime">A aguardar sinal de satélite da aplicação do técnico...</div>
             </div>
-
-            <div class="form-group">
-                <label for="senha">Palavra-passe</label>
-                <input type="password" id="senha" placeholder="••••••••" required>
-            </div>
-
-            <div class="action-row">
-                <a href="forgot-password.html">Esqueceu-se da senha?</a>
-            </div>
-
-            <button type="submit" class="btn-primary">Entrar no Sistema</button>
-            <div id="alertBox" class="alert-box"></div>
-
-            <div class="footer-links">
-                <p>Novo por aqui? <a href="register.html">Solicitar acesso de terminal</a></p>
-            </div>
-        </form>
+        </div>
     </div>
 
-  <script>
-        const API_BASE_URL = 'https://appdedetizacao.onrender.com';
+    <script>
+        // Configuração do Cliente WebSocket conectado diretamente ao Backend do Render
+        const socket = new SockJS('https://appdedetizacao.onrender.com/ws-pestcontrol-sockjs');
+        const stompClient = Stomp.over(socket);
 
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            const senha = document.getElementById('senha').value;
-            const alertBox = document.getElementById('alertBox');
-            const btnSubmit = e.target.querySelector('button');
+        stompClient.connect({}, function (frame) {
+            document.getElementById('status-conexao').innerHTML = 'Status WebSocket: <span class="glow-text">ONLINE</span>';
+            
+            // Subscrição no canal de telemetria GPS da OS 1024 (Exemplo)
+            stompClient.subscribe('/topic/gps/1024', function (response) {
+                const dadosGps = JSON.parse(response.body);
+                document.getElementById('coordenadas-realtime').innerHTML = 
+                    `<b style="color: #00f0ff;">📡 TÉCNICO LOCALIZADO:</b><br><br>
+                     Latitude: ${dadosGps.latitude}<br>
+                     Longitude: ${dadosGps.longitude}<br>
+                     <small style="color: #64748b;">Atualizado agora mesmo</small>`;
+            });
+        }, function (error) {
+            document.getElementById('status-conexao').innerHTML = 'Status WebSocket: <span style="color: red;">OFFLINE (Erro de Conexão)</span>';
+        });
 
-            const originalText = btnSubmit.textContent;
-            btnSubmit.textContent = 'Enviando código...';
-            btnSubmit.disabled = true;
-            alertBox.style.display = 'none';
-
+        // Pipeline para carregar os dados dinâmicos do Cliente e OS na tabela via API
+        async function carregarPainelAdministrativo() {
             try {
-                // 🚀 CORREÇÃO: Enviamos o payload completo alinhado com o seu Spring Boot
-                const payload = { 
-                    email: email, 
-                    senha: senha, 
-                    tipoUsuario: "EMPRESA", // Garante o mapeamento do DTO corporativo
-                    tipo: "EMPRESA"         // redundância de segurança caso o campo varie
-                };
-
-                const response = await fetch(`${API_BASE_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                console.log(`📡 Status da Resposta: ${response.status}`);
-
+                const response = await fetch('https://appdedetizacao.onrender.com/api/solicitacoes');
                 if (response.ok) {
-                    alertBox.className = 'alert-box alert-success';
-                    alertBox.textContent = 'Autenticação efetuada! Verifique o código enviado ao seu e-mail...';
-                    alertBox.style.display = 'block';
-                    
-                    // Salva o e-mail para ser usado na tela do token
-                    localStorage.setItem('logging_email', email);
-                    localStorage.setItem('emailTemp', email);
+                    const ordens = await response.json();
+                    const tbody = document.getElementById('tabela-ordens');
+                    tbody.innerHTML = ''; // Limpa dados estáticos
 
-                    setTimeout(() => { 
-                        window.location.href = 'token.html'; 
-                    }, 1500);
-                } else {
-                    // Se falhar, tenta ler a mensagem do servidor de forma segura
-                    let msgErro = 'Credenciais inválidas ou erro no servidor.';
-                    try {
-                        const data = await response.json();
-                        if (data && data.message) msgErro = data.message;
-                    } catch (e) {
-                        // Se o corpo vier vazio ou texto simples, evita crash do JS
-                    }
+                    ordens.forEach(ordem => {
+                        const clienteNome = ordem.cliente ? ordem.cliente.nome : "Não Vinculado";
+                        const clienteTelefone = ordem.cliente ? ordem.cliente.telefone : "N/D";
+                        const servicoNome = ordem.servico ? ordem.servico.nome : "Padrão";
 
-                    alertBox.className = 'alert-box alert-error';
-                    alertBox.textContent = msgErro;
-                    alertBox.style.display = 'block';
-                    
-                    btnSubmit.textContent = originalText;
-                    btnSubmit.disabled = false;
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>#${ordem.id}</td>
+                                <td style="font-weight: bold; color: #fff;">${clienteNome}</td>
+                                <td>${clienteTelefone}</td>
+                                <td>${servicoNome}</td>
+                                <td><span class="status-badge status-active">${ordem.status || 'Pendente'}</span></td>
+                            </tr>
+                        `;
+                    });
                 }
             } catch (err) {
-                // Captura erros de rede ou de CORS no console
-                console.error("🔴 Erro crítico na requisição de login:", err);
-                
-                alertBox.className = 'alert-box alert-error';
-                alertBox.textContent = 'Não foi possível conectar ao servidor. Verifique o console (F12).';
-                alertBox.style.display = 'block';
-                
-                btnSubmit.textContent = originalText;
-                btnSubmit.disabled = false;
+                console.error("Erro ao sincronizar dados da API com o painel.");
             }
-        });
+        }
+
+        // Executa a carga inicial de dados
+        carregarPainelAdministrativo();
     </script>
 </body>
 </html>
