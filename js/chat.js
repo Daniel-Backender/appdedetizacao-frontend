@@ -1,9 +1,10 @@
 var stompClient = null;
-const RENDER_URL = 'wss://appdedetizacao.onrender.com/ws-pestcontrol'; 
-const tokenAuth = localStorage.getItem("tokenJWT") || localStorage.getItem("token");
+// 🛠️ CORREÇÃO PRINCIPAL: Rota correta mapeada para SockJS usando HTTPS
+const RENDER_URL = 'https://appdedetizacao.onrender.com/ws-pestcontrol-sockjs'; 
 
-
-const empresaId = localStorage.getItem("empresaId") || 1; 
+// Chaves unificadas para evitar falhas de leitura
+const tokenAuth = localStorage.getItem("tokenJWT") || localStorage.getItem("token") || localStorage.getItem("token_usuario") || localStorage.getItem("TOKEN_AUTH");
+const empresaId = localStorage.getItem("empresaId") || localStorage.getItem("usuario_id") || 1; 
 const clienteId = localStorage.getItem("clienteId") || 1; 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -67,7 +68,6 @@ function conectar() {
         console.log('Conectado de forma segura ao Servidor STOMP');
         atualizarStatusInterface("BARRAMENTO ONLINE", "#3DDC84");
         
-        // 🚀 CORREÇÃO AQUI: Escutando o tópico dinâmico específico dessa conversa
         const topicoDinamico = `/topic/chat/${empresaId}/${clienteId}`;
         
         stompClient.subscribe(topicoDinamico, function (msg) {
@@ -75,9 +75,8 @@ function conectar() {
             var chat = document.getElementById('chat');
             if (!chat) return;
 
-            // Alinha visualmente quem mandou a mensagem
-            let cor = dados.remetente === 'EMPRESA' ? '#3DDC84' : '#00ffff'; // Neon para destacar
-            chat.innerHTML += `<p style="margin: 6px 0; font-family: sans-serif;"><span style="color: ${cor}; font-weight: bold;">[${dados.remetente}]</span>: ${dados.texto}</p>`;
+            let cor = dados.remetente === 'EMPRESA' ? '#3DDC84' : '#00ffff'; 
+            chat.innerHTML += `<p style="margin: 6px 0; font-family: sans-serif;"><span style="color: ${cor}; font-weight: bold;">[${dados.remetente}]</span>: ${dados.texto || dados.conteudo}</p>`;
             chat.scrollTop = chat.scrollHeight;
 
             if (dados.remetente !== 'EMPRESA') tocarSomNotificacao();
@@ -95,16 +94,16 @@ function enviar() {
 
     var textoDigitado = input.value.trim();
     
-    // Verifica se está conectado de verdade antes de disparar
     if (textoDigitado !== "" && stompClient && stompClient.connected) {
         var payload = JSON.stringify({
             'remetente': 'EMPRESA',
-            'texto': textoDigitado
+            'texto': textoDigitado,
+            'conteudo': textoDigitado,
+            'remetenteId': empresaId,
+            'destinatarioId': clienteId
         });
         
-        // 🚀 CORREÇÃO AQUI: Enviando para o prefixo /app + a rota mapeada no ChatController
         const rotaEnvio = `/app/chat/${empresaId}/${clienteId}`;
-        
         stompClient.send(rotaEnvio, {}, payload);
         input.value = '';
         input.focus();

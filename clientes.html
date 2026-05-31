@@ -16,7 +16,7 @@
 
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: transparent;
+            background: #0F0F12;
             color: #fff;
             margin: 0;
             padding: 25px;
@@ -53,7 +53,6 @@
         .btn-detalhes { background: #11141D; color: var(--primary); border: 1px solid var(--primary); padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s;}
         .btn-detalhes:hover { background: var(--primary); color: #000; }
         
-        /* Estilos da Ficha Corporativa */
         .card-perfil { background: var(--surface); border-radius: 10px; padding: 20px; display: flex; gap: 20px; margin-bottom: 20px; border: 1px solid var(--border); }
         .avatar { width: 55px; height: 55px; background: rgba(61,220,132,0.1); border: 1px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .secao-titulo { background: rgba(61, 220, 132, 0.08); color: var(--primary); padding: 8px 15px; border-radius: 4px; font-weight: bold; margin-top: 20px; margin-bottom: 12px; font-size: 12px; letter-spacing: 0.5px;}
@@ -104,35 +103,45 @@
 
 <script>
     const API_URL = "https://appdedetizacao.onrender.com";
-    const token = localStorage.getItem("tokenJWT") || localStorage.getItem("token");
-    const empresaId = localStorage.getItem("empresaId") || "1";
+    const token = localStorage.getItem("tokenJWT") || localStorage.getItem("token") || localStorage.getItem("token_usuario") || localStorage.getItem("TOKEN_AUTH");
+    const empresaId = localStorage.getItem("empresaId") || localStorage.getItem("usuario_id") || "1";
     
     let clientesGlobais = [];
 
     async function carregarClientesDoServidor() {
         const tbody = document.getElementById("tabelaClientes");
+        if (!tbody) return;
         tbody.innerHTML = "<tr><td colspan='3' style='text-align: center; color: #3DDC84;'>Processando requisição de rede...</td></tr>";
 
         try {
             const response = await fetch(`${API_URL}/api/clientes/empresa/${empresaId}`, {
                 method: 'GET',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                headers: { 
+                    'Authorization': `Bearer ${token}`, 
+                    'Content-Type': 'application/json' 
+                }
             });
+            
             if (!response.ok) throw new Error(`Status: ${response.status}`);
+            
             clientesGlobais = await response.json();
             renderizarTabela(clientesGlobais);
         } catch (error) {
+            console.error(error);
             tbody.innerHTML = `<tr><td colspan='3' style='text-align: center; color: #ef4444;'>Sem conexão ativa com o banco PostgreSQL de nuvem.</td></tr>`;
         }
     }
 
     function renderizarTabela(lista) {
         const tbody = document.getElementById("tabelaClientes");
+        if (!tbody) return;
         tbody.innerHTML = "";
-        if (lista.length === 0) {
+        
+        if (!lista || lista.length === 0) {
             tbody.innerHTML = "<tr><td colspan='3' style='text-align: center;'>Nenhum cliente indexado para a filial de sua empresa.</td></tr>";
             return;
         }
+        
         lista.forEach(c => {
             const nome = c.nome || c.nomeCompleto || 'Sem Identificação';
             const documento = c.cpf || c.cnpj || 'Isento/Não Informado';

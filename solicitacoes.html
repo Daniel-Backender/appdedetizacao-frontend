@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <title>Painel de Solicitações - Kanban</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -17,7 +18,7 @@
             color: var(--text-main);
             margin: 0;
             padding: 25px;
-            background: transparent;
+            background: #0F0F12;
         }
         .top-bar {
             display: flex;
@@ -95,7 +96,6 @@
     </style>
 </head>
 <body>
-    <script>if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-theme');</script>
 
     <div class="top-bar">
         <h1 style="font-size: 24px; margin:0;"><i class="fa-solid fa-columns" style="color: var(--primary)"></i> Painel de Solicitações</h1>
@@ -131,132 +131,124 @@
     </div>
 
     <script>
-  const API_URL = "https://appdedetizacao.onrender.com/api";
-let loopDeAtualizacao; 
+        const API_URL = "https://appdedetizacao.onrender.com/api";
+        let loopDeAtualizacao; 
 
-function obterTokenSeguro() {
-    return localStorage.getItem("TOKEN_AUTH") || 
-           localStorage.getItem("token") || 
-           localStorage.getItem("token_usuario");
-}
+        function obterTokenSeguro() {
+            return localStorage.getItem("tokenJWT") || 
+                   localStorage.getItem("token") || 
+                   localStorage.getItem("token_usuario") ||
+                   localStorage.getItem("TOKEN_AUTH");
+        }
 
-function obterIdEmpresaLogada() {
-    return localStorage.getItem("usuario_id") || localStorage.getItem("empresaId") || "3"; 
-}
+        function obterIdEmpresaLogada() {
+            return localStorage.getItem("empresaId") || localStorage.getItem("usuario_id") || "1"; 
+        }
 
-async function carregarOrdens() {
-    const token = obterTokenSeguro();
-    const empresaId = obterIdEmpresaLogada();
-    
-    if (!token) {
-        console.error("❌ Erro: Nenhum token encontrado no localStorage!");
-        alert("Sessão expirada. Por favor, refaça o login.");
-        window.location.href = 'index.html';
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_URL}/ordens/empresa/${empresaId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`, 
-                'Content-Type': 'application/json'
+        async function carregarOrdens() {
+            const token = obterTokenSeguro();
+            const empresaId = obterIdEmpresaLogada();
+            
+            if (!token) {
+                console.error("❌ Erro: Nenhum token encontrado no localStorage!");
+                alert("Sessão expirada. Por favor, refaça o login.");
+                window.location.href = 'index.html';
+                return;
             }
-        });
 
-        if (response.status === 401) {
-            console.error("❌ O servidor recusou o Token enviado.");
-            alert("Sessão expirada. Realize o login novamente.");
-            window.location.href = 'index.html';
-            return;
+            try {
+                // Sincronizado dinamicamente com a rota correta do Spring Boot
+                const response = await fetch(`${API_URL}/ordens/empresa/${empresaId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`, 
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.status === 401) {
+                    alert("Sessão expirada. Realize o login novamente.");
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                if (!response.ok) throw new Error(`Erro: ${response.status}`);
+
+                const ordens = await response.json();
+                renderizarKanban(ordens);
+
+            } catch (error) {
+                console.error("❌ Erro ao buscar ordens:", error);
+            }
         }
 
-        if (!response.ok) {
-            throw new Error(`Erro na resposta do servidor: ${response.status}`);
+        function renderizarKanban(ordens) {
+            const colPendentes = document.getElementById("col-pendentes");
+            const colCampo = document.getElementById("col-campo");
+            const colConcluidas = document.getElementById("col-concluidas");
+
+            colPendentes.innerHTML = "";
+            colCampo.innerHTML = "";
+            colConcluidas.innerHTML = "";
+
+            let qtdPendentes = 0, qtdCampo = 0, qtdConcluidas = 0;
+
+            ordens.forEach(os => {
+                const card = document.createElement("div");
+                card.className = "os-card";
+                card.innerHTML = `
+                    <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">OS #${os.id} - ${os.nomeCliente || (os.cliente ? os.cliente.nome : 'Cliente')}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">${os.descricao || 'Sem descrição cadastrada'}</div>
+                    <div style="font-size: 11px; color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> Agendado: ${os.dataAgendamento || 'Hoje'}</div>
+                `;
+
+                const statusLimpo = os.status ? os.status.toUpperCase() : "PENDENTE";
+
+                if (statusLimpo === "PENDENTE") {
+                    card.innerHTML += `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'EM_ANDAMENTO')">Aprovar Chamado</button>`;
+                    colPendentes.appendChild(card);
+                    qtdPendentes++;
+                } else if (statusLimpo === "EM_ANDAMENTO" || statusLimpo === "EM ATENDIMENTO") {
+                    card.innerHTML += `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'CONCLUIDA')">Finalizar Serviço</button>`;
+                    colCampo.appendChild(card);
+                    qtdCampo++;
+                } else if (statusLimpo === "CONCLUIDA" || statusLimpo === "CONCLUÍDA") {
+                    colConcluidas.appendChild(card);
+                    qtdConcluidas++;
+                }
+            });
+
+            document.getElementById("count-pendentes").innerText = qtdPendentes;
+            document.getElementById("count-campo").innerText = qtdCampo;
+            document.getElementById("count-concluidas").innerText = qtdConcluidas;
         }
 
-        const ordens = await response.json();
-        console.log("Ordens carregadas com sucesso:", ordens);
-        
-        // Executa a montagem visual dos cards na tela
-        renderizarKanban(ordens);
+        async function atualizarStatus(id, novoStatus) {
+            try {
+                const token = obterTokenSeguro();
+                // Envia a atualização parcial para o banco de dados
+                const response = await fetch(`${API_URL}/ordens/${id}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ status: novoStatus })
+                });
 
-    } catch (error) {
-        console.error("❌ Erro ao processar a requisição de ordens:", error);
-    }
-}
-
-function renderizarKanban(ordens) {
-    // Captura os containers do HTML
-    const colPendentes = document.getElementById("col-pendentes");
-    const colCampo = document.getElementById("col-campo");
-    const colConcluidas = document.getElementById("col-concluidas");
-
-    // Limpa os dados antigos para não duplicar
-    colPendentes.innerHTML = "";
-    colCampo.innerHTML = "";
-    colConcluidas.innerHTML = "";
-
-    let qtdPendentes = 0, qtdCampo = 0, qtdConcluidas = 0;
-
-    ordens.forEach(os => {
-        // Cria a estrutura do card neon
-        const card = document.createElement("div");
-        card.className = "os-card";
-        card.innerHTML = `
-            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">OS #${os.id} - ${os.nomeCliente || 'Cliente'}</div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">${os.descricao || 'Sem descrição cadastrada'}</div>
-            <div style="font-size: 11px; color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> Agendado: ${os.dataAgendamento || 'Hoje'}</div>
-        `;
-
-        // Filtra para a coluna correta baseado no Status vindo do Java
-        if (os.status === "PENDENTE") {
-            card.innerHTML += `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'EM_ANDAMENTO')">Aprovar Chamado</button>`;
-            colPendentes.appendChild(card);
-            qtdPendentes++;
-        } else if (os.status === "EM_ANDAMENTO") {
-            card.innerHTML += `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'CONCLUIDA')">Finalizar Serviço</button>`;
-            colCampo.appendChild(card);
-            qtdCampo++;
-        } else if (os.status === "CONCLUIDA" || os.status === "CONCLUÍDA") {
-            colConcluidas.appendChild(card);
-            qtdConcluidas++;
+                if (response.ok) {
+                    carregarOrdens(); 
+                } else {
+                    alert("Falha ao atualizar status. Código HTTP: " + response.status);
+                }
+            } catch(err) {
+                console.error(err);
+            }
         }
-    });
 
-    // Atualiza os contadores numéricos dos cabeçalhos
-    document.getElementById("count-pendentes").innerText = qtdPendentes;
-    document.getElementById("count-campo").innerText = qtdCampo;
-    document.getElementById("count-concluidas").innerText = qtdConcluidas;
-}
-
-async function atualizarStatus(id, novoStatus) {
-    try {
-        const token = obterTokenSeguro();
-        const response = await fetch(`${API_URL}/ordens/${id}`, {
-            method: 'PUT',
-            headers: { 
-                'Content-Type': 'application/json', 
-                'Authorization': `Bearer ${token}` 
-            },
-            body: JSON.stringify({ status: novoStatus })
-        });
-
-        if (response.ok) {
-            carregarOrdens(); 
-        } else {
-            alert("Falha ao atualizar status. Código: " + response.status);
-        }
-    } catch(err) {
-        console.error(err);
-    }
-}
-
-// Inicialização segura do Polling automático
-carregarOrdens();
-const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
-loopDeAtualizacao = setInterval(carregarOrdens, taxaRefresh);
-
+        carregarOrdens();
+        const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
+        loopDeAtualizacao = setInterval(carregarOrdens, taxaRefresh);
     </script>
 </body>
 </html>
