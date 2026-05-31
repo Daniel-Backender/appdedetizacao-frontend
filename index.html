@@ -3,369 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PestControlX - Painel Corporativo</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <title>PestControlX - Painel de Acesso</title>
     <style>
         :root {
-            --bg-principal: #0d1117;
-            --bg-card: #161b22;
-            --neon-verde: #3ddc84;
-            --neon-azul: #00f0ff;
-            --neon-rosa: #ff007f;
-            --texto-claro: #c9d1d9;
-            --borda-glow: rgba(61, 220, 132, 0.2);
+            --bg-global: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --brand-green: #16a34a;
+            --brand-green-hover: #15803d;
+            --border-light: #e2e8f0;
+            --input-focus: #bbf7d0;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Rajdhani', sans-serif;
-        }
-
         body {
-            background-color: var(--bg-principal);
-            color: var(--texto-claro);
+            background-color: var(--bg-global);
+            color: var(--text-primary);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
             display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        /* --- SIDEBAR CIBERNÉTICA --- */
-        nav {
-            width: 260px;
-            background: #070a0e;
-            border-right: 2px solid var(--neon-verde);
-            box-shadow: 5px 0 15px rgba(61, 220, 132, 0.1);
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-        }
-
-        .logo-area {
-            text-align: center;
-            padding-bottom: 30px;
-            border-bottom: 1px solid #21262d;
-        }
-
-        .logo-area h1 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--neon-verde);
-            font-size: 22px;
-            text-shadow: 0 0 10px var(--neon-verde);
-            letter-spacing: 2px;
-        }
-
-        .nav-links {
-            list-style: none;
-            margin-top: 30px;
-        }
-
-        .nav-links li {
-            margin-bottom: 15px;
-        }
-
-        .nav-links a {
-            display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 15px;
-            color: var(--texto-claro);
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: 700;
-            padding: 12px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
+            min-height: 100vh;
+            margin: 0;
         }
-
-        .nav-links a:hover, .nav-links a.active {
-            background: rgba(61, 220, 132, 0.05);
-            color: var(--neon-verde);
-            border-color: var(--neon-verde);
-            text-shadow: 0 0 5px var(--neon-verde);
-            box-shadow: inset 0 0 10px rgba(61, 220, 132, 0.2);
-        }
-
-        /* --- CONTAINER PRINCIPAL --- */
-        main {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            border-bottom: 1px solid #21262d;
-            padding-bottom: 15px;
-        }
-
-        header h2 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 26px;
-            letter-spacing: 1px;
-            color: #fff;
-        }
-
-        .status-badge {
-            background: rgba(61, 220, 132, 0.1);
-            border: 1px solid var(--neon-verde);
-            color: var(--neon-verde);
-            padding: 6px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(61, 220, 132, 0.2);
-        }
-
-        /* --- CARDS DE MÉTRICAS --- */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card.solicitacoes-card { border-left: 4px solid var(--neon-azul); }
-        .card.ativas-card { border-left: 4px solid var(--neon-verde); }
-        .card.alerta-card { border-left: 4px solid var(--neon-rosa); }
-
-        .card h3 {
-            font-size: 16px;
-            color: #8b949e;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        .card .value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 28px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        /* --- SEÇÃO PRINCIPAL: TABELA DE SOLICITAÇÕES --- */
-        .section-container {
-            background: var(--bg-card);
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .section-header h3 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            color: var(--neon-azul);
-            text-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
-        }
-
-        table {
+        .login-wrapper {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 45px 40px;
             width: 100%;
-            border-collapse: collapse;
+            max-width: 450px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            box-sizing: border-box;
+        }
+        .brand-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        .brand-header img.logo {
+            max-height: 85px;
+            margin-bottom: 16px;
+        }
+        .brand-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        .brand-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .form-group {
+            margin-bottom: 22px;
             text-align: left;
         }
-
-        th {
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 10px;
+            background-color: #fff;
+            color: var(--text-primary);
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--brand-green);
+            box-shadow: 0 0 0 3px var(--input-focus);
+        }
+        .action-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 25px;
+        }
+        .action-row a {
+            color: var(--brand-green);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .action-row a:hover {
+            text-decoration: underline;
+        }
+        .btn-primary {
+            width: 100%;
             padding: 14px;
-            color: #8b949e;
-            font-size: 16px;
-            text-transform: uppercase;
-            border-bottom: 2px solid #30363d;
-        }
-
-        td {
-            padding: 14px;
-            border-bottom: 1px solid #21262d;
-            font-size: 16px;
-            color: #fff;
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .btn-action {
-            background: transparent;
-            border: 1px solid var(--neon-verde);
-            color: var(--neon-verde);
-            padding: 6px 12px;
-            border-radius: 6px;
+            background-color: var(--brand-green);
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
+            transition: background-color 0.2s ease;
         }
-
-        .btn-action:hover {
-            background: var(--neon-verde);
-            color: #000;
-            box-shadow: 0 0 12px var(--neon-verde);
+        .btn-primary:hover {
+            background-color: var(--brand-green-hover);
         }
-
-        .btn-reject {
-            border-color: var(--neon-rosa);
-            color: var(--neon-rosa);
-            margin-left: 8px;
+        .footer-links {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
         }
-
-        .btn-reject:hover {
-            background: var(--neon-rosa);
-            color: #fff;
-            box-shadow: 0 0 12px var(--neon-rosa);
+        .footer-links a {
+            color: var(--brand-green);
+            text-decoration: none;
+            font-weight: 500;
         }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .alert-box {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+        }
+        .alert-error { background-color: #fef2f2; border: 1px solid #fee2e2; color: #991b1b; }
+        .alert-success { background-color: #f0fdf4; border: 1px solid #dcfce7; color: #166534; }
     </style>
 </head>
 <body>
 
-    <nav>
-        <div class="logo-area">
-            <h1>PESTCONTROL<span>X</span></h1>
-        </div>
-        <ul class="nav-links">
-            <li><a href="#" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
-            <li><a href="#solicitacoes"><i class="fa-solid fa-envelope-open-text"></i> Solicitações</a></li>
-            <li><a href="#kanban"><i class="fa-solid fa-grip"></i> Kanban OS</a></li>
-            <li><a href="#chat"><i class="fa-solid fa-comments"></i> Central Chat</a></li>
-            <li><a href="#gps"><i class="fa-solid fa-satellite-dish"></i> Rastreamento</a></li>
-        </ul>
-    </nav>
-
-    <main>
-        <header>
-            <h2>PAINEL DE CONTROLE CENTRAL</h2>
-            <div class="status-badge"><i class="fa-solid fa-circle-dot"></i> BACKEND INTEGRADO</div>
-        </header>
-
-        <div class="metrics-grid">
-            <div class="card solicitacoes-card">
-                <h3>Solicitações Pendentes</h3>
-                <div class="value" id="count-solicitacoes">0</div>
-            </div>
-            <div class="card ativas-card">
-                <h3>Ordens em Andamento</h3>
-                <div class="value" id="count-ativas">0</div>
-            </div>
-            <div class="card alerta-card">
-                <h3>Alertas Críticos</h3>
-                <div class="value">0</div>
-            </div>
+    <div class="login-wrapper">
+        <div class="brand-header">
+            <img src="img/logo2 copy.png" alt="Logo" class="logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2942/2942780.png'">
+            <h1>Aceder ao Painel Corporativo</h1>
+            <p class="subtitle">Insira as suas credenciais de operador</p>
         </div>
 
-        <div class="section-container" id="solicitacoes">
-            <div class="section-header">
-                <h3><i class="fa-solid fa-inbox"></i> Solicitações de Clientes Mobile</h3>
-                <button class="btn-action" onclick="carregarSolicitacoes()"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">E-mail Institucional</label>
+                <input type="email" id="email" placeholder="nome@empresa.com" required>
             </div>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Cliente</th>
-                            <th>Serviço Solicitado</th>
-                            <th>Agendamento solicitado</th>
-                            <th>Status</th>
-                            <th>Ações Corporativas</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabela-solicitacoes">
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: #8b949e;">Buscando novas chamadas do pipeline...</td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <div class="form-group">
+                <label for="senha">Palavra-passe</label>
+                <input type="password" id="senha" placeholder="••••••••" required>
             </div>
-        </div>
-    </main>
 
-    <script>
-        const API_BASE_URL = "https://appdedetizacao.onrender.com/api";
+            <div class="action-row">
+                <a href="forgot-password.html">Esqueceu-se da senha?</a>
+            </div>
 
-        // 📥 CARREGAR SOLICITAÇÕES DIRETAMENTE DA API
-        async function carregarSolicitacoes() {
+            <button type="submit" class="btn-primary">Entrar no Sistema</button>
+            <div id="alertBox" class="alert-box"></div>
+
+            <div class="footer-links">
+                <p>Novo por aqui? <a href="register.html">Solicitar acesso de terminal</a></p>
+            </div>
+        </form>
+    </div>
+
+  <script>
+        const API_BASE_URL = 'https://appdedetizacao.onrender.com';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const senha = document.getElementById('senha').value;
+            const alertBox = document.getElementById('alertBox');
+            const btnSubmit = e.target.querySelector('button');
+
+            const originalText = btnSubmit.textContent;
+            btnSubmit.textContent = 'Enviando código...';
+            btnSubmit.disabled = true;
+            alertBox.style.display = 'none';
+
             try {
-                const response = await fetch(`${API_BASE_URL}/solicitacoes`);
-                if (!response.isSuccessful && response.status !== 200) throw new Error("Erro na API");
-                
-                const solicitacoes = await response.json();
-                const tbody = document.getElementById("tabela-solicitacoes");
-                tbody.innerHTML = "";
+                // 🚀 CORREÇÃO: Enviamos o payload completo alinhado com o seu Spring Boot
+                const payload = { 
+                    email: email, 
+                    senha: senha, 
+                    tipoUsuario: "EMPRESA", // Garante o mapeamento do DTO corporativo
+                    tipo: "EMPRESA"         // redundância de segurança caso o campo varie
+                };
 
-                document.getElementById("count-solicitacoes").innerText = solicitacoes.length;
-
-                if (solicitacoes.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #8b949e;">Nenhuma solicitação pendente no momento.</td></tr>`;
-                    return;
-                }
-
-                solicitacoes.forEach(req => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>#${req.id}</td>
-                            <td><strong>${req.cliente ? req.cliente.nome : 'Cliente Geral'}</strong></td>
-                            <td><span style="color: var(--neon-azul)">${req.servico ? req.servico.nome : 'Inspeção Geral'}</span></td>
-                            <td>${req.dataAgendamento || 'Não informada'}</td>
-                            <td><span style="color: #ffaa00; font-weight: bold;">PENDENTE</span></td>
-                            <td>
-                                <button class="btn-action" onclick="aceitarSolicitacao(${req.id})">
-                                    <i class="fa-solid fa-check"></i> ACEITAR & GERAR OS
-                                </button>
-                                <button class="btn-action btn-reject" onclick="recusarSolicitacao(${req.id})">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
-            } catch (error) {
-                console.error("Falha ao atualizar solicitações:", error);
-            }
-        }
 
-        // 🛠️ ACEITAR E ENVIAR PARA O KANBAN COMO ORDEM DE SERVIÇO
-        async function aceitarSolicitacao(id) {
-            if(confirm(`Deseja aprovar a solicitação #${id} e gerar uma Ordem de Serviço ativa?`)) {
-                try {
-                    // Simulação do disparo/vínculo para o endpoint de ordens
-                    alert(`Solicitação #${id} aprovada! O push notification foi disparado e adicionado ao Kanban.`);
-                    carregarSolicitacoes();
-                } catch (e) {
-                    alert("Erro ao processar alteração de status.");
+                console.log(`📡 Status da Resposta: ${response.status}`);
+
+                if (response.ok) {
+                    alertBox.className = 'alert-box alert-success';
+                    alertBox.textContent = 'Autenticação efetuada! Verifique o código enviado ao seu e-mail...';
+                    alertBox.style.display = 'block';
+                    
+                    // Salva o e-mail para ser usado na tela do token
+                    localStorage.setItem('logging_email', email);
+                    localStorage.setItem('emailTemp', email);
+
+                    setTimeout(() => { 
+                        window.location.href = 'token.html'; 
+                    }, 1500);
+                } else {
+                    // Se falhar, tenta ler a mensagem do servidor de forma segura
+                    let msgErro = 'Credenciais inválidas ou erro no servidor.';
+                    try {
+                        const data = await response.json();
+                        if (data && data.message) msgErro = data.message;
+                    } catch (e) {
+                        // Se o corpo vier vazio ou texto simples, evita crash do JS
+                    }
+
+                    alertBox.className = 'alert-box alert-error';
+                    alertBox.textContent = msgErro;
+                    alertBox.style.display = 'block';
+                    
+                    btnSubmit.textContent = originalText;
+                    btnSubmit.disabled = false;
                 }
+            } catch (err) {
+                // Captura erros de rede ou de CORS no console
+                console.error("🔴 Erro crítico na requisição de login:", err);
+                
+                alertBox.className = 'alert-box alert-error';
+                alertBox.textContent = 'Não foi possível conectar ao servidor. Verifique o console (F12).';
+                alertBox.style.display = 'block';
+                
+                btnSubmit.textContent = originalText;
+                btnSubmit.disabled = false;
             }
-        }
-
-        // Inicializa ao carregar a página
-        window.onload = () => {
-            carregarSolicitacoes();
-            // Polling automático a cada 15 segundos para pegar chamados novos do app
-            setInterval(carregarSolicitacoes, 15000);
-        };
+        });
     </script>
 </body>
 </html>
