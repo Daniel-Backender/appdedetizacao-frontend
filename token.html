@@ -145,6 +145,7 @@
                     });
 
                     const data = await response.json();
+                    localStorage.setItem('token_usuario', data.token);
 
                     if (!response.ok) {
                         throw new Error(data.message || "Código de autenticação inválido ou expirado.");

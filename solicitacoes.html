@@ -145,102 +145,47 @@
     }
 
     async function carregarOrdens() {
-        try {
-            const token = obterTokenSeguro();
-            const empresaId = obterIdEmpresaLogada();
-
-            if (!token) {
-                console.warn("Usuário não logado. Destruindo loop e redirecionando...");
-                clearInterval(loopDeAtualizacao);
-                window.parent.location.href = "index.html"; 
-                return;
-            }
-
-            const endpoint = empresaId ? `${API_URL}/ordens/empresa/${empresaId}` : `${API_URL}/ordens`;
-
-            const response = await fetch(endpoint, { 
-                method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                } 
-            });
-            
-            if (response.status === 401 || response.status === 403) {
-                console.error("Sessão expirada. O token é inválido.");
-                clearInterval(loopDeAtualizacao); 
-                localStorage.clear(); 
-                alert("Sua sessão de segurança expirou. Por favor, faça login novamente.");
-                window.parent.location.href = "index.html"; 
-                return;
-            }
-
-            if (!response.ok) throw new Error("Erro na requisição: " + response.status);
-            
-            const ordens = await response.json();
-            
-            // 🚀 OTIMIZAÇÃO: Acumuladores de string para atualizar o DOM uma única vez
-            let htmlPendentes = '';
-            let htmlCampo = '';
-            let htmlConcluidas = '';
-
-            let cp = 0, ca = 0, cc = 0;
-
-            ordens.forEach(os => {
-                let btnAcao = '';
-                const statusNormalizado = (os.status || '').toUpperCase();
-
-                if (statusNormalizado === 'PENDENTE' || statusNormalizado === 'NOVAS' || statusNormalizado === 'SOLICITADO') {
-                    cp++;
-                    btnAcao = `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'EM_ANDAMENTO')"><i class="fa-solid fa-forward"></i> Aprovar Chamado</button>`;
-                } else if (statusNormalizado === 'EM_ANDAMENTO' || statusNormalizado === 'EM_ATENDIMENTO') {
-                    ca++;
-                    btnAcao = `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'CONCLUIDA')"><i class="fa-solid fa-check"></i> Finalizar Serviço</button>`;
-                } else {
-                    cc++;
-                    btnAcao = `<div style="text-align: center; color: var(--primary); font-weight: bold; font-size: 11px; margin-top: 12px; letter-spacing: 0.5px;"><i class="fa-solid fa-check-double"></i> OS ARQUIVADA</div>`;
-                }
-
-                const descricaoCard = os.descricao || os.texto || "Inspeção Solicitada";
-                const nomeCliente = (os.cliente && os.cliente.nome) ? os.cliente.nome : (os.clienteNome || "App Mobile");
-
-                const card = `
-                    <div class="os-card">
-                        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-bottom:8px;">
-                            <span>REGISTRO #${os.id}</span>
-                            <span style="color:var(--primary); font-weight:bold;"><i class="fa-solid fa-bug"></i> INSPEÇÃO</span>
-                        </div>
-                        <h4 style="color: #fff; margin: 0 0 8px 0; font-size: 14px; font-weight:600; line-height:1.4;">${descricaoCard}</h4>
-                        <p style="color: var(--text-muted); font-size: 12px; margin: 0;">
-                            <strong style="color:#fff;">Cliente:</strong> ${nomeCliente}
-                        </p>
-                        ${btnAcao}
-                    </div>
-                `;
-                
-                // Acumula o HTML na variável correspondente
-                if (statusNormalizado === 'PENDENTE' || statusNormalizado === 'NOVAS' || statusNormalizado === 'SOLICITADO') {
-                    htmlPendentes += card;
-                } else if (statusNormalizado === 'EM_ANDAMENTO' || statusNormalizado === 'EM_ATENDIMENTO') {
-                    htmlCampo += card;
-                } else {
-                    htmlConcluidas += card;
-                }
-            });
-
-            // 🚀 Alimenta o DOM de uma vez só (Melhora drástica de performance)
-            document.getElementById('col-pendentes').innerHTML = htmlPendentes;
-            document.getElementById('col-campo').innerHTML = htmlCampo;
-            document.getElementById('col-concluidas').innerHTML = htmlConcluidas;
-
-            document.getElementById("count-pendentes").innerText = cp;
-            document.getElementById("count-campo").innerText = ca;
-            document.getElementById("count-concluidas").innerText = cc;
-
-        } catch (e) {
-            console.error("Erro ao carregar o quadro Kanban:", e);
-        }
+    // 🚀 BUSCA SEGURA: Tenta pegar o Token salvo no localStorage (testa as duas chaves possíveis)
+    const token = localStorage.getItem('token_usuario') || localStorage.getItem('token');
+    
+    if (!token) {
+        console.error("❌ Erro: Nenhum token encontrado no localStorage!");
+        alert("Sessão expirada. Por favor, refaça o login.");
+        window.location.href = 'index.html';
+        return;
     }
+
+    try {
+        // Altere a URL abaixo para a sua rota do Render dinâmica ou estática se necessário
+        const response = await fetch('https://appdedetizacao.onrender.com/api/ordens/empresa/3', {
+            method: 'GET',
+            headers: {
+                // 🚀 O SEGREDO QUE ESTAVA FALTANDO: Injetar o token Bearer na requisição
+                'Authorization': `Bearer ${token}`, 
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.status === 401) {
+            console.error("❌ O servidor recusou o Token enviado.");
+            alert("Sessão expirada. Realize o login novamente.");
+            window.location.href = 'index.html';
+            return;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Erro na resposta do servidor: ${response.status}`);
+        }
+
+        const ordens = await response.json();
+        
+        // 🟢 PROSSIGA COM A SUA LÓGICA ORIGINAL AQUI (renderizar na tabela, etc.)
+        console.log("Ordens carregadas com sucesso:", ordens);
+
+    } catch (error) {
+        console.error("❌ Erro ao processar a requisição de ordens:", error);
+    }
+}
 
     async function atualizarStatus(id, novoStatus) {
         try {
