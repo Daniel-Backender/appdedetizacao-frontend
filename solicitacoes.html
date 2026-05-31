@@ -131,22 +131,22 @@
     </div>
 
     <script>
-   const API_URL = "https://appdedetizacao.onrender.com/api";
-    let loopDeAtualizacao; 
+  const API_URL = "https://appdedetizacao.onrender.com/api";
+let loopDeAtualizacao; 
 
-    function obterTokenSeguro() {
-        return localStorage.getItem("TOKEN_AUTH") || 
-               localStorage.getItem("token") || 
-               localStorage.getItem("token_usuario");
-    }
+function obterTokenSeguro() {
+    return localStorage.getItem("TOKEN_AUTH") || 
+           localStorage.getItem("token") || 
+           localStorage.getItem("token_usuario");
+}
 
-    function obterIdEmpresaLogada() {
-        return localStorage.getItem("usuario_id") || localStorage.getItem("empresaId"); 
-    }
+function obterIdEmpresaLogada() {
+    return localStorage.getItem("usuario_id") || localStorage.getItem("empresaId") || "3"; 
+}
 
-    async function carregarOrdens() {
-    // 🚀 BUSCA SEGURA: Tenta pegar o Token salvo no localStorage (testa as duas chaves possíveis)
-    const token = localStorage.getItem('token_usuario') || localStorage.getItem('token');
+async function carregarOrdens() {
+    const token = obterTokenSeguro();
+    const empresaId = obterIdEmpresaLogada();
     
     if (!token) {
         console.error("❌ Erro: Nenhum token encontrado no localStorage!");
@@ -156,11 +156,9 @@
     }
 
     try {
-        // Altere a URL abaixo para a sua rota do Render dinâmica ou estática se necessário
-        const response = await fetch('https://appdedetizacao.onrender.com/api/ordens/empresa/3', {
+        const response = await fetch(`${API_URL}/ordens/empresa/${empresaId}`, {
             method: 'GET',
             headers: {
-                // 🚀 O SEGREDO QUE ESTAVA FALTANDO: Injetar o token Bearer na requisição
                 'Authorization': `Bearer ${token}`, 
                 'Content-Type': 'application/json'
             }
@@ -178,60 +176,86 @@
         }
 
         const ordens = await response.json();
-        
-        // 🟢 PROSSIGA COM A SUA LÓGICA ORIGINAL AQUI (renderizar na tabela, etc.)
         console.log("Ordens carregadas com sucesso:", ordens);
+        
+        // Executa a montagem visual dos cards na tela
+        renderizarKanban(ordens);
 
     } catch (error) {
         console.error("❌ Erro ao processar a requisição de ordens:", error);
     }
 }
 
-    async function atualizarStatus(id, novoStatus) {
-        try {
-            const token = obterTokenSeguro();
-            const corpoRequisicao = { status: novoStatus };
-            
-            const response = await fetch(`${API_URL}/ordens/${id}`, {
-                method: 'PUT',
-                headers: { 
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify(corpoRequisicao)
-            });
+function renderizarKanban(ordens) {
+    // Captura os containers do HTML
+    const colPendentes = document.getElementById("col-pendentes");
+    const colCampo = document.getElementById("col-campo");
+    const colConcluidas = document.getElementById("col-concluidas");
 
-            if (response.status === 401 || response.status === 403) {
-                clearInterval(loopDeAtualizacao);
-                localStorage.clear();
-                alert("Sessão expirada! Faça login novamente.");
-                window.parent.location.href = "index.html";
-                return;
-            }
+    // Limpa os dados antigos para não duplicar
+    colPendentes.innerHTML = "";
+    colCampo.innerHTML = "";
+    colConcluidas.innerHTML = "";
 
-            if (response.ok) {
-                // 🚀 CORREÇÃO: Mensagem dinâmica baseada no destino da ação
-                if (novoStatus === 'EM_ANDAMENTO') {
-                    alert(`Chamado #${id} aprovado com sucesso! O técnico já pode visualizar em campo.`);
-                } else if (novoStatus === 'CONCLUIDA') {
-                    alert(`Ordem de Serviço #${id} finalizada e arquivada com sucesso!`);
-                } else {
-                    alert(`Status da OS #${id} atualizado para ${novoStatus}.`);
-                }
-                carregarOrdens(); 
-            } else {
-                alert("Falha ao salvar no banco de dados. Status: " + response.status);
-            }
-        } catch(err) {
-            console.error(err);
-            alert("Erro de conexão com o servidor.");
+    let qtdPendentes = 0, qtdCampo = 0, qtdConcluidas = 0;
+
+    ordens.forEach(os => {
+        // Cria a estrutura do card neon
+        const card = document.createElement("div");
+        card.className = "os-card";
+        card.innerHTML = `
+            <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">OS #${os.id} - ${os.nomeCliente || 'Cliente'}</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">${os.descricao || 'Sem descrição cadastrada'}</div>
+            <div style="font-size: 11px; color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> Agendado: ${os.dataAgendamento || 'Hoje'}</div>
+        `;
+
+        // Filtra para a coluna correta baseado no Status vindo do Java
+        if (os.status === "PENDENTE") {
+            card.innerHTML += `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'EM_ANDAMENTO')">Aprovar Chamado</button>`;
+            colPendentes.appendChild(card);
+            qtdPendentes++;
+        } else if (os.status === "EM_ANDAMENTO") {
+            card.innerHTML += `<button class="os-action-btn" onclick="atualizarStatus(${os.id}, 'CONCLUIDA')">Finalizar Serviço</button>`;
+            colCampo.appendChild(card);
+            qtdCampo++;
+        } else if (os.status === "CONCLUIDA" || os.status === "CONCLUÍDA") {
+            colConcluidas.appendChild(card);
+            qtdConcluidas++;
         }
-    }
+    });
 
-    // Inicialização Protegida
-    carregarOrdens();
-    const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
-    loopDeAtualizacao = setInterval(carregarOrdens, taxaRefresh);
+    // Atualiza os contadores numéricos dos cabeçalhos
+    document.getElementById("count-pendentes").innerText = qtdPendentes;
+    document.getElementById("count-campo").innerText = qtdCampo;
+    document.getElementById("count-concluidas").innerText = qtdConcluidas;
+}
+
+async function atualizarStatus(id, novoStatus) {
+    try {
+        const token = obterTokenSeguro();
+        const response = await fetch(`${API_URL}/ordens/${id}`, {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ status: novoStatus })
+        });
+
+        if (response.ok) {
+            carregarOrdens(); 
+        } else {
+            alert("Falha ao atualizar status. Código: " + response.status);
+        }
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+// Inicialização segura do Polling automático
+carregarOrdens();
+const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
+loopDeAtualizacao = setInterval(carregarOrdens, taxaRefresh);
 
     </script>
 </body>
