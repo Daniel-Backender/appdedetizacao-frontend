@@ -1,566 +1,394 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PestControlX - Painel de Solicitações</title>
+    <title>PestControlX - Painel de Controle</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
     <style>
         :root {
-            --bg-principal: #0b0f19;
-            --bg-card: #131c2e;
-            --neon-verde: #3DDC84;
-            --neon-azul: #00e5ff;
-            --neon-rosa: #ff007f;
-            --texto-claro: #f4f6f7;
-            --texto-mutado: #7a8b9e;
-            --borda-glow: rgba(61, 220, 132, 0.2);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            --bg-backend: #0a0f1d;
+            --surface: #131c31;
+            --primary: #00f0ff;
+            --primary-glow: rgba(0, 240, 255, 0.3);
+            --success: #39ff14;
+            --text: #ffffff;
+            --text-muted: #8b9bb4;
+            --border: #1e2d4a;
         }
 
         body {
-            background-color: var(--bg-principal);
-            color: var(--texto-claro);
-            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-backend);
+            color: var(--text);
+        }
+
+        .container {
             padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 2px solid var(--bg-card);
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 24px;
+        h2 {
+            color: var(--primary);
+            text-transform: uppercase;
             letter-spacing: 2px;
-            color: var(--neon-verde);
-            text-shadow: 0 0 10px rgba(61, 220, 132, 0.5);
+            text-shadow: 0 0 10px var(--primary-glow);
+            margin-bottom: 25px;
         }
 
-        /* Tabela Cyberpunk */
-        .container-tabela {
-            background: var(--bg-card);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--borda-glow);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        th {
-            background-color: rgba(25, 38, 61, 0.7);
-            font-family: 'Orbitron', sans-serif;
-            color: var(--neon-azul);
-            padding: 15px;
-            font-size: 13px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        td {
-            padding: 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-size: 14px;
-        }
-
-        tr:hover {
-            background-color: rgba(61, 220, 132, 0.03);
-        }
-
-        .badge-status {
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            display: inline-block;
-            text-transform: uppercase;
-        }
-
-        .status-pendente {
-            background: rgba(255, 152, 0, 0.15);
-            color: #ff9800;
-            border: 1px solid #ff9800;
-        }
-
-        /* Botões de Ação */
-        .btn-acao {
-            background: transparent;
-            border: 1px solid var(--neon-azul);
-            color: var(--neon-azul);
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s ease;
-            margin-right: 5px;
-        }
-
-        .btn-acao:hover {
-            background: var(--neon-azul);
-            color: var(--bg-principal);
-            box-shadow: 0 0 12px var(--neon-azul);
-        }
-
-        .btn-chat {
-            border-color: var(--neon-verde);
-            color: var(--neon-verde);
-        }
-
-        .btn-chat:hover {
-            background: var(--neon-verde);
-            color: var(--bg-principal);
-            box-shadow: 0 0 12px var(--neon-verde);
-        }
-
-        /* Grid Central da Central de Comunicação Separada */
-        .hub-comunicacao {
+        /* Estrutura de colunas */
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: 1xl 1fr;
+            grid-template-columns: 2fr 1fr;
             gap: 20px;
-            margin-top: 20px;
         }
 
-        @media (min-width: 992px) {
-            .hub-comunicacao {
-                grid-template-columns: 1fr 1fr;
-            }
+        @media (max-width: 1024px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
         }
 
-        .caixa-chat {
-            background: var(--bg-card);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            flex-direction: column;
-            height: 450px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        .kanban-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
         }
 
-        /* Chat Cliente: Verde Neon | Chat Técnico: Azul Neon */
-        .chat-cliente { border-top: 4px solid var(--neon-verde); }
-        .chat-tecnico { border-top: 4px solid var(--neon-azul); }
-
-        .chat-header {
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .chat-header h3 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chat-corpo {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.15);
-        }
-
-        .balao-msg {
-            max-width: 75%;
-            padding: 10px 14px;
+        .kanban-column {
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 8px;
-            font-size: 13.5px;
-            line-height: 1.4;
+            padding: 15px;
+            min-height: 500px;
         }
 
-        .msg-recebida {
-            background: rgba(255, 255, 255, 0.06);
-            align-self: flex-start;
-            border-left: 3px solid var(--texto-mutado);
-        }
-
-        .msg-enviada-cliente {
-            background: rgba(61, 220, 132, 0.15);
-            color: #fff;
-            align-self: flex-end;
-            border-right: 3px solid var(--neon-verde);
-        }
-
-        .msg-enviada-tecnico {
-            background: rgba(0, 229, 255, 0.15);
-            color: #fff;
-            align-self: flex-end;
-            border-right: 3px solid var(--neon-azul);
-        }
-
-        .chat-footer {
-            padding: 12px;
+        .column-header {
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--border);
             display: flex;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            justify-content: space-between;
         }
 
-        .chat-footer input {
-            flex: 1;
-            background: var(--bg-principal);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
-            border-radius: 6px;
-            color: white;
-            font-size: 13px;
-        }
-
-        .chat-footer input:focus {
-            outline: none;
-            border-color: var(--neon-azul);
-        }
-
-        .btn-enviar {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .chat-cliente .btn-enviar:hover {
-            background: var(--neon-verde);
-            color: var(--bg-principal);
-            border-color: var(--neon-verde);
-        }
-
-        .chat-tecnico .btn-enviar:hover {
-            background: var(--neon-azul);
-            color: var(--bg-principal);
-            border-color: var(--neon-azul);
-        }
-        
-        .info-selecionado {
+        .badge {
+            background: var(--border);
+            padding: 2px 8px;
+            border-radius: 20px;
             font-size: 12px;
-            color: var(--texto-mutado);
+            color: var(--primary);
+        }
+
+        /* Cards do Kanban estilo Neon Industrial */
+        .os-card {
+            background: #1a2642;
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .os-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 8px var(--primary-glow);
+        }
+
+        .os-action-btn {
+            width: 100%;
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 6px;
+            border-radius: 4px;
+            margin-top: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .os-action-btn:hover {
+            background: var(--primary);
+            color: #000;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Seção Lateral do Mapa GPS */
+        .gps-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+        }
+
+        #map {
+            width: 100%;
+            height: 350px;
+            border-radius: 6px;
+            background: #000;
+            border: 1px solid var(--border);
+        }
+
+        .gps-status {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 8px;
+            background: #1a2642;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div>
-            <h1>PestControlX // Central de Chamados</h1>
-            <p style="color: var(--texto-mutado); font-size: 13px; margin-top: 4px;">Gerenciamento assíncrono e canais dedicados de WebSocket</p>
-        </div>
-        <div style="font-size: 13px; color: var(--neon-verde)">
-            <i class="fa-solid fa-circle-dot animate-pulse"></i> Servidor Online (Render)
-        </div>
-    </header>
+    <div class="container">
+        <h2><i class="fa-solid fa-satellite-dish"></i> Painel Operacional X-Pipeline</h2>
 
-    <div class="container-tabela">
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente / Local</th>
-                    <th>Data Agendada</th>
-                    <th>Status</th>
-                    <th>Ações Estruturais</th>
-                </tr>
-            </thead>
-            <tbody id="tabela-solicitacoes">
-                <tr>
-                    <td colspan="5" style="text-align: center; color: var(--texto-mutado);">Carregando dados das ordens...</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="dashboard-grid">
+            
+            <div class="kanban-board">
+                <div class="kanban-column">
+                    <div class="column-header">Pendentes <span class="badge" id="count-pendentes">0</span></div>
+                    <div id="col-pendentes"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="column-header">Em Campo <span class="badge" id="count-campo">0</span></div>
+                    <div id="col-campo"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="column-header">Concluídas <span class="badge" id="count-concluidas">0</span></div>
+                    <div id="col-concluidas"></div>
+                </div>
+            </div>
+
+            <div class="gps-panel">
+                <div class="column-header"><i class="fa-solid fa-map-location-dot"></i> Rastreamento Técnico (GPS)</div>
+                <div id="map"></div>
+                <div class="gps-status" id="status-gps">
+                    <i class="fa-solid fa-circle-info"></i> Clique em um card em andamento para interceptar o sinal do GPS.
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <h2 font-family="Orbitron" style="font-size: 16px; margin-bottom: 15px; letter-spacing: 1px; color: var(--neon-azul);">
-        <i class="fa-solid fa-comments"></i> PIPELINES DE CHAT SEPARADOS (TEMPO REAL)
-    </h2>
-
-    <div class="hub-comunicacao">
-        
-        <div class="caixa-chat chat-cliente">
-            <div class="chat-header">
-                <h3><i class="fa-solid fa-user-tie" style="color: var(--neon-verde)"></i> CANAL: CHAT CLIENTE</h3>
-                <span class="info-selecionado" id="label-cliente-id">Nenhum cliente selecionado</span>
-            </div>
-            <div class="chat-corpo" id="corpo-chat-cliente">
-                <div class="balao-msg msg-recebida">Selecione uma ordem acima para abrir o histórico do cliente.</div>
-            </div>
-            <div class="chat-footer">
-                <input type="text" id="input-msg-cliente" placeholder="Escrever para o cliente..." disabled>
-                <button class="btn-enviar" id="btn-enviar-cliente" onclick="enviarMensagemCliente()" disabled>
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-
-        <div class="caixa-chat chat-tecnico">
-            <div class="chat-header">
-                <h3><i class="fa-solid fa-helmet-safety" style="color: var(--neon-azul)"></i> CANAL: CHAT TÉCNICO</h3>
-                <span class="info-selecionado" id="label-tecnico-id">Nenhum técnico vinculado</span>
-            </div>
-            <div class="chat-corpo" id="corpo-chat-tecnico">
-                <div class="balao-msg msg-recebida">Selecione uma ordem acima para se comunicar com o técnico responsável.</div>
-            </div>
-            <div class="chat-footer">
-                <input type="text" id="input-msg-tecnico" placeholder="Enviar instrução técnica..." disabled>
-                <button class="btn-enviar" id="btn-enviar-tecnico" onclick="enviarMensagemTecnico()" disabled>
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
-        </div>
-
-    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <script>
-        const API_BASE_URL = "https://appdedetizacao.onrender.com/api";
-        const WS_URL = "https://appdedetizacao.onrender.com/ws-pestcontrol";
-
-        // IDs mockados da sessão da empresa logada no site
-        const EMPRESA_ID = 1; 
-        
-        // Estados ativos selecionados ao clicar nas linhas
-        let clienteIdAtivo = null;
-        let tecnicoIdAtivo = null;
-        let ordemIdAtiva = null;
-
+        const API_URL = "https://appdedetizacao.onrender.com/api";
+        let loopDeAtualizacao; 
         let stompClient = null;
+        let map = null;
+        let tecnicoMarker = null;
+        let inscricaoAtualGps = null;
 
-        // Executar ao carregar a página
-        window.onload = function() {
-            carregarSolicitacoes();
-            conectarWebSocket();
-        };
+        // Inicializa o Mapa Leaflet com visualização padrão do Brasil
+        function inicializarMapa() {
+            map = L.map('map').setView([-23.55052, -46.633308], 12); // Padrão SP
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+        }
 
-        // 1. Busca as Solicitações/Ordens pendentes do Backend
-        function carregarSolicitacoes() {
-            fetch(`${API_BASE_URL}/solicitacoes`)
-                .then(response => response.json())
-                .then(dados => {
-                    const tbody = document.getElementById("tabela-solicitacoes");
-                    tbody.innerHTML = "";
+        function obterTokenSeguro() {
+            return localStorage.getItem("token") || localStorage.getItem("tokenJWT");
+        }
 
-                    if(dados.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Nenhuma solicitação encontrada no momento.</td></tr>`;
-                        return;
-                    }
+        function obterIdEmpresaLogada() {
+            return localStorage.getItem("empresaId") || "1"; 
+        }
 
-                    dados.forEach(item => {
-                        // Extrai dados tratando nulos com elegância
-                        const id = item.id;
-                        const nomeCliente = item.cliente ? item.cliente.nome : "Solicitação Web/Sem Nome";
-                        const idCliente = item.cliente ? item.cliente.id : null;
-                        const idTecnico = item.funcionario ? item.funcionario.id : null;
-                        const dataAgendada = item.dataAgendamento || "Não informada";
-                        const status = item.status || "PENDENTE";
+        // Conecta ao canal do WebSocket para escutar o GPS do técnico selecionado
+        function conectarRastreamentoGps(ordemId) {
+            // Se já existia uma escuta ativa, cancela para não duplicar consumo de memória
+            if (inscricaoAtualGps) {
+                inscricaoAtualGps.unsubscribe();
+                inscricaoAtualGps = null;
+            }
 
-                        tbody.innerHTML += `
-                            <tr>
-                                <td style="font-family: 'Orbitron'; font-weight: bold; color: var(--neon-azul);">${id}</td>
-                                <td>${nomeCliente}</td>
-                                <td><i class="fa-regular fa-calendar"></i> ${dataAgendada}</td>
-                                <td><span class="badge-status status-pendente">${status}</span></td>
-                                mini-botoes
-                                <td>
-                                    <button class="btn-acao btn-chat" onclick="abrirCanaisComunicacao(${id}, ${idCliente}, ${idTecnico}, '${nomeCliente}')">
-                                        <i class="fa-solid fa-comments"></i> Abrir Chats
-                                    </button>
-                                    <button class="btn-acao" onclick="aprovarChamado(${id}, ${idCliente})">
-                                        <i class="fa-solid fa-square-check"></i> Aprovar
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                })
-                .catch(err => {
-                    console.error("Erro ao listar chamados:", err);
-                    document.getElementById("tabela-solicitacoes").innerHTML = `<tr><td colspan="5" style="color: var(--neon-rosa); text-align: center;">Falha na comunicação com a API Render.</td></tr>`;
+            const statusTxt = document.getElementById("status-gps");
+            statusTxt.innerHTML = `<i class="fa-solid fa-spinner fa-spin" style="color: var(--primary)"></i> Conectando ao sinal da OS #${ordemId}...`;
+
+            if (!stompClient) {
+                const socket = new SockJS('https://appdedetizacao.onrender.com/ws-pestcontrol-sockjs');
+                stompClient = Stomp.over(socket);
+                // Oculta logs poluídos no console do navegador
+                stompClient.debug = null; 
+            }
+
+            if (!stompClient.connected) {
+                stompClient.connect({}, function () {
+                    escutarCanalGps(ordemId);
+                }, function(erro) {
+                    console.error("Erro WebSocket:", erro);
+                    statusTxt.innerText = "❌ Falha ao se conectar com o servidor de satélites.";
                 });
+            } else {
+                escutarCanalGps(ordemId);
+            }
         }
 
-        // 2. Configura os IDs ativos na tela e divide o carregamento dos históricos
-        function abrirCanaisComunicacao(ordemId, clienteId, tecnicoId, nomeCliente) {
-            ordemIdAtiva = ordemId;
-            clienteIdAtivo = clienteId;
-            tecnicoIdAtivo = tecnicoId ? tecnicoId : 999; // Fallback caso técnico não esteja assinado
-
-            // Libera inputs do footer
-            document.getElementById("input-msg-cliente").disabled = false;
-            document.getElementById("btn-enviar-cliente").disabled = false;
-            document.getElementById("input-msg-tecnico").disabled = false;
-            document.getElementById("btn-enviar-tecnico").disabled = false;
-
-            // Altera Labels informativas superiores
-            document.getElementById("label-cliente-id").innerText = `Cliente: ${nomeCliente} (ID: ${clienteId})`;
-            document.getElementById("label-tecnico-id").innerText = tecnicoId ? `Técnico Vinculado ID: ${tecnicoId}` : `Técnico Temporário (ID: 999)`;
-
-            // Carrega históricos de forma completamente separada e isolada
-            buscarHistoricoCliente();
-            buscarHistoricoTecnico();
-        }
-
-        // 3. Carrega mensagens salvas do CLIENTE no banco de dados
-        function buscarHistoricoCliente() {
-            if (!clienteIdAtivo) return;
+        function escutarCanalGps(ordemId) {
+            const statusTxt = document.getElementById("status-gps");
             
-            // Endpoint correspondente ao seu obterHistorico do MensagemController
-            fetch(`${API_BASE_URL}/mensagens/historico?user1=${EMPRESA_ID}&user2=${clienteIdAtivo}`)
-                .then(res => res.json())
-                .then(mensagens => {
-                    const corpo = document.getElementById("corpo-chat-cliente");
-                    corpo.innerHTML = "";
-                    
-                    if(mensagens.length === 0) {
-                        corpo.innerHTML = `<div class="balao-msg msg-recebida">Nenhuma mensagem anterior com o cliente.</div>`;
-                    }
+            inscricaoAtualGps = stompClient.subscribe(`/topic/gps/${ordemId}`, function (respostaGps) {
+                const dadosGps = JSON.parse(respostaGps.body);
+                const { latitude, longitude } = dadosGps;
 
-                    mensagens.forEach(msg => {
-                        const classeMsg = (msg.remetenteId == EMPRESA_ID) ? 'msg-enviada-cliente' : 'msg-recebida';
-                        corpo.innerHTML += `<div class="balao-msg ${classeMsg}">${msg.conteudo}</div>`;
-                    });
-                    corpo.scrollTop = corpo.scrollHeight;
-                });
+                statusTxt.innerHTML = `<span style="color: var(--success)"><i class="fa-solid fa-satellite"></i> Sinal Online! Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}</span>`;
+
+                const novaPosicao = [latitude, longitude];
+                
+                if (!tecnicoMarker) {
+                    tecnicoMarker = L.marker(novaPosicao).addTo(map)
+                        .bindPopup(`<b>Técnico na OS #${ordemId}</b>`).openPopup();
+                } else {
+                    tecnicoMarker.setLatLng(novaPosicao);
+                }
+                map.setView(novaPosicao, 16); // Dá zoom direto no técnico em movimento
+            });
+
+            statusTxt.innerHTML = `<i class="fa-solid fa-satellite"></i> Escutando telemetria da OS #${ordemId}. Aguardando coordenadas...`;
         }
 
-        // 4. Carrega mensagens salvas do TÉCNICO no banco de dados
-        function buscarHistoricoTecnico() {
-            if (!tecnicoIdAtivo) return;
-
-            // Consulta separada mudando o id de destino para o técnico logado no app móvel
-            fetch(`${API_BASE_URL}/mensagens/historico?user1=${EMPRESA_ID}&user2=${tecnicoIdAtivo}`)
-                .then(res => res.json())
-                .then(mensagens => {
-                    const corpo = document.getElementById("corpo-chat-tecnico");
-                    corpo.innerHTML = "";
-
-                    if(mensagens.length === 0) {
-                        corpo.innerHTML = `<div class="balao-msg msg-recebida">Nenhuma instrução enviada a este técnico ainda.</div>`;
-                    }
-
-                    mensagens.forEach(msg => {
-                        const classeMsg = (msg.remetenteId == EMPRESA_ID) ? 'msg-enviada-tecnico' : 'msg-recebida';
-                        corpo.innerHTML += `<div class="balao-msg ${classeMsg}">${msg.conteudo}</div>`;
-                    });
-                    corpo.scrollTop = corpo.scrollHeight;
-                });
-        }
-
-        // 5. Conecta no MessageBroker do Spring Boot
-        function conectarWebSocket() {
-            const socket = new SockJS(WS_URL);
-            stompClient = Stomp.over(socket);
+        async function carregarOrdens() {
+            const token = obterTokenSeguro();
+            const empresaId = obterIdEmpresaLogada();
             
-            // Oculta logs poluídos no console do navegador
-            stompClient.debug = null;
+            if (!token) {
+                alert("Sessão expirada. Por favor, refaça o login.");
+                window.location.href = 'index.html';
+                return;
+            }
 
-            stompClient.connect({}, function (frame) {
-                console.log("🚀 Conexão STOMP estabelecida com sucesso no front-end!");
-
-                // Escuta o canal geral de chat em tempo real mapeado na Ordem de Serviço
-                stompClient.subscribe('/topic/chat/#', function (mensagemOutput) {
-                    const msg = JSON.parse(mensagemOutput.body);
-                    
-                    // Tratamento dinâmico para decidir para qual caixa de chat empurrar em tempo real
-                    if(msg.clienteId && msg.clienteId == clienteIdAtivo) {
-                        renderizarNovaMsgAoVivo("corpo-chat-cliente", msg.conteudo, (msg.remetenteId == EMPRESA_ID) ? 'msg-enviada-cliente' : 'msg-recebida');
-                    } else if (msg.funcionarioId && msg.funcionarioId == tecnicoIdAtivo) {
-                        renderizarNovaMsgAoVivo("corpo-chat-tecnico", msg.conteudo, (msg.remetenteId == EMPRESA_ID) ? 'msg-enviada-tecnico' : 'msg-recebida');
+            try {
+                const response = await fetch(`${API_URL}/ordens/empresa/${empresaId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`, 
+                        'Content-Type': 'application/json'
                     }
                 });
-            }, function(err) {
-                console.error("Erro de conexão WebSocket, tentando reconectar em 5s...", err);
-                setTimeout(conectarWebSocket, 5000);
+
+                if (response.status === 401) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                if (!response.ok) throw new Error(`Erro: ${response.status}`);
+                const ordens = await response.json();
+                renderizarKanban(ordens);
+
+            } catch (error) {
+                console.error("❌ Erro ao buscar ordens:", error);
+            }
+        }
+
+        function renderizarKanban(ordens) {
+            const colPendentes = document.getElementById("col-pendentes");
+            const colCampo = document.getElementById("col-campo");
+            const colConcluidas = document.getElementById("col-concluidas");
+
+            colPendentes.innerHTML = "";
+            colCampo.innerHTML = "";
+            colConcluidas.innerHTML = "";
+
+            let qtdPendentes = 0, qtdCampo = 0, qtdConcluidas = 0;
+
+            ordens.forEach(os => {
+                const card = document.createElement("div");
+                card.className = "os-card";
+                
+                // CORREÇÃO DA DESCRIÇÃO: Como não há o campo os.descricao no seu Java, extraímos do objeto Servico integrado!
+                const nomeCliente = os.cliente ? os.cliente.nome : "Cliente Consumidor";
+                const detalheServico = os.servico ? `${os.servico.nome} (${os.servico.descricao || ''})` : "Serviço Geral de Dedetização";
+
+                card.innerHTML = `
+                    <div style="font-weight: bold; font-size: 14px; margin-bottom: 6px;">OS #${os.id} - ${nomeCliente}</div>
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;"><i class="fa-solid fa-bug"></i> ${detalheServico}</div>
+                    <div style="font-size: 11px; color: var(--primary);"><i class="fa-solid fa-calendar-days"></i> Agendado: ${os.dataAgendamento || 'Hoje'}</div>
+                `;
+
+                const statusLimpo = os.status ? os.status.toUpperCase() : "PENDENTE";
+
+                if (statusLimpo === "PENDENTE") {
+                    card.innerHTML += `<button class="os-action-btn" onclick="event.stopPropagation(); atualizarStatus(${os.id}, 'EM_ANDAMENTO')">Aprovar Chamado</button>`;
+                    colPendentes.appendChild(card);
+                    qtdPendentes++;
+                } else if (statusLimpo === "EM_ANDAMENTO" || statusLimpo === "EM ATENDIMENTO") {
+                    // Ao clicar no card em andamento, liga a antena do GPS!
+                    card.setAttribute("onclick", `conectarRastreamentoGps(${os.id})`);
+                    card.style.borderLeftColor = "var(--success)";
+                    card.innerHTML += `<button class="os-action-btn" style="border-color: var(--success); color: var(--success)" onclick="event.stopPropagation(); atualizarStatus(${os.id}, 'CONCLUIDA')">Finalizar Serviço</button>`;
+                    colCampo.appendChild(card);
+                    qtdCampo++;
+                } else if (statusLimpo === "CONCLUIDA" || statusLimpo === "CONCLUÍDA") {
+                    card.style.borderLeftColor = "var(--text-muted)";
+                    colConcluidas.appendChild(card);
+                    qtdConcluidas++;
+                }
             });
+
+            document.getElementById("count-pendentes").innerText = qtdPendentes;
+            document.getElementById("count-campo").innerText = qtdCampo;
+            document.getElementById("count-concluidas").innerText = qtdConcluidas;
         }
 
-        function renderizarNovaMsgAoVivo(idContainer, texto, classeEstilo) {
-            const container = document.getElementById(idContainer);
-            container.innerHTML += `<div class="balao-msg ${classeEstilo}">${texto}</div>`;
-            container.scrollTop = container.scrollHeight;
+        async function atualizarStatus(ordemId, novoStatus) {
+            const token = obterTokenSeguro(); 
+            try {
+                // 1. Puxa o payload completo estruturado do banco para evitar corrupção de dados nulos
+                const buscarOrdemRes = await fetch(`${API_URL}/ordens/${ordemId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!buscarOrdemRes.ok) return;
+                const ordemCompleta = await buscarOrdemRes.json();
+
+                // 2. Transiciona estritamente o Status do Kanban
+                ordemCompleta.status = novoStatus;
+
+                // 3. Devolve para a API processar as automações de chat e push
+                const response = await fetch(`${API_URL}/ordens/${ordemId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(ordemCompleta)
+                });
+
+                if (!response.ok) {
+                    alert("Erro ao salvar alteração no painel.");
+                    return;
+                }
+
+                alert("Ordem de serviço movida com sucesso!");
+                await carregarOrdens();
+
+            } catch (error) {
+                console.error("❌ Erro de conexão ao atualizar ordem:", error);
+            }
         }
 
-        // 6. Dispara post via API para persistir mensagem do cliente e acionar BOT se houver
-        function enviarMensagemCliente() {
-            const input = document.getElementById("input-msg-cliente");
-            const texto = input.value.trim();
-            if(!texto || !clienteIdAtivo) return;
-
-            const payload = {
-                remetenteId: EMPRESA_ID,
-                destinatarioId: clienteIdAtivo,
-                empresaId: EMPRESA_ID,
-                clienteId: clienteIdAtivo,
-                conteudo: texto
-            };
-
-            fetch(`${API_BASE_URL}/mensagens`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                renderizarNovaMsgAoVivo("corpo-chat-cliente", texto, "msg-enviada-cliente");
-                input.value = "";
-            });
-        }
-
-        // 7. Dispara post via API para persistir mensagem do Técnico
-        function enviarMensagemTecnico() {
-            const input = document.getElementById("input-msg-tecnico");
-            const texto = input.value.trim();
-            if(!texto || !tecnicoIdAtivo) return;
-
-            const payload = {
-                remetenteId: EMPRESA_ID,
-                destinatarioId: tecnicoIdAtivo,
-                empresaId: EMPRESA_ID,
-                conteudo: texto
-            };
-
-            fetch(`${API_BASE_URL}/mensagens`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                renderizarNovaMsgAoVivo("corpo-chat-tecnico", texto, "msg-enviada-tecnico");
-                input.value = "";
-            });
-        }
-
-        // Ação extra estruturada do Kanban
-        function aprovarChamado(ordemId, clienteId) {
-            alert(`Solicitação #${ordemId} aprovada! Disparando Push Notification FCM para o cliente.`);
-        }
+        // Inicialização global da tela
+        inicializarMapa();
+        carregarOrdens();
+        const taxaRefresh = parseInt(localStorage.getItem('kanban_refresh_rate')) || 15000;
+        loopDeAtualizacao = setInterval(carregarOrdens, taxaRefresh);
     </script>
 </body>
 </html>
