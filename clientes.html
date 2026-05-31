@@ -109,28 +109,31 @@
     let clientesGlobais = [];
 
     async function carregarClientesDoServidor() {
-        const tbody = document.getElementById("tabelaClientes");
-        if (!tbody) return;
-        tbody.innerHTML = "<tr><td colspan='3' style='text-align: center; color: #3DDC84;'>Processando requisição de rede...</td></tr>";
+    // 1. Pega o token que foi salvo no login
+    const token = localStorage.getItem('token'); 
 
-        try {
-            const response = await fetch(`${API_URL}/api/clientes/empresa/${empresaId}`, {
-                method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${token}`, 
-                    'Content-Type': 'application/json' 
-                }
-            });
-            
-            if (!response.ok) throw new Error(`Status: ${response.status}`);
-            
-            clientesGlobais = await response.json();
-            renderizarTabela(clientesGlobais);
-        } catch (error) {
-            console.error(error);
-            tbody.innerHTML = `<tr><td colspan='3' style='text-align: center; color: #ef4444;'>Sem conexão ativa com o banco PostgreSQL de nuvem.</td></tr>`;
+    try {
+        const response = await fetch('https://appdedetizacao.onrender.com/api/clientes/empresa/3', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // 2. Envia o token no formato Bearer
+                'Authorization': `Bearer ${token}` 
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Status: ${response.status}`);
         }
+
+        const data = await response.json();
+        console.log(data);
+        // ... sua lógica para renderizar os clientes
+        
+    } catch (error) {
+        console.error("Erro ao carregar clientes:", error);
     }
+}
 
     function renderizarTabela(lista) {
         const tbody = document.getElementById("tabelaClientes");
