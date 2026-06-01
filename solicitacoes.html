@@ -83,23 +83,35 @@
 </head>
 <body class="p-4 md:p-8">
 
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#21262d] pb-6 mb-8 gap-4">
-        <div>
-            <div class="flex items-center gap-3">
-                <span class="h-3 w-3 rounded-full bg-[#3DDC84] animate-ping"></span>
-                <h1 class="text-3xl font-bold tracking-wider text-white uppercase">PestControl<span class="neon-text">X</span> Central</h1>
+    <header class="flex flex-col border-b border-[#21262d] pb-6 mb-8 gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <span class="h-3 w-3 rounded-full bg-[#3DDC84] animate-ping"></span>
+                    <h1 class="text-3xl font-bold tracking-wider text-white uppercase">PestControl<span class="neon-text">X</span> Central</h1>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Pipeline de ordens de serviço & Rastreamento Satelital Ativo</p>
             </div>
-            <p class="text-xs text-gray-400 mt-1">Pipeline de ordens de serviço & Rastreamento Satelital Ativo</p>
-        </div>
-        <div class="flex gap-4 bg-[#161b22] px-4 py-2 rounded-lg border border-[#21262d]">
-            <div class="text-center px-2">
-                <span class="block text-xs text-gray-400">Pendentes</span>
-                <span id="counter-pendente" class="text-xl font-bold text-yellow-500">0</span>
+            
+            <div class="flex flex-col sm:flex-row gap-2 items-center bg-[#161b22] p-2 rounded-lg border border-[#21262d] w-full md:w-auto">
+                <div class="text-xs text-gray-400 px-2 font-bold flex items-center gap-1">
+                    🔑 <span id="token-status" class="text-red-400">JWT AUSENTE</span>
+                </div>
+                <input type="password" id="jwt-input" placeholder="Cole seu Token Bearer aqui..." 
+                       class="bg-[#0d1117] border border-[#21262d] text-xs text-gray-300 px-3 py-1.5 rounded focus:outline-none focus:border-[#3DDC84] w-full sm:w-64 transition"
+                       oninput="atualizarTokenManual(this.value)">
             </div>
-            <div class="border-l border-[#21262d] mx-2"></div>
-            <div class="text-center px-2">
-                <span class="block text-xs text-gray-400">Em Campo</span>
-                <span id="counter-andamento" class="text-xl font-bold neon-text">0</span>
+
+            <div class="flex gap-4 bg-[#161b22] px-4 py-2 rounded-lg border border-[#21262d]">
+                <div class="text-center px-2">
+                    <span class="block text-xs text-gray-400">Pendentes</span>
+                    <span id="counter-pendente" class="text-xl font-bold text-yellow-500">0</span>
+                </div>
+                <div class="border-l border-[#21262d] mx-2"></div>
+                <div class="text-center px-2">
+                    <span class="block text-xs text-gray-400">Em Campo</span>
+                    <span id="counter-andamento" class="text-xl font-bold neon-text">0</span>
+                </div>
             </div>
         </div>
     </header>
@@ -114,7 +126,7 @@
                 </h2>
                 
                 <div id="lista-solicitacoes" class="flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
-                    <p class="text-sm text-gray-500 animate-pulse text-center py-8">Buscando telemetria do servidor...</p>
+                    <p class="text-sm text-gray-500 animate-pulse text-center py-8">Aguardando injeção do Token de segurança...</p>
                 </div>
             </div>
         </section>
@@ -134,7 +146,7 @@
                 <div class="mt-4 bg-[#0d1117] border border-[#21262d] p-3 rounded-lg font-mono text-[11px] text-gray-400">
                     <span class="text-[#3DDC84] block border-b border-[#21262d] pb-1 mb-1 font-bold">📡 LOG DE TRANSMISSÃO DE COORDENADAS:</span>
                     <div id="terminal-log" class="max-h-[70px] overflow-y-auto flex flex-col-reverse">
-                        <span class="text-gray-600">> Aguardando seleção de Ordem ativa para escuta de barramento...</span>
+                        <span class="text-gray-600">> Sistema de barramento operacional. Insira as chaves JWT para iniciar.</span>
                     </div>
                 </div>
             </div>
@@ -152,10 +164,7 @@
 
         // 1. Inicialização do Mapa com Skin Dark/Cyber
         function initMap() {
-            // Focado por padrão no Brasil / Região de São Paulo
             map = L.map('map').setView([-23.45, -46.73], 12);
-            
-            // Usando Tiles Dark do CartoDB (Combina perfeitamente com o tema neon)
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap &copy; CARTO',
                 subdomains: 'abcd',
@@ -163,14 +172,59 @@
             }).addTo(map);
         }
 
-        // 2. Carregar e Renderizar os Dados corrigindo o Bug da Descrição Vazia
+        // Recupera o token do LocalStorage ou do campo de input da tela
+        function obterTokenAutenticacao() {
+            const inputToken = document.getElementById("jwt-input").value.trim();
+            if (inputToken) return inputToken;
+            
+            // Tenta resgatar o token que o app ou login web salvou por padrão
+            return localStorage.getItem("token") || localStorage.getItem("jwt") || "";
+        }
+
+        function atualizarTokenManual(valor) {
+            const statusLabel = document.getElementById("token-status");
+            if (valor.trim().length > 10) {
+                localStorage.setItem("token", valor.trim());
+                statusLabel.innerText = "JWT INJETADO";
+                statusLabel.className = "text-[#3DDC84] font-bold";
+                carregarSolicitacoes(); // Auto-recarrega os dados
+            } else {
+                statusLabel.innerText = "JWT AUSENTE";
+                statusLabel.className = "text-red-400 font-bold";
+            }
+        }
+
+        // 2. Carregar e Renderizar os Dados COM TOKENS NO CABEÇALHO
         async function carregarSolicitacoes() {
+            const token = obterTokenAutenticacao();
+            const container = document.getElementById("lista-solicitacoes");
+
+            if (!token) {
+                container.innerHTML = `
+                    <div class="text-center py-8 px-4 border border-dashed border-red-500/30 rounded-lg bg-red-500/5">
+                        <p class="text-xs text-red-400 font-bold uppercase mb-2">Acesso Negado pelo Backend (Erro 401)</p>
+                        <p class="text-[11px] text-gray-400">Por favor, cole o token gerado pelo login no campo de autenticação no topo superior direito da tela.</p>
+                    </div>`;
+                return;
+            }
+
             try {
-                const response = await fetch(`${API_BASE_URL}/api/solicitacoes`);
-                if (!response.isSuccessful && response.status !== 200) throw new Error("Erro de rede");
-                const ordens = await response.json();
+                // 🚀 ADICIONADO: Configuração dos headers com o Bearer Token necessário
+                const response = await fetch(`${API_BASE_URL}/api/solicitacoes`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
                 
-                const container = document.getElementById("lista-solicitacoes");
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error("TOKEN_INVALIDO");
+                }
+                
+                if (!response.ok) throw new Error("ERRO_DE_REDE");
+                
+                const ordens = await response.json();
                 container.innerHTML = "";
 
                 if (ordens.length === 0) {
@@ -184,12 +238,10 @@
                     if (ordem.status === 'PENDENTE') pendentes++;
                     if (ordem.status === 'ACEITO' || ordem.status === 'EM_ANDAMENTO') emAndamento++;
 
-                    // CORREÇÃO DO BUG: Busca o nome do serviço associado ou cai na string de fallback
                     const descricaoServico = ordem.servico ? ordem.servico.nome : (ordem.descricao || "Serviço Geral de Dedetização");
                     const nomeCliente = ordem.cliente ? ordem.cliente.nome : "Cliente Não Informado";
                     const dataAgendada = ordem.dataAgendamento || "Data flexível";
 
-                    // Definir classes de badges baseadas no status
                     let statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">PENDENTE</span>`;
                     let trackingBtn = '';
 
@@ -223,13 +275,20 @@
 
             } catch (error) {
                 console.error("Falha ao sincronizar dados:", error);
-                document.getElementById("lista-solicitacoes").innerHTML = `<p class="text-sm text-red-400 text-center py-6">Falha crítica ao conectar com a API Render.</p>`;
+                if (error.message === "TOKEN_INVALIDO") {
+                    container.innerHTML = `
+                        <div class="text-center py-8 px-4 border border-dashed border-red-500/30 rounded-lg bg-red-500/5">
+                            <p class="text-xs text-red-400 font-bold uppercase mb-2">Sessão Expirada ou Token Inválido</p>
+                            <p class="text-[11px] text-gray-400">O backend recusou a chave. Atualize com um novo Token JWT válido.</p>
+                        </div>`;
+                } else {
+                    container.innerHTML = `<p class="text-sm text-red-400 text-center py-6">Falha crítica ao conectar com a API Render.</p>`;
+                }
             }
         }
 
         // 3. Conexão Dinâmica ao Pipeline do WebSocket para GPS
         function conectarRastreamento(idOrdem) {
-            // Atualizar UI dos Cards Ativos
             if (activeTrackingId) {
                 document.getElementById(`card-os-${activeTrackingId}`)?.classList.remove('active');
             }
@@ -237,7 +296,6 @@
             document.getElementById(`card-os-${idOrdem}`)?.classList.add('active');
             document.getElementById("os-tracking-id").innerText = `[ MONITORANDO OS #${idOrdem} ]`;
 
-            // Se já houver uma conexão aberta, desliga o canal anterior
             if (stompClient && stompClient.connected) {
                 stompClient.disconnect(() => {
                     logTerminal(`Conexão anterior encerrada. Pivotando para nova OS #${idOrdem}`);
@@ -255,16 +313,19 @@
 
             const socket = new SockJS(`${API_BASE_URL}/ws/websocket`);
             stompClient = Stomp.over(socket);
-            
-            // Oculta logs internos do Stomp no console comum para não poluir
             stompClient.debug = null;
 
-            stompClient.connect({}, function (frame) {
+            // 🚀 PASSANDO O TOKEN TAMBÉM NOS HEADERS DE CONEXÃO DO STOMP (MUITO IMPORTANTE!)
+            const token = obterTokenAutenticacao();
+            const headers = {
+                "Authorization": `Bearer ${token}`
+            };
+
+            stompClient.connect(headers, function (frame) {
                 document.getElementById("ws-status").innerText = "SINAL ATIVO";
                 document.getElementById("ws-status").className = "text-[#3DDC84] font-bold";
                 logTerminal(`Pipeline linkado com sucesso para OS #${idOrdem}`);
 
-                // Inscrição no canal específico configurado no seu OrdemDeServicoController
                 stompClient.subscribe(`/topic/gps/${idOrdem}`, function (response) {
                     try {
                         const dadosGps = JSON.parse(response.body);
@@ -272,7 +333,7 @@
                     } catch (e) {
                         logTerminal(`Erro ao processar payload de coordenadas.`);
                     }
-                });
+                }, headers);
             }, function (error) {
                 document.getElementById("ws-status").innerText = "QUEDA DE SINAL";
                 document.getElementById("ws-status").className = "text-red-500 font-bold";
@@ -280,29 +341,25 @@
             });
         }
 
-        // 4. Plotar no Mapa e animar transição
         function atualizarPosicaoMapa(lat, lng, idOrdem) {
-            const posicao = [lat, lng];
+            const Glen = [lat, lng];
             logTerminal(`Coordenadas recebidas via satélite: Lat ${lat.toFixed(5)} | Lng ${lng.toFixed(5)}`);
 
-            // Ícone Customizado Neon Green Pulse
             const pulseIcon = L.divIcon({
                 className: 'gps-pulse-icon',
                 iconSize: [16, 16]
             });
 
             if (currentMarker) {
-                currentMarker.setLatLng(posicao);
+                currentMarker.setLatLng(Glen);
             } else {
-                currentMarker = L.marker(posicao, { icon: pulseIcon }).addTo(map);
+                currentMarker = L.marker(Glen, { icon: pulseIcon }).addTo(map);
             }
 
-            // Centraliza o mapa suavemente na localização do técnico
-            map.flyTo(posicao, 16, { animate: true, duration: 1.5 });
+            map.flyTo(Glen, 16, { animate: true, duration: 1.5 });
             currentMarker.bindPopup(`<b class="text-black">Técnico PestControlX</b><br>Monitorando OS #${idOrdem}`).openPopup();
         }
 
-        // Auxiliar: Printar logs no terminal interno
         function logTerminal(mensagem) {
             const logBox = document.getElementById("terminal-log");
             const timestamp = new Date().toLocaleTimeString();
@@ -312,11 +369,20 @@
             logBox.insertBefore(logItem, logBox.firstChild);
         }
 
-        // Inicialização ao carregar a página
+        // Inicialização automática verificando tokens pré-existentes
         window.onload = () => {
             initMap();
+            
+            // Verifica se já existe token salvo de telas de login passadas
+            const tokenSalvo = localStorage.getItem("token") || localStorage.getItem("jwt");
+            if (tokenSalvo) {
+                document.getElementById("jwt-input").value = tokenSalvo;
+                const statusLabel = document.getElementById("token-status");
+                statusLabel.innerText = "JWT RESTAURADO";
+                statusLabel.className = "text-[#3DDC84] font-bold";
+            }
+            
             carregarSolicitacoes();
-            // Polling de segurança a cada 30 segundos para atualizar novas solicitações de clientes
             setInterval(carregarSolicitacoes, 30000);
         };
     </script>
